@@ -779,46 +779,6 @@ void WallpaperProcessor::computeMoodPalettes(const QImage &image)
         return QColor::fromHslF(h, s, l);
     };
 
-    // Helper: generate a gradient pair from two bin indices
-    auto makePair = [&](int binA, int binB, bool forceAnalogous) -> QPair<QColor,QColor> {
-        QColor colorA = binColor(binA, 0.50f, 0.50f);
-        float hueA = (binA + 0.5f) / HUE_BINS;
-        float hueB;
-        if (binB >= 0 && hueWeight[binB] > 1.0 && !forceAnalogous) {
-            hueB = (binB + 0.5f) / HUE_BINS;
-            // Blend toward key for natural secondary
-            float hD = hK - hueB;
-            if (hD > 0.5f) hD -= 1.0f;
-            if (hD < -0.5f) hD += 1.0f;
-            hueB = fmod(hueB + hD * 0.2f + 1.0f, 1.0f);
-        } else {
-            // 30° analogous shift
-            hueB = fmod(hueA + 1.0f / 12.0f, 1.0f);
-        }
-        float sB = qBound(0.30f, (colorA.hslSaturationF() + sK) * 0.45f, 0.65f);
-        float lB = qBound(0.40f, colorA.lightnessF() + 0.15f, 0.78f);
-        QColor colorB = QColor::fromHslF(hueB, sB, lB);
-        // Failsafe: spread if too close
-        float spread = qAbs(colorB.hslHueF() - colorA.hslHueF());
-        if (spread > 0.5f) spread = 1.0f - spread;
-        if (spread < 0.014f)
-            colorB = QColor::fromHslF(fmod(hueA + 1.0f / 12.0f, 1.0f), sB, lB);
-        return {colorA, colorB};
-    };
-
-    // Helper: find best bin matching a predicate (default = fallback)
-    auto pickBin = [&](const std::function<bool(int)> &pred, int fallback) -> int {
-        double bestW = 0;
-        int best = fallback;
-        for (int i = 0; i < HUE_BINS; ++i) {
-            if (hueWeight[i] > 0 && pred(i) && hueWeight[i] > bestW) {
-                bestW = hueWeight[i];
-                best = i;
-            }
-        }
-        return best;
-    };
-
     // ── Compute all 6 mood palettes ──────────────────────────────────────
 
     // Mood 0: Auto (top-2 weighted bins, current algorithm)
@@ -850,85 +810,126 @@ void WallpaperProcessor::computeMoodPalettes(const QImage &image)
         m_moodColorsA[0] = autoA;
         m_moodColorsB[0] = autoB;
 
-        // Mood 1: Soft — bins closest to medium sat/light
+        // ── Helper: pick robust bin with character-preserving fallback ──
+        // If no bin matches the predicate, return sentinel so caller
+        // transforms best1 to fit the mood's character.
+        auto pickMoodBin = [&](const std::function<bool(int)> &pred) -> int {
+            for (int i = 0; i < HUE_BINS; ++i)
+                if (hueWeight[i] > 0 && pred(i)) return i;
+            return -1;
+        };
+
+        // ── Mood 1: Soft — mid-sat, mid-light ──
         {
-            double bestScore = 0;
-            int sb = 0;
+            int sb = pickMoodBin([&](int i){
+                float s = hueSat[i]/hueWeight[i];
+                float l = hueLight[i]/hueWeight[i];
+                return s >= 0.25f && s <= 0.60f && l >= 0.35f && l <= 0.70f;
+            });
+            float h = (sb >= 0)
+                ? ((sb + 0.5f) / HUE_BINS)
+                : ((best1 + 0.5f) / HUE_BINS);
+            float sV = qBound(0.28f,
+                (sb >= 0) ? hueSat[sb]/hueWeight[sb] : 0.40f,
+                0.48f);
+            float lV = qBound(0.38f,
+                (sb >= 0) ? hueLight[sb]/hueWeight[sb] : 0.52f,
+                0.62f);
+            m_moodColorsA[1] = QColor::fromHslF(h, sV, lV);
+            m_moodColorsB[1] = QColor::fromHslF(
+                fmod(h + 1.0f/12.0f, 1.0f),
+                qBound(0.22f, sV*0.85f, 0.40f),
+                qBound(0.48f, lV+0.10f, 0.72f));
+        }
+
+        // ── Mood 2: Vivid — highest sat×light ──
+        {
+            int vb = best1;
+            double vs = -1;
             for (int i = 0; i < HUE_BINS; ++i) {
                 if (hueWeight[i] <= 0) continue;
-                float s = hueSat[i] / hueWeight[i];
-                float l = hueLight[i] / hueWeight[i];
-                double score = 1.0 / (1.0 + qAbs(s - 0.40f) * 4.0 + qAbs(l - 0.55f) * 4.0);
-                if (score > bestScore) { bestScore = score; sb = i; }
+                double sc = (hueSat[i]/hueWeight[i]) * (hueLight[i]/hueWeight[i]);
+                if (sc > vs) { vs = sc; vb = i; }
             }
-            auto pair = makePair(sb, -1, true);
-            m_moodColorsA[1] = qBound(0.35f, pair.first.hslSaturationF(), 0.60f) > 0 ? pair.first : QColor::fromHslF(pair.first.hslHueF(), 0.45f, 0.55f);
-            m_moodColorsB[1] = pair.second; // keep original second color
-            // Actually just use makePair
+            float hV = (vb + 0.5f) / HUE_BINS;
+            float sV = qBound(0.55f,
+                (hueCount[vb] > 0) ? hueSat[vb]/hueWeight[vb] : 0.65f,
+                0.85f);
+            float lV = qBound(0.40f,
+                (hueCount[vb] > 0) ? hueLight[vb]/hueWeight[vb] : 0.55f,
+                0.68f);
+            m_moodColorsA[2] = QColor::fromHslF(hV, sV, lV);
+            float h2 = (best2 != vb && bestW2 > 1.0)
+                ? ((best2 + 0.5f) / HUE_BINS)
+                : fmod(hV + 1.0f/8.0f, 1.0f);
+            m_moodColorsB[2] = QColor::fromHslF(h2,
+                qBound(0.45f, sV*0.80f, 0.70f),
+                qBound(0.45f, lV+0.10f, 0.72f));
         }
-        m_moodColorsA[1] = binColor(
-            pickBin([&](int i){
-                float s = hueSat[i] / hueWeight[i];
+
+        // ── Mood 3: Warm — hues 0-60° (bins 0-3) ──
+        {
+            int wb = -1;
+            for (int i = 0; i <= 3; ++i)
+                if (hueWeight[i] > 0) { wb = i; break; }
+            float hW = (wb >= 0)
+                ? ((wb + 0.5f) / HUE_BINS)
+                : 0.10f; // ~36° — safe warm orange if no warm bin exists
+            float sW = qBound(0.40f,
+                (wb >= 0 && hueCount[wb] > 0) ? hueSat[wb]/hueWeight[wb] : 0.55f,
+                0.72f);
+            float lW = qBound(0.38f,
+                (wb >= 0 && hueCount[wb] > 0) ? hueLight[wb]/hueWeight[wb] : 0.50f,
+                0.65f);
+            m_moodColorsA[3] = QColor::fromHslF(hW, sW, lW);
+            m_moodColorsB[3] = QColor::fromHslF(
+                fmod(hW + 1.0f/10.0f, 1.0f),
+                qBound(0.35f, sW*0.85f, 0.60f),
+                qBound(0.42f, lW+0.12f, 0.72f));
+        }
+
+        // ── Mood 4: Cool — hues 180-270° (bins 12-17) ──
+        {
+            int cb = -1;
+            for (int i = 12; i <= 17; ++i)
+                if (hueWeight[i] > 0) { cb = i; break; }
+            float hC = (cb >= 0)
+                ? ((cb + 0.5f) / HUE_BINS)
+                : 0.60f; // ~216° — safe cool blue
+            float sC = qBound(0.40f,
+                (cb >= 0 && hueCount[cb] > 0) ? hueSat[cb]/hueWeight[cb] : 0.50f,
+                0.72f);
+            float lC = qBound(0.38f,
+                (cb >= 0 && hueCount[cb] > 0) ? hueLight[cb]/hueWeight[cb] : 0.50f,
+                0.65f);
+            m_moodColorsA[4] = QColor::fromHslF(hC, sC, lC);
+            m_moodColorsB[4] = QColor::fromHslF(
+                fmod(hC - 1.0f/10.0f + 1.0f, 1.0f),
+                qBound(0.35f, sC*0.85f, 0.60f),
+                qBound(0.42f, lC+0.12f, 0.72f));
+        }
+
+        // ── Mood 5: Deep — lowest-lightness bin ──
+        {
+            int db = best1;
+            double ml = 1.0;
+            for (int i = 0; i < HUE_BINS; ++i) {
+                if (hueWeight[i] <= 0) continue;
                 float l = hueLight[i] / hueWeight[i];
-                return s >= 0.25f && s <= 0.60f && l >= 0.35f && l <= 0.70f;
-            }, best1),
-            0.45f, 0.55f);
-        m_moodColorsB[1] = makePair(
-            pickBin([&](int i){
-                float s = hueSat[i] / hueWeight[i];
-                float l = hueLight[i] / hueWeight[i];
-                return s >= 0.25f && s <= 0.60f && l >= 0.35f && l <= 0.70f;
-            }, best1),
-            -1, true).second;
-
-        // Mood 2: Vivid — highest sat*light bin
-        int vividBin = 0;
-        double vividScore = -1;
-        for (int i = 0; i < HUE_BINS; ++i) {
-            if (hueWeight[i] <= 0) continue;
-            float s = hueSat[i] / hueWeight[i];
-            float l = hueLight[i] / hueWeight[i];
-            double score = s * l;
-            if (score > vividScore) { vividScore = score; vividBin = i; }
-        }
-        {
-            auto pair = makePair(vividBin, vividBin == best1 ? best2 : best1, false);
-            m_moodColorsA[2] = pair.first;
-            m_moodColorsB[2] = pair.second;
-        }
-
-        // Mood 3: Warm — highest-weight bin in 0-60° (bins 0-3)
-        int warmBin = pickBin([](int i){ return i >= 0 && i <= 3; }, best1);
-        {
-            auto pair = makePair(warmBin, warmBin == best1 ? best2 : best1, false);
-            m_moodColorsA[3] = pair.first;
-            m_moodColorsB[3] = pair.second;
-        }
-
-        // Mood 4: Cool — highest-weight bin in 180-270° (bins 12-17)
-        int coolBin = pickBin([](int i){ return i >= 12 && i <= 17; }, best1);
-        {
-            auto pair = makePair(coolBin, coolBin == best1 ? best2 : best1, false);
-            m_moodColorsA[4] = pair.first;
-            m_moodColorsB[4] = pair.second;
-        }
-
-        // Mood 5: Deep — bin with lowest avg lightness (≥0.15)
-        int deepBin = best1;
-        double minLight = 1.0;
-        for (int i = 0; i < HUE_BINS; ++i) {
-            if (hueWeight[i] <= 0) continue;
-            float l = hueLight[i] / hueWeight[i];
-            if (l < minLight) { minLight = l; deepBin = i; }
-        }
-        {
-            auto pair = makePair(deepBin, deepBin == best1 ? best2 : best1, true);
-            // For deep, clamp darker
-            QColor ca = pair.first;
-            float h, s, lv;
-            ca.getHslF(&h, &s, &lv);
-            m_moodColorsA[5] = QColor::fromHslF(h, qBound(0.35f, s, 0.65f), qBound(0.25f, lv, 0.45f));
-            m_moodColorsB[5] = pair.second;
+                if (l < ml) { ml = l; db = i; }
+            }
+            float hD = (db + 0.5f) / HUE_BINS;
+            float sD = qBound(0.35f,
+                (hueCount[db] > 0) ? hueSat[db]/hueWeight[db] : 0.40f,
+                0.60f);
+            float lD = qBound(0.20f,
+                (hueCount[db] > 0) ? hueLight[db]/hueWeight[db] : 0.35f,
+                0.40f);
+            m_moodColorsA[5] = QColor::fromHslF(hD, sD, lD);
+            m_moodColorsB[5] = QColor::fromHslF(
+                fmod(hD + 1.0f/12.0f, 1.0f),
+                qBound(0.30f, sD*0.90f, 0.50f),
+                qBound(0.30f, lD+0.12f, 0.50f));
         }
     }
 

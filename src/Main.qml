@@ -323,7 +323,7 @@ Kirigami.ApplicationWindow {
                     spacing: Kirigami.Units.smallSpacing
 
                     Kirigami.Icon {
-                        source: "view-blur"
+                        source: "blur"
                         implicitWidth: Kirigami.Units.iconSizes.smallMedium
                         implicitHeight: Kirigami.Units.iconSizes.smallMedium
                         Layout.alignment: Qt.AlignVCenter
@@ -361,7 +361,7 @@ Kirigami.ApplicationWindow {
                     spacing: Kirigami.Units.smallSpacing
 
                     Kirigami.Icon {
-                        source: "adjust-colors"
+                        source: "color-management"
                         implicitWidth: Kirigami.Units.iconSizes.smallMedium
                         implicitHeight: Kirigami.Units.iconSizes.smallMedium
                         Layout.alignment: Qt.AlignVCenter
@@ -588,9 +588,11 @@ Kirigami.ApplicationWindow {
                     Layout.fillWidth: true
                     spacing: Kirigami.Units.smallSpacing
 
-                    Controls.Label {
-                        text: i18n("Angle:")
-                        Layout.minimumWidth: Kirigami.Units.gridUnit * 4
+                    Kirigami.Icon {
+                        source: "transform-rotate"
+                        implicitWidth: Kirigami.Units.iconSizes.smallMedium
+                        implicitHeight: Kirigami.Units.iconSizes.smallMedium
+                        Layout.alignment: Qt.AlignVCenter
                     }
                     Controls.Slider {
                         id: angleSlider
