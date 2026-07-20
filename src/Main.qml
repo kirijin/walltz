@@ -469,6 +469,34 @@ Kirigami.ApplicationWindow {
                     }
                 }
 
+                // Mood palette buttons — only when Fill=Auto
+                Flow {
+                    visible: processor.bgGradientStyle === 2
+                    Layout.fillWidth: true
+                    spacing: Kirigami.Units.smallSpacing
+
+                    Controls.Label {
+                        text: i18n("Mood:")
+                        anchors.verticalCenter: parent ? parent.verticalCenter : undefined
+                    }
+
+                    Controls.ButtonGroup { id: moodGroup }
+
+                    Repeater {
+                        model: 6
+                        delegate: Controls.Button {
+                            text: processor.moodName(index)
+                            checkable: true
+                            checked: processor.autoMood === index
+                            onClicked: {
+                                processor.autoMood = index
+                                debouncePreview.restart()
+                            }
+                            Controls.ButtonGroup.group: moodGroup
+                        }
+                    }
+                }
+
                 // Solid color chooser
                 RowLayout {
                     visible: processor.bgGradientStyle === 0

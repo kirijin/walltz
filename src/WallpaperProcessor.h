@@ -37,6 +37,7 @@ class WallpaperProcessor : public QObject
     Q_PROPERTY(int bgGradientPreset READ bgGradientPreset WRITE setBgGradientPreset NOTIFY bgGradientPresetChanged)
     Q_PROPERTY(double gradientAngle READ gradientAngle WRITE setGradientAngle NOTIFY gradientAngleChanged)
     Q_PROPERTY(double bgZoom READ bgZoom WRITE setBgZoom NOTIFY bgZoomChanged)
+    Q_PROPERTY(int autoMood READ autoMood WRITE setAutoMood NOTIFY autoMoodChanged)
 
 public:
     explicit WallpaperProcessor(QObject *parent = nullptr);
@@ -64,6 +65,7 @@ public:
     int bgGradientPreset() const { return m_bgGradientPreset; }
     double gradientAngle() const { return m_gradientAngle; }
     double bgZoom() const { return m_bgZoom; }
+    int autoMood() const { return m_autoMood; }
 
     // ── Existing setters ──
     void setTargetWidth(int w);
@@ -78,6 +80,7 @@ public:
     void setBgGradientPreset(int p);
     void setGradientAngle(double a);
     void setBgZoom(double z);
+    void setAutoMood(int m);
 
     /// Generate a small processed preview (400px max) — returns file:// URL
     Q_INVOKABLE QString generatePreview(const QString &sourcePath);
@@ -88,6 +91,12 @@ public:
     Q_INVOKABLE QString gradientPresetColor1(int index) const;
     Q_INVOKABLE QString gradientPresetColor2(int index) const;
     Q_INVOKABLE double aspectRatioForMode(int mode) const;
+
+    /// Mood palette access (auto-gradient variants)
+    Q_INVOKABLE int moodCount() const { return 6; }
+    Q_INVOKABLE QString moodName(int index) const;
+    Q_INVOKABLE QString moodColorA(int index) const;
+    Q_INVOKABLE QString moodColorB(int index) const;
 
 public Q_SLOTS:
     void detectScreenSize();
@@ -130,6 +139,7 @@ Q_SIGNALS:
     void bgGradientPresetChanged();
     void gradientAngleChanged();
     void bgZoomChanged();
+    void autoMoodChanged();
 
 private:
     int m_targetWidth = 1920;
@@ -161,11 +171,16 @@ private:
     int m_bgGradientPreset = 0;     // index into s_presets[]
     double m_gradientAngle = 0.0;   // degrees (0 = horizontal, 90 = vertical, 45 = diagonal ↘)
     double m_bgZoom = 1.0;          // background zoom multiplier (0.5–3.0, 1.0 = fill)
+    int m_autoMood = 0;             // 0=Auto, 1=Soft, 2=Vivid, 3=Warm, 4=Cool, 5=Deep
+    QColor m_moodColorsA[6];        // cached mood gradient color A (index = mood)
+    QColor m_moodColorsB[6];        // cached mood gradient color B
+    bool m_moodsComputed = false;   // true after computeAllMoods()
 
     bool processSingleImage(const QString &sourcePath, QString &outPath);
     QImage renderWallpaper(const QImage &src, int W, int H);
     QColor extractAverageColor(const QImage &image);
-    QPair<QColor, QColor> extractHarmonizedColors(const QImage &image);
+    QPair<QColor, QColor> extractHarmonizedColors(const QImage &image, int mood = 0);
+    void computeMoodPalettes(const QImage &image);
 
     static void stackBlur(QImage &image, int radius);
     static void boxBlurPass(QImage &image, int radius);
