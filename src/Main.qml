@@ -322,9 +322,11 @@ Kirigami.ApplicationWindow {
                     Layout.fillWidth: true
                     spacing: Kirigami.Units.smallSpacing
 
-                    Controls.Label {
-                        text: i18n("Blur:")
-                        Layout.minimumWidth: Kirigami.Units.gridUnit * 4
+                    Kirigami.Icon {
+                        source: "view-blur"
+                        implicitWidth: Kirigami.Units.iconSizes.smallMedium
+                        implicitHeight: Kirigami.Units.iconSizes.smallMedium
+                        Layout.alignment: Qt.AlignVCenter
                     }
                     Controls.Slider {
                         id: blurSlider
@@ -358,9 +360,11 @@ Kirigami.ApplicationWindow {
                     Layout.fillWidth: true
                     spacing: Kirigami.Units.smallSpacing
 
-                    Controls.Label {
-                        text: i18n("Saturation:")
-                        Layout.minimumWidth: Kirigami.Units.gridUnit * 4
+                    Kirigami.Icon {
+                        source: "adjust-colors"
+                        implicitWidth: Kirigami.Units.iconSizes.smallMedium
+                        implicitHeight: Kirigami.Units.iconSizes.smallMedium
+                        Layout.alignment: Qt.AlignVCenter
                     }
                     Controls.Slider {
                         id: satSlider
@@ -392,9 +396,11 @@ Kirigami.ApplicationWindow {
                     Layout.fillWidth: true
                     spacing: Kirigami.Units.smallSpacing
 
-                    Controls.Label {
-                        text: i18n("Zoom:")
-                        Layout.minimumWidth: Kirigami.Units.gridUnit * 4
+                    Kirigami.Icon {
+                        source: "zoom-original"
+                        implicitWidth: Kirigami.Units.iconSizes.smallMedium
+                        implicitHeight: Kirigami.Units.iconSizes.smallMedium
+                        Layout.alignment: Qt.AlignVCenter
                     }
                     Controls.Slider {
                         id: zoomSlider
@@ -435,8 +441,6 @@ Kirigami.ApplicationWindow {
                     Layout.fillWidth: true
                     spacing: Kirigami.Units.smallSpacing
 
-                    Controls.Label { text: i18n("Fill:") }
-
                     Controls.Button {
                         text: i18n("Colour")
                         checkable: true
@@ -471,7 +475,9 @@ Kirigami.ApplicationWindow {
                     interval: 200
                     onTriggered: {
                         if (dropArea.fileCount > 0 && dropArea.filePaths.length > 0) {
-                            imagePreview.source = processor.generatePreview(dropArea.filePaths[0])
+                            var url = processor.generatePreview(dropArea.filePaths[0])
+                            if (url.length > 0)
+                                imagePreview.source = url + "?t=" + Date.now()
                         }
                     }
                 }
@@ -603,21 +609,6 @@ Kirigami.ApplicationWindow {
                         onValueModified: processor.gradientAngle = value
                     }
                 }
-            }
-
-            // === Always on top ===
-            RowLayout {
-                Layout.fillWidth: true
-                spacing: Kirigami.Units.smallSpacing
-
-                Controls.CheckBox {
-                    id: keepAboveCb
-                    text: i18n("Always on top")
-                    checked: processor.keepAbove
-                    onClicked: processor.setKeepAbove(checked)
-                }
-
-                Item { Layout.fillWidth: true }
             }
 
             // === File list (batch) ===
