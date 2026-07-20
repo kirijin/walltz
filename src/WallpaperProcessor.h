@@ -181,6 +181,15 @@ private:
     QColor extractAverageColor(const QImage &image);
     QPair<QColor, QColor> extractHarmonizedColors(const QImage &image, int mood = 0);
     void computeMoodPalettes(const QImage &image);
+    void computeMoodPalettesV2(const QImage &image);
+
+    /// 3D RGB histogram centroid (for V2)
+    struct Centroid3D {
+        double r, g, b;
+        double score;
+        int ri, gi, bi;
+        int count;
+    };
 
     static void stackBlur(QImage &image, int radius);
     static void boxBlurPass(QImage &image, int radius);

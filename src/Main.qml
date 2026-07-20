@@ -555,6 +555,8 @@ Kirigami.ApplicationWindow {
                     Layout.fillWidth: true
                     spacing: Kirigami.Units.smallSpacing
 
+                    Item { Layout.fillWidth: true }
+
                     // Auto square — spaced apart
                     Rectangle {
                         id: autoColorRect
@@ -630,6 +632,8 @@ Kirigami.ApplicationWindow {
                         Controls.ToolTip.visible: hovered
                         Controls.ToolTip.delay: 400
                     }
+
+                    Item { Layout.fillWidth: true }
                 }
 
                 // Gradient preset picker
