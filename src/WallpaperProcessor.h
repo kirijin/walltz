@@ -27,6 +27,7 @@ class WallpaperProcessor : public QObject
     Q_PROPERTY(int queueProgress READ queueProgress NOTIFY queueProgressChanged)
     Q_PROPERTY(int screenWidth READ screenWidth NOTIFY screenWidthChanged)
     Q_PROPERTY(int screenHeight READ screenHeight NOTIFY screenHeightChanged)
+    Q_PROPERTY(double windowDpr READ windowDpr NOTIFY windowDprChanged)
     Q_PROPERTY(bool keepAbove READ keepAbove NOTIFY keepAboveChanged)
     // ── New tweakable parameters ──
     Q_PROPERTY(int blurRadius READ blurRadius WRITE setBlurRadius NOTIFY blurRadiusChanged)
@@ -52,6 +53,7 @@ public:
     int screenWidth() const { return m_screenWidth; }
     int screenHeight() const { return m_screenHeight; }
     bool keepAbove() const { return m_keepAbove; }
+    double windowDpr() const { return m_windowDpr; }
     // ── New getters ──
     int blurRadius() const { return m_blurRadius; }
     double saturationFactor() const { return m_saturationFactor; }
@@ -108,6 +110,7 @@ Q_SIGNALS:
     void screenWidthChanged();
     void screenHeightChanged();
     void keepAboveChanged();
+    void windowDprChanged();
     void processingStarted();
     void processingFinished();
     void errorOccurred(const QString &message);
@@ -131,6 +134,7 @@ private:
     bool m_autoColor = true;
     bool m_cancelRequested = false;
     QWindow *m_window = nullptr;
+    double m_windowDpr = 1.0;
     bool m_keepAbove = false;
     int m_detectAttempt = 0;
 

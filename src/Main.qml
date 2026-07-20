@@ -44,10 +44,11 @@ Kirigami.ApplicationWindow {
             Qt.callLater(function() {
                 var w = Screen.width;
                 var h = Screen.height;
-                // On Wayland, QML Screen.width/height already return physical pixels.
-                // Only use QML fallback if C++ path didn't resolve (default 1920x1080).
+                // Use the window's devicePixelRatio (may be fractional on Wayland,
+                // unlike Screen.devicePixelRatio which is integer-only).
+                var dpr = processor.windowDpr;
                 if (w > 0 && h > 0 && processor.screenWidth <= 1920) {
-                    processor.detectFromQML(w, h, Screen.devicePixelRatio);
+                    processor.detectFromQML(w, h, dpr);
                 }
             });
         }

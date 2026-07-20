@@ -156,6 +156,13 @@ QString WallpaperProcessor::gradientPresetColor2(int index) const
 void WallpaperProcessor::setWindow(QWindow *window)
 {
     m_window = window;
+    if (m_window) {
+        double dpr = m_window->devicePixelRatio();
+        if (!qFuzzyCompare(m_windowDpr, dpr)) {
+            m_windowDpr = dpr;
+            Q_EMIT windowDprChanged();
+        }
+    }
 }
 
 void WallpaperProcessor::setKeepAbove(bool keep)
@@ -190,22 +197,24 @@ void WallpaperProcessor::detectScreenSize()
     static const int MAX_RETRIES = 10;
     static const int RETRY_MS = 200;
 
-    // Try primaryScreen first — QScreen::size() already returns physical pixels
+    // Use m_window's screen + per-window devicePixelRatio (includes fractional scale on Wayland)
+    if (m_window) {
+        QScreen *screen = m_window->screen();
+        if (screen && screen->size().width() > 0 && screen->size().height() > 0) {
+            QSize dips = screen->size();
+            qreal dpr = m_window->devicePixelRatio();
+            updateScreenSize(qRound(dips.width() * dpr), qRound(dips.height() * dpr));
+            m_detectAttempt = 0;
+            return;
+        }
+    }
+
+    // Fallback via primaryScreen (no DPR multiply — QScreen::devicePixelRatio is integer-only on Wayland)
     QScreen *screen = QGuiApplication::primaryScreen();
     if (screen && screen->size().width() > 0 && screen->size().height() > 0) {
         updateScreenSize(screen->size().width(), screen->size().height());
         m_detectAttempt = 0;
         return;
-    }
-
-    // Try window's screen (more reliable on Wayland after window is mapped)
-    if (m_window) {
-        QScreen *winScreen = m_window->screen();
-        if (winScreen && winScreen->size().width() > 0 && winScreen->size().height() > 0) {
-            updateScreenSize(winScreen->size().width(), winScreen->size().height());
-            m_detectAttempt = 0;
-            return;
-        }
     }
 
     // Retry with backoff (give compositor time to deliver wl_output events)
@@ -221,10 +230,9 @@ void WallpaperProcessor::detectScreenSize()
 void WallpaperProcessor::detectFromQML(int qmlW, int qmlH, double dpr)
 {
     // Called from QML when Screen.width/height become available (Wayland fallback)
-    // On Qt6/Wayland, QML Screen.width/height already return physical pixels.
-    // dpr is only used for reference (not multiplied — that would double-scale).
-    Q_UNUSED(dpr)
-    updateScreenSize(qmlW, qmlH);
+    // qmlW/qmlH are dips from QML Screen. dpr is the window devicePixelRatio.
+    // On Qt6/Wayland with fractional scaling, window DPR includes fractional part.
+    updateScreenSize(qRound(qmlW * dpr), qRound(qmlH * dpr));
     m_detectAttempt = 0;
 }
 
