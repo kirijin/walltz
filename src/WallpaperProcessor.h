@@ -36,6 +36,7 @@ class WallpaperProcessor : public QObject
     Q_PROPERTY(int bgGradientStyle READ bgGradientStyle WRITE setBgGradientStyle NOTIFY bgGradientStyleChanged)
     Q_PROPERTY(int bgGradientPreset READ bgGradientPreset WRITE setBgGradientPreset NOTIFY bgGradientPresetChanged)
     Q_PROPERTY(double gradientAngle READ gradientAngle WRITE setGradientAngle NOTIFY gradientAngleChanged)
+    Q_PROPERTY(double bgZoom READ bgZoom WRITE setBgZoom NOTIFY bgZoomChanged)
 
 public:
     explicit WallpaperProcessor(QObject *parent = nullptr);
@@ -62,6 +63,7 @@ public:
     int bgGradientStyle() const { return m_bgGradientStyle; }
     int bgGradientPreset() const { return m_bgGradientPreset; }
     double gradientAngle() const { return m_gradientAngle; }
+    double bgZoom() const { return m_bgZoom; }
 
     // ── Existing setters ──
     void setTargetWidth(int w);
@@ -75,6 +77,7 @@ public:
     void setBgGradientStyle(int s);
     void setBgGradientPreset(int p);
     void setGradientAngle(double a);
+    void setBgZoom(double z);
 
     /// Generate a small processed preview (400px max) — returns file:// URL
     Q_INVOKABLE QString generatePreview(const QString &sourcePath);
@@ -126,6 +129,7 @@ Q_SIGNALS:
     void bgGradientStyleChanged();
     void bgGradientPresetChanged();
     void gradientAngleChanged();
+    void bgZoomChanged();
 
 private:
     int m_targetWidth = 1920;
@@ -156,6 +160,7 @@ private:
     int m_bgGradientStyle = 0;      // 0 = Solid, 1 = Preset, 2 = Auto
     int m_bgGradientPreset = 0;     // index into s_presets[]
     double m_gradientAngle = 0.0;   // degrees (0 = horizontal, 90 = vertical, 45 = diagonal ↘)
+    double m_bgZoom = 1.0;          // background zoom multiplier (0.5–3.0, 1.0 = fill)
 
     bool processSingleImage(const QString &sourcePath, QString &outPath);
     QImage renderWallpaper(const QImage &src, int W, int H);

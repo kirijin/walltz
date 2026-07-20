@@ -192,6 +192,15 @@ void WallpaperProcessor::setGradientAngle(double a)
     }
 }
 
+void WallpaperProcessor::setBgZoom(double z)
+{
+    z = qBound(0.5, z, 3.0);
+    if (!qFuzzyCompare(m_bgZoom, z)) {
+        m_bgZoom = z;
+        Q_EMIT bgZoomChanged();
+    }
+}
+
 int WallpaperProcessor::gradientPresetCount() const { return 25; }
 
 QString WallpaperProcessor::gradientPresetName(int index) const
@@ -475,7 +484,7 @@ QImage WallpaperProcessor::renderWallpaper(const QImage &src, int W, int H)
     int imgW = src.width(), imgH = src.height();
     int cx = qMax(0, (W - imgW) / 2);
     int cy = qMax(0, (H - imgH) / 2);
-    double zoom = qMax(W / (double)imgW, H / (double)imgH);
+    double fillZoom = qMax(W / (double)imgW, H / (double)imgH);
 
     QImage output(W, H, QImage::Format_ARGB32_Premultiplied);
 
@@ -485,7 +494,15 @@ QImage WallpaperProcessor::renderWallpaper(const QImage &src, int W, int H)
 
     if (m_blurMode) {
         // ── Blur: fill with zoomed+centered source ──
-        output.fill(Qt::white);
+        double zoom = fillZoom * m_bgZoom;
+
+        // Fill gaps with harmonized background color when zoomed out
+        if (m_bgZoom < 1.0) {
+            auto hc = extractHarmonizedColors(src);
+            output.fill(hc.first);
+        } else {
+            output.fill(Qt::white);
+        }
 
         double bgW = src.width() * zoom;
         double bgH = src.height() * zoom;

@@ -382,6 +382,40 @@ Kirigami.ApplicationWindow {
                         onValueModified: processor.saturationFactor = value / 10.0
                     }
                 }
+
+                // Background zoom
+                RowLayout {
+                    Layout.fillWidth: true
+                    spacing: Kirigami.Units.smallSpacing
+
+                    Controls.Label {
+                        text: i18n("Zoom:")
+                        Layout.minimumWidth: Kirigami.Units.gridUnit * 4
+                    }
+                    Controls.Slider {
+                        id: zoomSlider
+                        Layout.fillWidth: true
+                        from: 5; to: 30; stepSize: 1
+                        value: processor.bgZoom * 10
+                        Controls.ToolTip.text: i18n("%1×").arg(processor.bgZoom.toFixed(1))
+                        Controls.ToolTip.visible: hovered
+                        Controls.ToolTip.delay: 400
+                        onMoved: processor.bgZoom = value / 10.0
+                    }
+                    Controls.SpinBox {
+                        id: zoomSpinBox
+                        Layout.preferredWidth: 80
+                        from: 5; to: 30
+                        value: processor.bgZoom * 10
+                        editable: true
+                        textFromValue: function(v) { return (v / 10.0).toFixed(1); }
+                        valueFromText: function(t) {
+                            var v = parseFloat(t);
+                            return isNaN(v) ? 10 : Math.max(5, Math.min(30, Math.round(v * 10)));
+                        }
+                        onValueModified: processor.bgZoom = value / 10.0
+                    }
+                }
             }
 
             // ── Color/gradient controls (visible when Color selected) ──
@@ -673,6 +707,7 @@ Kirigami.ApplicationWindow {
         function onBgGradientStyleChanged() { previewDebounce.restart(); }
         function onBgGradientPresetChanged() { previewDebounce.restart(); }
         function onGradientAngleChanged() { previewDebounce.restart(); }
+        function onBgZoomChanged() { previewDebounce.restart(); }
         function onBlurModeChanged() { previewDebounce.restart(); }
         function onAutoColorChanged() { previewDebounce.restart(); }
         function onBackgroundColorChanged() { previewDebounce.restart(); }
