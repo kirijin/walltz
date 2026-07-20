@@ -216,12 +216,6 @@ Kirigami.ApplicationWindow {
                     }
                 }
 
-                Controls.Label {
-                    id: detectedRes
-                    text: processor.screenWidth + "\u00D7" + processor.screenHeight
-                    color: Kirigami.Theme.disabledTextColor
-                    font.pixelSize: Kirigami.Theme.smallFont.pixelSize
-                }
             }
 
             // === Aspect ratio preset ===
