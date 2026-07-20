@@ -10,7 +10,7 @@ Kirigami.ApplicationWindow {
     width: 560
     height: 720
     minimumWidth: 480
-    minimumHeight: 460
+    minimumHeight: 600
 
     title: i18nc("@title:window", "Walltz")
 
@@ -680,6 +680,8 @@ Kirigami.ApplicationWindow {
         function onBlurModeChanged() { previewDebounce.restart(); }
         function onAutoColorChanged() { previewDebounce.restart(); }
         function onBackgroundColorChanged() { previewDebounce.restart(); }
+        function onTargetWidthChanged() { previewDebounce.restart(); }
+        function onTargetHeightChanged() { previewDebounce.restart(); }
     }
 
     Connections {
