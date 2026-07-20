@@ -62,6 +62,7 @@ Kirigami.ApplicationWindow {
                     root.height * 0.4
                 )
 
+                readonly property color _canvasColor: Qt.darker(Kirigami.Theme.backgroundColor, 1.08)
                 Rectangle {
                     id: dropZone
                     anchors.centerIn: parent
@@ -75,10 +76,9 @@ Kirigami.ApplicationWindow {
 
                     radius: Kirigami.Units.smallSpacing
                     color: dropArea.containsDrag ? Kirigami.Theme.highlightColor
-                                                 : Kirigami.Theme.backgroundColor
-                    border.color: dropArea.fileCount > 0 ? Kirigami.Theme.positiveTextColor
-                                                         : Kirigami.Theme.disabledTextColor
-                    border.width: 2
+                                                 : _canvasColor
+                    border.color: Qt.darker(_canvasColor, 1.2)
+                    border.width: 1
                     Behavior on color { ColorAnimation { duration: 150 } }
 
                     DropArea {
@@ -471,7 +471,6 @@ Kirigami.ApplicationWindow {
                 RowLayout {
                     Layout.fillWidth: true
                     spacing: Kirigami.Units.smallSpacing
-                    visible: processor.blurMode
 
                     Item { Layout.fillWidth: true }
 
@@ -483,17 +482,23 @@ Kirigami.ApplicationWindow {
                     }
                     Controls.Switch {
                         checked: processor.vignetteStrength > 0
-                        onToggled: processor.vignetteStrength = checked ? 0.5 : 0.0
+                        onToggled: {
+                            processor.vignetteStrength = checked ? 0.5 : 0.0
+                            previewDebounce.restart()
+                        }
                     }
                     Controls.Slider {
-                        Layout.preferredWidth: Kirigami.Units.gridUnit * 5
+                        Layout.preferredWidth: Kirigami.Units.gridUnit * 10
                         from: 0; to: 1.0; stepSize: 0.05
                         value: processor.vignetteStrength
                         enabled: processor.vignetteStrength > 0
                         Controls.ToolTip.text: i18n("%1%").arg(Math.round(processor.vignetteStrength * 100))
                         Controls.ToolTip.visible: hovered
                         Controls.ToolTip.delay: 400
-                        onMoved: processor.vignetteStrength = value
+                        onMoved: {
+                            processor.vignetteStrength = value
+                            previewDebounce.restart()
+                        }
                     }
 
                     Item { Layout.fillWidth: true }
@@ -503,7 +508,6 @@ Kirigami.ApplicationWindow {
                 RowLayout {
                     Layout.fillWidth: true
                     spacing: Kirigami.Units.smallSpacing
-                    visible: processor.blurMode
 
                     Item { Layout.fillWidth: true }
 
@@ -515,17 +519,23 @@ Kirigami.ApplicationWindow {
                     }
                     Controls.Switch {
                         checked: processor.grainStrength > 0
-                        onToggled: processor.grainStrength = checked ? 0.5 : 0.0
+                        onToggled: {
+                            processor.grainStrength = checked ? 0.5 : 0.0
+                            previewDebounce.restart()
+                        }
                     }
                     Controls.Slider {
-                        Layout.preferredWidth: Kirigami.Units.gridUnit * 5
+                        Layout.preferredWidth: Kirigami.Units.gridUnit * 10
                         from: 0; to: 1.0; stepSize: 0.05
                         value: processor.grainStrength
                         enabled: processor.grainStrength > 0
                         Controls.ToolTip.text: i18n("%1%").arg(Math.round(processor.grainStrength * 100))
                         Controls.ToolTip.visible: hovered
                         Controls.ToolTip.delay: 400
-                        onMoved: processor.grainStrength = value
+                        onMoved: {
+                            processor.grainStrength = value
+                            previewDebounce.restart()
+                        }
                     }
 
                     Item { Layout.fillWidth: true }
@@ -968,6 +978,8 @@ Kirigami.ApplicationWindow {
         function onBackgroundColorChanged() { previewDebounce.restart(); }
         function onTargetWidthChanged() { previewDebounce.restart(); }
         function onTargetHeightChanged() { previewDebounce.restart(); }
+        function onVignetteStrengthChanged() { previewDebounce.restart(); }
+        function onGrainStrengthChanged() { previewDebounce.restart(); }
     }
 
     Connections {
