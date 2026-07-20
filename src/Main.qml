@@ -7,9 +7,9 @@ import org.walltz.processor 1.0
 Kirigami.ApplicationWindow {
     id: root
 
-    width: 560
+    width: 640
     height: 720
-    minimumWidth: 600
+    minimumWidth: 640
     minimumHeight: 600
 
     title: i18nc("@title:window", "Walltz")
