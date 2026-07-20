@@ -93,12 +93,13 @@ Kirigami.ApplicationWindow {
                                 var entries = [];
                                 var paths = [];
                                 for (var i = 0; i < drop.urls.length; ++i) {
-                                    var url = drop.urls[i];
-                                    var localPath = url.toLocalFile();
-                                    if (localPath.length > 0) {
-                                        paths.push(localPath);
-                                        var pv = processor.generatePreview(localPath);
-                                        entries.push({path: localPath, previewUrl: pv});
+                                    var urlStr = drop.urls[i].toString();
+                                    if (urlStr.startsWith("file://"))
+                                        urlStr = decodeURIComponent(urlStr.substring(7));
+                                    if (urlStr.length > 0) {
+                                        paths.push(urlStr);
+                                        var pv = processor.generatePreview(urlStr);
+                                        entries.push({path: urlStr, previewUrl: pv});
                                     }
                                 }
                                 fileList = entries;
