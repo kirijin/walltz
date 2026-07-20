@@ -667,25 +667,30 @@ QColor WallpaperProcessor::extractAverageColor(const QImage &image)
 
 // ── harmonized color extraction (for auto-gradient) ──────────────────────
 //
-// Uses three concepts from HIG / color-theory best practices:
-//   Predominant — most common hue (from 16³ histogram)
-//   Key         — most saturated pixel (vibrancy / character)
-//   Harmonize   — desaturate both heavily for background subtlety, blend hue
-//                 toward key by ~30°, then spread lightness for a gentle gradient.
-// Falls back to a 30° analogous shift when hues would be imperceptible.
+// Uses a saturation-weighted hue histogram to extract real chromatic colors
+// from the image. White/black/gray pixels (saturation < 0.15) are excluded
+// so they don't pollute the palette with their meaningless hue.
+// Top 2 hue bins become the gradient endpoints.
+//
+// Falls back to a 30° analogous shift if only one hue family is found.
 
 QPair<QColor, QColor> WallpaperProcessor::extractHarmonizedColors(const QImage &image)
 {
-    static const int BINS = 16;
-    static const int BIN_SIZE = 256 / BINS;
-    static const int TOTAL = BINS * BINS * BINS;
+    static const int HUE_BINS = 24;       // 15° each
+    static const float SAT_THRESHOLD = 0.15f;
+    static const float LIGHT_MIN = 0.15f;
+    static const float LIGHT_MAX = 0.90f;
 
     int w = image.width(), h = image.height();
     int step = qMax(1, qMax(w, h) / 64);
-    std::vector<int> hist(TOTAL, 0);
 
-    // Track the most saturated pixel among those with reasonable lightness
-    // (avoid picking a near-black saturated pixel that would pull everything muddy)
+    // Hue histogram weighted by saturation
+    double hueWeight[HUE_BINS] = {0};
+    double hueSat[HUE_BINS] = {0};    // avg saturation per bin
+    double hueLight[HUE_BINS] = {0};  // avg lightness per bin
+    int hueCount[HUE_BINS] = {0};
+
+    // Also track the single most-saturated chromatic pixel as the "key"
     float maxSat = 0.0f;
     int keyR = 128, keyG = 128, keyB = 128;
 
@@ -693,17 +698,38 @@ QPair<QColor, QColor> WallpaperProcessor::extractHarmonizedColors(const QImage &
         const QRgb *row = reinterpret_cast<const QRgb *>(image.constScanLine(y));
         for (int x = 0; x < w; x += step) {
             QRgb px = row[x];
-            int ri = qRed(px) / BIN_SIZE;
-            int gi = qGreen(px) / BIN_SIZE;
-            int bi = qBlue(px) / BIN_SIZE;
-            hist[ri * BINS * BINS + gi * BINS + bi]++;
-
             int r = qRed(px), g = qGreen(px), b = qBlue(px);
             int mn = qMin(qMin(r, g), b);
             int mx = qMax(qMax(r, g), b);
             float sat = (mx == 0) ? 0.0f : (mx - mn) / (float)mx;
-            float lgt = (mx + mn) / 510.0f;    // approximate HSL lightness 0..1
-            // Prefer vivid but not-too-dark pixels
+            float lgt = (mx + mn) / 510.0f;
+
+            // Skip desaturated or near-black/near-white pixels — they carry no hue signal
+            if (sat < SAT_THRESHOLD || lgt < LIGHT_MIN || lgt > LIGHT_MAX)
+                continue;
+
+            // Hue in 0..1 from RGB
+            float hue = 0.0f;
+            float delta = mx - mn;
+            if (delta > 0) {
+                if (mx == r)
+                    hue = (g - b) / delta;
+                else if (mx == g)
+                    hue = 2.0f + (b - r) / delta;
+                else
+                    hue = 4.0f + (r - g) / delta;
+                hue /= 6.0f;
+                if (hue < 0) hue += 1.0f;
+            }
+
+            int bin = qMin(int(hue * HUE_BINS), HUE_BINS - 1);
+            double wgt = qMax(sat * 100.0, 1.0);
+            hueWeight[bin] += wgt;
+            hueSat[bin] += sat * wgt;
+            hueLight[bin] += lgt * wgt;
+            hueCount[bin]++;
+
+            // Key color: most saturated chromatic pixel (already filtered by thresholds)
             float score = sat * qMax(0.0f, lgt - 0.15f) * 1.5f;
             if (score > maxSat) {
                 maxSat = score;
@@ -712,59 +738,71 @@ QPair<QColor, QColor> WallpaperProcessor::extractHarmonizedColors(const QImage &
         }
     }
 
-    // Find most populous bin = predominant
-    int best1 = 0, max1 = 0;
-    for (int i = 0; i < TOTAL; ++i) {
-        if (hist[i] > max1) {
-            max1 = hist[i];
-            best1 = i;
+    // --- Find top 2 hue bins ---
+    int best1 = 0, best2 = 0;
+    double bestW1 = 0, bestW2 = 0;
+    for (int i = 0; i < HUE_BINS; ++i) {
+        if (hueWeight[i] > bestW1) {
+            bestW2 = bestW1; best2 = best1;
+            bestW1 = hueWeight[i]; best1 = i;
+        } else if (hueWeight[i] > bestW2) {
+            bestW2 = hueWeight[i]; best2 = i;
         }
     }
 
-    auto binToColor = [](int idx) -> QColor {
-        int ri = idx / (BINS * BINS);
-        int gi = (idx / BINS) % BINS;
-        int bi = idx % BINS;
-        return QColor(ri * BIN_SIZE + BIN_SIZE / 2,
-                      gi * BIN_SIZE + BIN_SIZE / 2,
-                      bi * BIN_SIZE + BIN_SIZE / 2);
+    // Fallback: if no chromatic pixels found (all white/black/gray)
+    if (bestW1 < 1.0) {
+        QColor neutral(128, 128, 128);
+        return {neutral, QColor(180, 180, 180)};
+    }
+
+    // Helper: compute a representative color from a hue bin
+    auto binColor = [&](int bin, float defaultSat, float defaultLight) -> QColor {
+        float h = (bin + 0.5f) / HUE_BINS;
+        float s = (hueCount[bin] > 0) ? hueSat[bin] / hueWeight[bin] : defaultSat;
+        float l = (hueCount[bin] > 0) ? hueLight[bin] / hueWeight[bin] : defaultLight;
+        // Clamp to keep gradient chromatic
+        s = qBound(0.35f, s, 0.75f);
+        l = qBound(0.35f, l, 0.70f);
+        return QColor::fromHslF(h, s, l);
     };
 
-    QColor predominant = binToColor(best1);
+    QColor colorA = binColor(best1, 0.50f, 0.50f);
+
+    // If only one real hue bin found, add a 30° analogous shift
+    float primaryHue = (best1 + 0.5f) / HUE_BINS;
+    float secondaryHue;
+    if (bestW2 < 1.0) {
+        secondaryHue = fmod(primaryHue + 1.0f / 12.0f, 1.0f); // +30°
+    } else {
+        secondaryHue = (best2 + 0.5f) / HUE_BINS;
+    }
+
+    // Blend toward key color for a natural secondary
     QColor key(keyR, keyG, keyB);
-
-    // ── Harmonize ──────────────────────────────────────────────────────
-    float hP, sP, lP, hK, sK, lK;
-    predominant.getHslF(&hP, &sP, &lP);
+    float hK, sK, lK;
     key.getHslF(&hK, &sK, &lK);
-
-    // Gradient color A — start: predominant, moderately desaturated, slightly darker
-    float sA = sP * 0.55f;                    // keep enough chroma to avoid muddy browns
-    float lA = qBound(0.18f, lP * 0.88f, 0.72f);  // allow lighter backgrounds
-    QColor colorA = QColor::fromHslF(hP, sA, lA);
-
-    // Gradient color B — end: blend hue toward key, muted but chromatic, lighter
-    float hDiff = hK - hP;
+    float hDiff = hK - secondaryHue;
     if (hDiff > 0.5f) hDiff -= 1.0f;
     if (hDiff < -0.5f) hDiff += 1.0f;
+    secondaryHue = fmod(secondaryHue + hDiff * 0.2f + 1.0f, 1.0f);
 
-    float hB = fmod(hP + hDiff * 0.3f + 1.0f, 1.0f);  // 30 % toward key
-    float sB = qMax(sP, sK) * 0.45f;                  // keep more chroma
-    float lB = qBound(0.30f, (lP + lK) * 0.5f + 0.15f, 0.85f);  // lighter
-    QColor colorB = QColor::fromHslF(hB, sB, lB);
+    // Color B: secondary hue, slightly lighter and more muted
+    float sB = qBound(0.30f, (colorA.hslSaturationF() + sK) * 0.45f, 0.65f);
+    float lB = qBound(0.40f, colorA.lightnessF() + 0.15f, 0.78f);
+    QColor colorB = QColor::fromHslF(secondaryHue, sB, lB);
 
-    // Failsafe: if hues are imperceptibly close (< 5°), add an
-    // analogous shift so the gradient has visible depth.
-    float hDist = qAbs(colorA.hslHueF() - colorB.hslHueF());
-    if (hDist > 0.5f) hDist = 1.0f - hDist;
-    if (hDist < 0.014f) {
-        colorB = QColor::fromHslF(fmod(hP + 0.08f + 1.0f, 1.0f), sB, lB);
+    // Failsafe: if hues are imperceptibly close (< 5°), spread by 30°
+    float hA = colorA.hslHueF();
+    float hB = colorB.hslHueF();
+    float spread = qAbs(hB - hA);
+    if (spread > 0.5f) spread = 1.0f - spread;
+    if (spread < 0.014f) {   // < 5°
+        colorB = QColor::fromHslF(fmod(hA + 1.0f / 12.0f, 1.0f), sB, lB);
     }
 
     return {colorA, colorB};
 }
-
-// ── blur engine ──────────────────────────────────────────────────────────
 
 void WallpaperProcessor::stackBlur(QImage &image, int radius)
 {

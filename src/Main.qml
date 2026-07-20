@@ -290,20 +290,30 @@ Kirigami.ApplicationWindow {
                 }
             }
 
-            // === Background mode + blur tweaks ===
+            // === Background mode toggle ===
+            Controls.ButtonGroup { id: modeGroup }
+
             RowLayout {
                 Layout.fillWidth: true
                 spacing: Kirigami.Units.smallSpacing
 
                 Controls.Label { text: i18n("Background:") }
 
-                Controls.RadioButton {
-                    text: i18n("Blur"); checked: processor.blurMode
+                Controls.Button {
+                    text: i18n("Blur")
+                    checkable: true
+                    checked: processor.blurMode
                     onClicked: processor.blurMode = true
+                    Layout.fillWidth: true
+                    Controls.ButtonGroup.group: modeGroup
                 }
-                Controls.RadioButton {
-                    text: i18n("Color"); checked: !processor.blurMode
+                Controls.Button {
+                    text: i18n("Colour")
+                    checkable: true
+                    checked: !processor.blurMode
                     onClicked: processor.blurMode = false
+                    Layout.fillWidth: true
+                    Controls.ButtonGroup.group: modeGroup
                 }
             }
 
