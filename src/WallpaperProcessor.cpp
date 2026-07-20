@@ -10,7 +10,7 @@
 #include <QDir>
 #include <QTimer>
 #include <QUrl>
-#include <QUuid>
+#include <QCryptographicHash>
 #include <vector>
 #include <KLocalizedString>
 
@@ -486,12 +486,13 @@ QString WallpaperProcessor::generatePreview(const QString &sourcePath)
 
     QImage preview = renderWallpaper(srcImage, pw, ph);
 
-    // Save to temp
+    // Save to temp (deterministic filename — old preview overwritten on re-gen)
     QString tmpDir = QDir::tempPath() + QStringLiteral("/walltz");
     QDir().mkpath(tmpDir);
-    QString tmpPath = tmpDir + QStringLiteral("/preview_")
-        + QUuid::createUuid().toString(QUuid::Id128)  // 32 hex chars
+    QString tmpName = QStringLiteral("pv_")
+        + QString::fromLatin1(QCryptographicHash::hash(sourcePath.toUtf8(), QCryptographicHash::Md5).toHex().left(16))
         + QStringLiteral(".png");
+    QString tmpPath = tmpDir + QDir::separator() + tmpName;
     if (!preview.save(tmpPath, "PNG")) return {};
 
     return QStringLiteral("file://") + tmpPath;

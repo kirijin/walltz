@@ -572,10 +572,46 @@ Kirigami.ApplicationWindow {
             var w = Screen.width;
             var h = Screen.height;
             if (w > 0 && h > 0) {
-                processor.detectFromQML(w, h, Screen.devicePixelRatio);
+                processor.detectFromQML(w, h, processor.windowDpr);
                 timerDetect.stop();
             }
         }
+    }
+
+    // ── Live preview update on tweak changes (debounced) ──
+
+    Timer {
+        id: previewDebounce
+        interval: 300
+        repeat: false
+        onTriggered: refreshPreviews()
+    }
+
+    function refreshPreviews() {
+        var list = dropArea.fileList;
+        if (list.length === 0) return;
+        var entries = [];
+        for (var i = 0; i < list.length; ++i) {
+            if (list[i].path) {
+                entries.push({path: list[i].path, previewUrl: processor.generatePreview(list[i].path)});
+            }
+        }
+        dropArea.fileList = entries;
+        previewList.model = dropArea.fileList;
+        if (dropArea.fileList.length > 0)
+            imagePreview.source = dropArea.fileList[0].previewUrl;
+    }
+
+    Connections {
+        target: processor
+        onBlurRadiusChanged: previewDebounce.restart()
+        onSaturationFactorChanged: previewDebounce.restart()
+        onBgGradientStyleChanged: previewDebounce.restart()
+        onBgGradientPresetChanged: previewDebounce.restart()
+        onGradientAngleChanged: previewDebounce.restart()
+        onBlurModeChanged: previewDebounce.restart()
+        onAutoColorChanged: previewDebounce.restart()
+        onBackgroundColorChanged: previewDebounce.restart()
     }
 
     Connections {
