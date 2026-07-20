@@ -595,6 +595,7 @@ Kirigami.ApplicationWindow {
                     Layout.fillWidth: true
                     spacing: Kirigami.Units.smallSpacing
 
+                    Item { Layout.fillWidth: true }
                     Kirigami.Icon {
                         source: "contrast"
                         implicitWidth: Kirigami.Units.iconSizes.smallMedium
@@ -621,6 +622,7 @@ Kirigami.ApplicationWindow {
                             previewDebounce.restart()
                         }
                     }
+                    Item { Layout.fillWidth: true }
                 }
 
                 // Grain (always visible)
@@ -628,6 +630,7 @@ Kirigami.ApplicationWindow {
                     Layout.fillWidth: true
                     spacing: Kirigami.Units.smallSpacing
 
+                    Item { Layout.fillWidth: true }
                     Kirigami.Icon {
                         source: "noise"
                         implicitWidth: Kirigami.Units.iconSizes.smallMedium
@@ -654,6 +657,7 @@ Kirigami.ApplicationWindow {
                             previewDebounce.restart()
                         }
                     }
+                    Item { Layout.fillWidth: true }
                 }
 
                 // Blur radius (when Blur selected)
@@ -662,6 +666,7 @@ Kirigami.ApplicationWindow {
                     Layout.fillWidth: true
                     spacing: Kirigami.Units.smallSpacing
 
+                    Item { Layout.fillWidth: true }
                     Kirigami.Icon {
                         source: "blur"
                         implicitWidth: Kirigami.Units.iconSizes.smallMedium
@@ -693,6 +698,7 @@ Kirigami.ApplicationWindow {
                         }
                         onValueModified: processor.blurRadius = value
                     }
+                    Item { Layout.fillWidth: true }
                 }
 
                 // Saturation (when Blur selected)
@@ -701,6 +707,7 @@ Kirigami.ApplicationWindow {
                     Layout.fillWidth: true
                     spacing: Kirigami.Units.smallSpacing
 
+                    Item { Layout.fillWidth: true }
                     Kirigami.Icon {
                         source: "color-management"
                         implicitWidth: Kirigami.Units.iconSizes.smallMedium
@@ -730,6 +737,7 @@ Kirigami.ApplicationWindow {
                         }
                         onValueModified: processor.saturationFactor = value / 10.0
                     }
+                    Item { Layout.fillWidth: true }
                 }
 
                 // Background zoom (when Blur selected)
@@ -738,6 +746,7 @@ Kirigami.ApplicationWindow {
                     Layout.fillWidth: true
                     spacing: Kirigami.Units.smallSpacing
 
+                    Item { Layout.fillWidth: true }
                     Kirigami.Icon {
                         source: "zoom-original"
                         implicitWidth: Kirigami.Units.iconSizes.smallMedium
@@ -767,6 +776,7 @@ Kirigami.ApplicationWindow {
                         }
                         onValueModified: processor.bgZoom = value / 10.0
                     }
+                    Item { Layout.fillWidth: true }
                 }
 
                 // Gradient angle (when Colour + Gradient/Auto)
@@ -775,6 +785,7 @@ Kirigami.ApplicationWindow {
                     Layout.fillWidth: true
                     spacing: Kirigami.Units.smallSpacing
 
+                    Item { Layout.fillWidth: true }
                     Kirigami.Icon {
                         source: "transform-rotate"
                         implicitWidth: Kirigami.Units.iconSizes.smallMedium
@@ -797,6 +808,7 @@ Kirigami.ApplicationWindow {
                         editable: true
                         onValueModified: processor.gradientAngle = value
                     }
+                    Item { Layout.fillWidth: true }
                 }
 
             }
