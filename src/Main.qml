@@ -67,10 +67,10 @@ Kirigami.ApplicationWindow {
                     anchors.centerIn: parent
 
                     readonly property double _scale: Math.min(
-                        parent.width / _ar,
+                        parent.width / previewBox._ar,
                         parent.height
                     )
-                    width: _ar * _scale
+                    width: previewBox._ar * _scale
                     height: _scale
 
                     radius: Kirigami.Units.smallSpacing

@@ -321,14 +321,22 @@ void WallpaperProcessor::detectScreenSize()
 void WallpaperProcessor::updateScreenSize(int w, int h)
 {
     if (w < 1 || h < 1) return;
-    if (m_screenWidth == w && m_screenHeight == h) return;
 
-    m_screenWidth = w;
-    m_screenHeight = h;
-    Q_EMIT screenWidthChanged();
-    Q_EMIT screenHeightChanged();
+    if (m_screenWidth != w || m_screenHeight != h) {
+        if (w != m_screenWidth) {
+            m_screenWidth = w;
+            Q_EMIT screenWidthChanged();
+        }
+        if (h != m_screenHeight) {
+            m_screenHeight = h;
+            Q_EMIT screenHeightChanged();
+        }
+    }
 
-    // Auto-apply to target dimensions too (can override via QML binding)
+    // Always reset target to screen values (no early return on unchanged
+    // screen dimensions — the caller might want a forced reset even when
+    // the screen dims are already known, e.g. Detect button after a ratio
+    // preset changed the target away from native)
     if (m_targetWidth != w || m_targetHeight != h) {
         m_targetWidth = w;
         m_targetHeight = h;
