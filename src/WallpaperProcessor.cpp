@@ -11,9 +11,26 @@
 #include <QTimer>
 #include <QUrl>
 #include <QUuid>
+#include <vector>
 #include <KLocalizedString>
 
 static const int SHADOW_RADIUS = 3;
+
+// ── gradient presets (color-theory-based) ─────────────────────────────────
+
+const WallpaperProcessor::GradientPreset WallpaperProcessor::s_presets[10] = {
+    // name          color1        color2          harmony
+    { "Sunset Warmth", 0xffff6b6b, 0xfffeca57 }, // analogous warm
+    { "Ocean Depths",  0xff0abde3, 0xff48dbfb }, // analogous cool
+    { "Midnight",      0xff1a1a2e, 0xff16213e }, // monochrome dark
+    { "Forest Calm",   0xff6ab04c, 0xff22a6b3 }, // analogous green-teal
+    { "Rose Blush",    0xffbe2edd, 0xfff368e0 }, // analogous purple
+    { "Amber Glow",    0xfff0932b, 0xfffeca57 }, // analogous warm
+    { "Nordic Blues",  0xff2c3e50, 0xff3498db }, // split-complementary
+    { "Lavender Sky",  0xff4834d4, 0xff9b59b6 }, // analogous violet
+    { "Teal Mint",     0xff00b894, 0xff00cec9 }, // monochrome teal
+    { "Grayscale",     0xff444444, 0xffcccccc }, // monochrome value
+};
 
 // ── constructor ──────────────────────────────────────────────────────────
 
@@ -60,8 +77,78 @@ void WallpaperProcessor::setAutoColor(bool autoC)
 {
     if (m_autoColor != autoC) {
         m_autoColor = autoC;
-        Q_EMIT backgroundColorChanged();
+        Q_EMIT autoColorChanged();
     }
+}
+
+// ── new parameter setters ────────────────────────────────────────────
+
+void WallpaperProcessor::setBlurRadius(int r)
+{
+    r = qBound(0, r, 120);
+    if (m_blurRadius != r) {
+        m_blurRadius = r;
+        Q_EMIT blurRadiusChanged();
+    }
+}
+
+void WallpaperProcessor::setSaturationFactor(double f)
+{
+    f = qBound(0.0, f, 3.0);
+    if (!qFuzzyCompare(m_saturationFactor, f)) {
+        m_saturationFactor = f;
+        Q_EMIT saturationFactorChanged();
+    }
+}
+
+void WallpaperProcessor::setBgGradientStyle(int s)
+{
+    s = qBound(0, s, 2);
+    if (m_bgGradientStyle != s) {
+        m_bgGradientStyle = s;
+        Q_EMIT bgGradientStyleChanged();
+    }
+}
+
+void WallpaperProcessor::setBgGradientPreset(int p)
+{
+    p = qBound(0, p, 9);
+    if (m_bgGradientPreset != p) {
+        m_bgGradientPreset = p;
+        Q_EMIT bgGradientPresetChanged();
+    }
+}
+
+void WallpaperProcessor::setGradientAngle(double a)
+{
+    a = std::fmod(a, 360.0);
+    if (a < 0) a += 360.0;
+    if (!qFuzzyCompare(m_gradientAngle, a)) {
+        m_gradientAngle = a;
+        Q_EMIT gradientAngleChanged();
+    }
+}
+
+// ── gradient preset accessors ─────────────────────────────────────────
+
+int WallpaperProcessor::gradientPresetCount() const { return 10; }
+
+QString WallpaperProcessor::gradientPresetName(int index) const
+{
+    if (index < 0 || index >= 10) return {};
+    return i18n(s_presets[index].name);
+}
+
+QString WallpaperProcessor::gradientPresetColor1(int index) const
+{
+    if (index < 0 || index >= 10) return {};
+    return QColor(s_presets[index].color1).name();
+}
+
+QString WallpaperProcessor::gradientPresetColor2(int index) const
+{
+    if (index < 0 || index >= 10) return {};
+    return QColor(s_presets[index].color2).name();
 }
 
 // ── window binding ──────────────────────────────────────────────────────
@@ -277,14 +364,15 @@ QImage WallpaperProcessor::renderWallpaper(const QImage &src, int W, int H)
     double zoom = qMax(W / (double)imgW, H / (double)imgH);
 
     QImage output(W, H, QImage::Format_ARGB32_Premultiplied);
-    output.fill(Qt::white);
 
     QPainter p;
     p.begin(&output);
     p.setRenderHint(QPainter::SmoothPixmapTransform);
 
     if (m_blurMode) {
-        // Zoom to fill the output canvas, then center
+        // ── Blur: fill with zoomed+centered source ──
+        output.fill(Qt::white);
+
         double bgW = src.width() * zoom;
         double bgH = src.height() * zoom;
         double bgX = (W - bgW) / 2.0;
@@ -298,20 +386,51 @@ QImage WallpaperProcessor::renderWallpaper(const QImage &src, int W, int H)
         p.end();
 
         QImage bg = output.copy();
-        int blurRadius = qBound(1, (int)(0.051 * H), 120);
+        // Use manual blur radius if set, else auto-calc (adaptive 0.051×H)
+        int blurRadius = m_blurRadius > 0 ? m_blurRadius : qBound(1, (int)(0.051 * H), 120);
         stackBlur(bg, blurRadius);
-        boostSaturation(bg, 1.8);
+        boostSaturation(bg, m_saturationFactor);
 
         p.begin(&output);
         p.drawImage(0, 0, bg);
     } else {
-        QColor bgColor = m_autoColor ? extractAverageColor(src) : m_bgColor;
-        p.end();
-        output.fill(bgColor);
-        p.begin(&output);
+        // ── Color / Gradient: fill background, then draw centered image ──
+        switch (m_bgGradientStyle) {
+        case 1: {
+            // Gradient preset
+            const auto &preset = s_presets[qBound(0, m_bgGradientPreset, 9)];
+            double rad = m_gradientAngle * M_PI / 180.0;
+            double dx = W * 0.5 * qAbs(qCos(rad)) + H * 0.5 * qAbs(qSin(rad));
+            double dy = W * 0.5 * qAbs(qSin(rad)) + H * 0.5 * qAbs(qCos(rad));
+            double cx2 = W / 2.0, cy2 = H / 2.0;
+            QLinearGradient grad(cx2 - dx, cy2 - dy, cx2 + dx, cy2 + dy);
+            grad.setColorAt(0.0, QColor(preset.color1));
+            grad.setColorAt(1.0, QColor(preset.color2));
+            p.fillRect(0, 0, W, H, grad);
+            break;
+        }
+        case 2: {
+            // Auto gradient from image dominant colors
+            auto colors = extractDominantColors(src);
+            double rad = m_gradientAngle * M_PI / 180.0;
+            double dx = W * 0.5 * qAbs(qCos(rad)) + H * 0.5 * qAbs(qSin(rad));
+            double dy = W * 0.5 * qAbs(qSin(rad)) + H * 0.5 * qAbs(qCos(rad));
+            double cx2 = W / 2.0, cy2 = H / 2.0;
+            QLinearGradient grad(cx2 - dx, cy2 - dy, cx2 + dx, cy2 + dy);
+            grad.setColorAt(0.0, colors.first);
+            grad.setColorAt(1.0, colors.second);
+            p.fillRect(0, 0, W, H, grad);
+            break;
+        }
+        default:
+            // Solid color
+            QColor bgColor = m_autoColor ? extractAverageColor(src) : m_bgColor;
+            output.fill(bgColor);
+            break;
+        }
     }
 
-    // Shadow
+    // ── Shadow ──
     QImage sh(W, H, QImage::Format_ARGB32_Premultiplied);
     sh.fill(Qt::transparent);
     QPainter sp(&sh);
@@ -324,7 +443,7 @@ QImage WallpaperProcessor::renderWallpaper(const QImage &src, int W, int H)
     stackBlur(sh, shadowBlur);
     p.drawImage(0, 0, sh);
 
-    // Foreground image with rounded clip
+    // ── Foreground image with rounded clip ──
     p.save();
     QPainterPath clipPath;
     clipPath.addRoundedRect(cx, cy, imgW, imgH, SHADOW_RADIUS, SHADOW_RADIUS);
@@ -395,6 +514,71 @@ QColor WallpaperProcessor::extractAverageColor(const QImage &image)
     return QColor(std::clamp(int(rSum / samples), 0, 255),
                   std::clamp(int(gSum / samples), 0, 255),
                   std::clamp(int(bSum / samples), 0, 255));
+}
+
+// ── dominant color extraction (for auto-gradient) ────────────────────────
+//
+// Downsamples image to ~64×64, quantizes into 16³ histogram, returns the
+// two most populous bins. If too similar (Euclidean < ~80 per channel),
+// the second color is shifted to a complementary hue.
+
+QPair<QColor, QColor> WallpaperProcessor::extractDominantColors(const QImage &image)
+{
+    static const int BINS = 16;
+    static const int BIN_SIZE = 256 / BINS;
+    static const int TOTAL = BINS * BINS * BINS;
+
+    int w = image.width(), h = image.height();
+    int step = qMax(1, qMax(w, h) / 64);
+    std::vector<int> hist(TOTAL, 0);
+
+    for (int y = 0; y < h; y += step) {
+        const QRgb *row = reinterpret_cast<const QRgb *>(image.constScanLine(y));
+        for (int x = 0; x < w; x += step) {
+            QRgb px = row[x];
+            int ri = qRed(px) / BIN_SIZE;
+            int gi = qGreen(px) / BIN_SIZE;
+            int bi = qBlue(px) / BIN_SIZE;
+            hist[ri * BINS * BINS + gi * BINS + bi]++;
+        }
+    }
+
+    // Find top 2 populated bins
+    int best1 = 0, best2 = 0;
+    int max1 = 0, max2 = 0;
+    for (int i = 0; i < TOTAL; ++i) {
+        if (hist[i] > max1) {
+            max2 = max1; best2 = best1;
+            max1 = hist[i]; best1 = i;
+        } else if (hist[i] > max2) {
+            max2 = hist[i]; best2 = i;
+        }
+    }
+
+    auto binToColor = [](int idx) -> QColor {
+        int ri = idx / (BINS * BINS);
+        int gi = (idx / BINS) % BINS;
+        int bi = idx % BINS;
+        return QColor(ri * BIN_SIZE + BIN_SIZE / 2,
+                      gi * BIN_SIZE + BIN_SIZE / 2,
+                      bi * BIN_SIZE + BIN_SIZE / 2);
+    };
+
+    QColor c1 = binToColor(best1);
+    QColor c2 = binToColor(best2);
+
+    // If too similar (Euclidean distance < ~80/channel), rotate c2 to complementary hue
+    int dr = c1.red() - c2.red();
+    int dg = c1.green() - c2.green();
+    int db = c1.blue() - c2.blue();
+    if (dr*dr + dg*dg + db*db < 6400) {
+        float h = 0, s = 0, l = 0;
+        c1.getHslF(&h, &s, &l);
+        // Complementary: 180° hue rotation
+        c2 = QColor::fromHslF(fmod(h + 0.5f, 1.0f), qMin(s * 1.2f, 1.0f), l);
+    }
+
+    return {c1, c2};
 }
 
 // ── blur engine ──────────────────────────────────────────────────────────

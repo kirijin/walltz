@@ -23,6 +23,7 @@ Kirigami.ApplicationWindow {
             Kirigami.Action {
                 text: i18n("Walltz it")
                 icon.name: "document-save"
+                displayHint: Kirigami.DisplayHint.KeepVisible
                 enabled: dropArea.fileCount > 0
                          && widthInput.length > 0 && heightInput.length > 0
                          && !processor.busy
@@ -39,21 +40,13 @@ Kirigami.ApplicationWindow {
         Kirigami.Theme.colorSet: Kirigami.Theme.View
 
         Component.onCompleted: {
-            // C++ detectScreenSize has a QTimer retry loop (10×200ms)
-            // that waits for the Wayland wl_output protocol events to arrive.
             processor.detectScreenSize();
-
-            // QML-side fallback: Screen.width/height are invalid at
-            // Component.onCompleted (window not yet displayed). Defer
-            // until the window is actually on a screen.
             Qt.callLater(function() {
-                // Try Screen attached — valid once the page item is displayed
                 var w = Screen.width;
                 var h = Screen.height;
                 if (w > 0 && h > 0) {
                     processor.detectFromQML(w, h, Screen.devicePixelRatio);
                 } else {
-                    // Last resort: try again after a short delay
                     timerDetect.start();
                 }
             });
@@ -61,7 +54,7 @@ Kirigami.ApplicationWindow {
 
         ColumnLayout {
             anchors.fill: parent
-            spacing: Kirigami.Units.smallSpacing
+            spacing: Kirigami.Units.largeSpacing
             anchors.margins: Kirigami.Units.largeSpacing
 
             // === Drop area / preview ===
@@ -204,7 +197,7 @@ Kirigami.ApplicationWindow {
                     display: Controls.AbstractButton.IconOnly
                     hoverEnabled: true
                     ToolTip.text: i18n("Reset to screen resolution (%1\u00D7%2)",
-                                      processor.screenWidth, processor.screenHeight)
+                                       processor.screenWidth, processor.screenHeight)
                     ToolTip.visible: resetResBtn.hovered
                     onClicked: processor.detectScreenSize()
                 }
@@ -217,7 +210,7 @@ Kirigami.ApplicationWindow {
                 }
             }
 
-            // === Background mode row ===
+            // === Background mode + blur tweaks ===
             RowLayout {
                 Layout.fillWidth: true
                 spacing: Kirigami.Units.smallSpacing
@@ -232,11 +225,110 @@ Kirigami.ApplicationWindow {
                     text: i18n("Color"); checked: !processor.blurMode
                     onClicked: processor.blurMode = false
                 }
+            }
 
-                Item { Layout.fillWidth: true }
+            // ── Blur tweaks (visible when Blur selected) ──
+            ColumnLayout {
+                visible: processor.blurMode
+                Layout.fillWidth: true
+                spacing: Kirigami.Units.mediumSpacing
 
+                // Blur radius
                 RowLayout {
-                    visible: !processor.blurMode
+                    Layout.fillWidth: true
+                    spacing: Kirigami.Units.smallSpacing
+
+                    Controls.Label {
+                        text: i18n("Blur:")
+                        Layout.minimumWidth: Kirigami.Units.gridUnit * 4
+                    }
+                    Controls.Slider {
+                        id: blurSlider
+                        Layout.fillWidth: true
+                        from: 0; to: 120; stepSize: 1
+                        value: processor.blurRadius
+                        ToolTip.text: processor.blurRadius === 0
+                                      ? i18n("Auto")
+                                      : i18n("%1 px").arg(processor.blurRadius)
+                        ToolTip.visible: hovered
+                        ToolTip.delay: 400
+                        onMoved: processor.blurRadius = value
+                    }
+                    Controls.SpinBox {
+                        id: blurSpinBox
+                        Layout.preferredWidth: 80
+                        from: 0; to: 120
+                        value: processor.blurRadius
+                        editable: true
+                        textFromValue: function(v) { return v === 0 ? i18n("Auto") : String(v); }
+                        valueFromText: function(t) {
+                            var v = parseInt(t);
+                            return isNaN(v) ? 0 : Math.max(0, Math.min(120, v));
+                        }
+                        onValueModified: processor.blurRadius = value
+                    }
+                }
+
+                // Saturation
+                RowLayout {
+                    Layout.fillWidth: true
+                    spacing: Kirigami.Units.smallSpacing
+
+                    Controls.Label {
+                        text: i18n("Saturation:")
+                        Layout.minimumWidth: Kirigami.Units.gridUnit * 4
+                    }
+                    Controls.Slider {
+                        id: satSlider
+                        Layout.fillWidth: true
+                        from: 0; to: 30; stepSize: 1
+                        value: processor.saturationFactor * 10
+                        ToolTip.text: i18n("%1×").arg(processor.saturationFactor.toFixed(1))
+                        ToolTip.visible: hovered
+                        ToolTip.delay: 400
+                        onMoved: processor.saturationFactor = value / 10.0
+                    }
+                    Controls.SpinBox {
+                        id: satSpinBox
+                        Layout.preferredWidth: 80
+                        from: 0; to: 30
+                        value: processor.saturationFactor * 10
+                        editable: true
+                        textFromValue: function(v) { return (v / 10.0).toFixed(1); }
+                        valueFromText: function(t) {
+                            var v = parseFloat(t);
+                            return isNaN(v) ? 10 : Math.max(0, Math.min(30, Math.round(v * 10)));
+                        }
+                        onValueModified: processor.saturationFactor = value / 10.0
+                    }
+                }
+            }
+
+            // ── Color/gradient controls (visible when Color selected) ──
+            ColumnLayout {
+                visible: !processor.blurMode
+                Layout.fillWidth: true
+                spacing: Kirigami.Units.mediumSpacing
+
+                // Style selector
+                RowLayout {
+                    Layout.fillWidth: true
+                    spacing: Kirigami.Units.smallSpacing
+
+                    Controls.Label { text: i18n("Fill:") }
+
+                    Controls.ComboBox {
+                        id: fillCombo
+                        model: [i18n("Solid"), i18n("Gradient"), i18n("Auto")]
+                        currentIndex: processor.bgGradientStyle
+                        onActivated: processor.bgGradientStyle = currentIndex
+                    }
+                }
+
+                // Solid color chooser
+                RowLayout {
+                    visible: processor.bgGradientStyle === 0
+                    Layout.fillWidth: true
                     spacing: Kirigami.Units.smallSpacing
 
                     Controls.CheckBox {
@@ -248,7 +340,7 @@ Kirigami.ApplicationWindow {
                     Rectangle {
                         id: colorSwatch
                         width: 28; height: 28
-                        radius: 4
+                        radius: Kirigami.Units.smallBorderRadius
                         border.width: 1
                         border.color: Kirigami.Theme.textColor
                         color: processor.backgroundColor
@@ -259,6 +351,82 @@ Kirigami.ApplicationWindow {
                             opacity: 0
                             onClicked: colorDialog.open()
                         }
+                    }
+                }
+
+                // Gradient preset picker
+                GridLayout {
+                    visible: processor.bgGradientStyle === 1
+                    columns: 5
+                    columnSpacing: Kirigami.Units.mediumSpacing
+                    rowSpacing: Kirigami.Units.mediumSpacing
+                    Layout.fillWidth: true
+
+                    Repeater {
+                        model: processor.gradientPresetCount()
+
+                        Rectangle {
+                            id: presetDelegate
+
+                            required property int index
+
+                            width: 56; height: 40
+                            radius: Kirigami.Units.smallBorderRadius
+                            border.width: processor.bgGradientPreset === index ? 2 : 1
+                            border.color: processor.bgGradientPreset === index
+                                           ? Kirigami.Theme.highlightColor
+                                           : Kirigami.Theme.textColor
+
+                            gradient: Gradient {
+                                GradientStop { position: 0.0; color: processor.gradientPresetColor1(presetDelegate.index) }
+                                GradientStop { position: 1.0; color: processor.gradientPresetColor2(presetDelegate.index) }
+                            }
+
+                            Controls.Button {
+                                anchors.fill: parent
+                                opacity: 0
+                                onClicked: processor.bgGradientPreset = index
+                            }
+
+                            Controls.Label {
+                                anchors.bottom: parent.bottom
+                                anchors.horizontalCenter: parent.horizontalCenter
+                                anchors.bottomMargin: 2
+                                text: String(presetDelegate.index + 1)
+                                font.pixelSize: Kirigami.Theme.smallFont.pixelSize
+                                color: Kirigami.Theme.textColor
+                                style: Text.Outline
+                                styleColor: Kirigami.Theme.backgroundColor
+                            }
+                        }
+                    }
+                }
+
+                // Gradient angle (only for gradient modes)
+                RowLayout {
+                    visible: processor.bgGradientStyle > 0
+                    Layout.fillWidth: true
+                    spacing: Kirigami.Units.smallSpacing
+
+                    Controls.Label {
+                        text: i18n("Angle:")
+                        Layout.minimumWidth: Kirigami.Units.gridUnit * 4
+                    }
+                    Controls.Slider {
+                        id: angleSlider
+                        Layout.fillWidth: true
+                        from: 0; to: 360; stepSize: 1
+                        value: processor.gradientAngle
+                        ToolTip.text: i18n("%1°").arg(processor.gradientAngle)
+                        ToolTip.visible: hovered
+                        onMoved: processor.gradientAngle = value
+                    }
+                    Controls.SpinBox {
+                        Layout.preferredWidth: 80
+                        from: 0; to: 360
+                        value: processor.gradientAngle
+                        editable: true
+                        onValueModified: processor.gradientAngle = value
                     }
                 }
             }
@@ -276,8 +444,6 @@ Kirigami.ApplicationWindow {
                 }
 
                 Item { Layout.fillWidth: true }
-
-                Item { width: Kirigami.Units.smallSpacing }
             }
 
             // === File list (batch) ===
@@ -290,34 +456,36 @@ Kirigami.ApplicationWindow {
                 id: previewList
                 visible: dropArea.fileCount > 1
                 Layout.fillWidth: true
-                Layout.preferredHeight: Math.min(count * 28, 100)
+                Layout.preferredHeight: Math.min(count * 40, 120)
                 model: []
-                delegate: Controls.Label {
-                    text: model.modelData ? model.modelData.path.toString().split("/").pop() : ""
-                    elide: Text.ElideMiddle
-                    leftPadding: Kirigami.Units.smallSpacing
+                delegate: RowLayout {
+                    id: fileDelegate
+                    width: parent ? parent.width : 0
+                    spacing: Kirigami.Units.smallSpacing
+
+                    required property var modelData
+
+                    Image {
+                        source: modelData ? modelData.previewUrl : ""
+                        sourceSize.width: 32; sourceSize.height: 32
+                        fillMode: Image.PreserveAspectFit
+                        Layout.preferredWidth: 32; Layout.preferredHeight: 32
+                        visible: status === Image.Ready
+                    }
+                    Controls.Label {
+                        text: modelData ? modelData.path.toString().split("/").pop() : ""
+                        elide: Text.ElideMiddle
+                        Layout.fillWidth: true
+                    }
                 }
             }
 
-            // === Progress bar ===
-            Controls.ProgressBar {
-                id: progressBar
+            // === Status / InlineMessage ===
+            Kirigami.InlineMessage {
+                id: statusMessage
                 Layout.fillWidth: true
-                visible: processor.busy
-                // Single image: indeterminate (instant 0→1 jump).
-                // Batch: determinate with queue progress.
-                indeterminate: processor.queueSize <= 1
-                from: 0; to: processor.queueSize || 1
-                value: processor.queueProgress
-            }
-
-            // === Status ===
-            Controls.Label {
-                id: statusLabel
-                Layout.fillWidth: true
-                visible: text.length > 0
-                wrapMode: Text.Wrap
-                color: Kirigami.Theme.positiveTextColor
+                showCloseButton: true
+                visible: false
             }
 
             Item { Layout.fillHeight: true }
@@ -358,19 +526,39 @@ Kirigami.ApplicationWindow {
     WallpaperProcessor {
         id: processor
 
-        onStatusMessageChanged: { statusLabel.text = processor.statusMessage; }
+        onStatusMessageChanged: {
+            if (processor.statusMessage.length > 0) {
+                statusMessage.type = Kirigami.MessageType.Information;
+                statusMessage.text = processor.statusMessage;
+                statusMessage.visible = true;
+                statusMessageTimer.restart();
+            }
+        }
         onErrorOccurred: function (msg) {
-            statusLabel.text = msg;
-            statusLabel.color = Kirigami.Theme.negativeTextColor;
+            statusMessage.type = Kirigami.MessageType.Error;
+            statusMessage.text = msg;
+            statusMessage.visible = true;
+            statusMessageTimer.stop();  // persist errors
         }
         onProcessingFinished: {
-            // Show the processed output in the preview
-            if (processor.outputPath.length > 0)
+            if (processor.outputPath.length > 0) {
                 imagePreview.source = "file://" + processor.outputPath;
+            }
+            statusMessage.type = Kirigami.MessageType.Positive;
+            statusMessage.text = i18n("Done");
+            statusMessage.visible = true;
+            statusMessageTimer.restart();
         }
         onScreenWidthChanged: {
             detectedRes.text = processor.screenWidth + "\u00D7" + processor.screenHeight;
         }
+    }
+
+    // Status auto-hide timer
+    Timer {
+        id: statusMessageTimer
+        interval: 4000
+        onTriggered: statusMessage.visible = false
     }
 
     // QML-side timer fallback for screen detection

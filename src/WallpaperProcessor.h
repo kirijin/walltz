@@ -7,6 +7,8 @@
 #include <QString>
 #include <QColor>
 #include <QStringList>
+#include <QVariantList>
+#include <QPair>
 
 class QWindow;
 
@@ -20,16 +22,23 @@ class WallpaperProcessor : public QObject
     Q_PROPERTY(bool blurMode READ blurMode WRITE setBlurMode NOTIFY blurModeChanged)
     Q_PROPERTY(bool busy READ busy NOTIFY busyChanged)
     Q_PROPERTY(QColor backgroundColor READ backgroundColor WRITE setBackgroundColor NOTIFY backgroundColorChanged)
-    Q_PROPERTY(bool autoColor READ autoColor WRITE setAutoColor NOTIFY backgroundColorChanged)
+    Q_PROPERTY(bool autoColor READ autoColor WRITE setAutoColor NOTIFY autoColorChanged)
     Q_PROPERTY(int queueSize READ queueSize NOTIFY queueChanged)
     Q_PROPERTY(int queueProgress READ queueProgress NOTIFY queueProgressChanged)
     Q_PROPERTY(int screenWidth READ screenWidth NOTIFY screenWidthChanged)
     Q_PROPERTY(int screenHeight READ screenHeight NOTIFY screenHeightChanged)
     Q_PROPERTY(bool keepAbove READ keepAbove NOTIFY keepAboveChanged)
+    // ── New tweakable parameters ──
+    Q_PROPERTY(int blurRadius READ blurRadius WRITE setBlurRadius NOTIFY blurRadiusChanged)
+    Q_PROPERTY(double saturationFactor READ saturationFactor WRITE setSaturationFactor NOTIFY saturationFactorChanged)
+    Q_PROPERTY(int bgGradientStyle READ bgGradientStyle WRITE setBgGradientStyle NOTIFY bgGradientStyleChanged)
+    Q_PROPERTY(int bgGradientPreset READ bgGradientPreset WRITE setBgGradientPreset NOTIFY bgGradientPresetChanged)
+    Q_PROPERTY(double gradientAngle READ gradientAngle WRITE setGradientAngle NOTIFY gradientAngleChanged)
 
 public:
     explicit WallpaperProcessor(QObject *parent = nullptr);
 
+    // ── Existing getters ──
     int targetWidth() const { return m_targetWidth; }
     int targetHeight() const { return m_targetHeight; }
     QString statusMessage() const { return m_statusMessage; }
@@ -43,15 +52,34 @@ public:
     int screenWidth() const { return m_screenWidth; }
     int screenHeight() const { return m_screenHeight; }
     bool keepAbove() const { return m_keepAbove; }
+    // ── New getters ──
+    int blurRadius() const { return m_blurRadius; }
+    double saturationFactor() const { return m_saturationFactor; }
+    int bgGradientStyle() const { return m_bgGradientStyle; }
+    int bgGradientPreset() const { return m_bgGradientPreset; }
+    double gradientAngle() const { return m_gradientAngle; }
 
+    // ── Existing setters ──
     void setTargetWidth(int w);
     void setTargetHeight(int h);
     void setBlurMode(bool blur);
     void setBackgroundColor(const QColor &c);
     void setAutoColor(bool autoC);
+    // ── New setters ──
+    void setBlurRadius(int r);
+    void setSaturationFactor(double f);
+    void setBgGradientStyle(int s);
+    void setBgGradientPreset(int p);
+    void setGradientAngle(double a);
 
     /// Generate a small processed preview (400px max) — returns file:// URL
     Q_INVOKABLE QString generatePreview(const QString &sourcePath);
+
+    /// Gradient preset access
+    Q_INVOKABLE int gradientPresetCount() const;
+    Q_INVOKABLE QString gradientPresetName(int index) const;
+    Q_INVOKABLE QString gradientPresetColor1(int index) const;
+    Q_INVOKABLE QString gradientPresetColor2(int index) const;
 
 public Q_SLOTS:
     void detectScreenSize();
@@ -73,6 +101,7 @@ Q_SIGNALS:
     void outputPathChanged();
     void blurModeChanged();
     void backgroundColorChanged();
+    void autoColorChanged();
     void queueChanged();
     void queueProgressChanged();
     void busyChanged();
@@ -82,6 +111,12 @@ Q_SIGNALS:
     void processingStarted();
     void processingFinished();
     void errorOccurred(const QString &message);
+    // ── New signals ──
+    void blurRadiusChanged();
+    void saturationFactorChanged();
+    void bgGradientStyleChanged();
+    void bgGradientPresetChanged();
+    void gradientAngleChanged();
 
 private:
     int m_targetWidth = 1920;
@@ -103,13 +138,29 @@ private:
     int m_queueProgress = 0;
     int m_currentIndex = 0;
 
+    // ── New tweakable parameters ──
+    int m_blurRadius = 0;          // 0 = auto (adaptive 0.051×H), 1–120 = manual
+    double m_saturationFactor = 1.8;
+    int m_bgGradientStyle = 0;      // 0 = Solid, 1 = Preset, 2 = Auto
+    int m_bgGradientPreset = 0;     // index into s_presets[]
+    double m_gradientAngle = 0.0;   // degrees (0 = horizontal, 90 = vertical, 45 = diagonal ↘)
+
     bool processSingleImage(const QString &sourcePath, QString &outPath);
     QImage renderWallpaper(const QImage &src, int W, int H);
     QColor extractAverageColor(const QImage &image);
+    QPair<QColor, QColor> extractDominantColors(const QImage &image);
 
     static void stackBlur(QImage &image, int radius);
     static void boxBlurPass(QImage &image, int radius);
     static void boostSaturation(QImage &image, double factor);
+
+    /// Gradient preset data
+    struct GradientPreset {
+        const char *name;   // i18n key
+        QRgb color1;
+        QRgb color2;
+    };
+    static const GradientPreset s_presets[10];
 };
 
 #endif // WALLPAPERPROCESSOR_H
