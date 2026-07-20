@@ -414,7 +414,7 @@ Kirigami.ApplicationWindow {
                                 processor.useV2 = false
                                 moodPreviewTimer.restart()
                             }
-                            Layout.fillWidth: true
+                            implicitWidth: Kirigami.Units.gridUnit * 5
                             Controls.ButtonGroup.group: moodGroup
                         }
                     }
@@ -436,7 +436,7 @@ Kirigami.ApplicationWindow {
                                 processor.useV2 = true
                                 moodPreviewTimer.restart()
                             }
-                            Layout.fillWidth: true
+                            implicitWidth: Kirigami.Units.gridUnit * 5
                         }
                     }
                 }
@@ -609,7 +609,7 @@ Kirigami.ApplicationWindow {
                         }
                     }
                     Controls.Slider {
-                        Layout.fillWidth: true
+                        Layout.preferredWidth: Kirigami.Units.gridUnit * 10
                         from: 0; to: 1.0; stepSize: 0.05
                         value: processor.vignetteStrength
                         enabled: processor.vignetteStrength > 0
@@ -642,7 +642,7 @@ Kirigami.ApplicationWindow {
                         }
                     }
                     Controls.Slider {
-                        Layout.fillWidth: true
+                        Layout.preferredWidth: Kirigami.Units.gridUnit * 10
                         from: 0; to: 1.0; stepSize: 0.05
                         value: processor.grainStrength
                         enabled: processor.grainStrength > 0
@@ -670,7 +670,7 @@ Kirigami.ApplicationWindow {
                     }
                     Controls.Slider {
                         id: blurSlider
-                        Layout.fillWidth: true
+                        Layout.preferredWidth: Kirigami.Units.gridUnit * 10
                         from: 0; to: 120; stepSize: 1
                         value: processor.blurRadius
                         Controls.ToolTip.text: processor.blurRadius === 0
@@ -709,7 +709,7 @@ Kirigami.ApplicationWindow {
                     }
                     Controls.Slider {
                         id: satSlider
-                        Layout.fillWidth: true
+                        Layout.preferredWidth: Kirigami.Units.gridUnit * 10
                         from: 0; to: 30; stepSize: 1
                         value: processor.saturationFactor * 10
                         Controls.ToolTip.text: i18n("%1×").arg(processor.saturationFactor.toFixed(1))
@@ -746,7 +746,7 @@ Kirigami.ApplicationWindow {
                     }
                     Controls.Slider {
                         id: zoomSlider
-                        Layout.fillWidth: true
+                        Layout.preferredWidth: Kirigami.Units.gridUnit * 10
                         from: 5; to: 30; stepSize: 1
                         value: Math.round(processor.bgZoom * 10)
                         Controls.ToolTip.text: i18n("%1%").arg(Math.round(processor.bgZoom * 100))
@@ -783,7 +783,7 @@ Kirigami.ApplicationWindow {
                     }
                     Controls.Slider {
                         id: angleSlider
-                        Layout.fillWidth: true
+                        Layout.preferredWidth: Kirigami.Units.gridUnit * 10
                         from: 0; to: 360; stepSize: 1
                         value: processor.gradientAngle
                         Controls.ToolTip.text: i18n("%1°").arg(processor.gradientAngle)
