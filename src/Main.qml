@@ -173,6 +173,8 @@ Kirigami.ApplicationWindow {
                 Layout.fillWidth: true
                 spacing: Kirigami.Units.smallSpacing
 
+                Item { Layout.fillWidth: true }
+
                 Controls.TextField {
                     id: widthInput
                     Layout.preferredWidth: 80
@@ -214,6 +216,7 @@ Kirigami.ApplicationWindow {
                     }
                 }
 
+                Item { Layout.fillWidth: true }
             }
 
             // === Aspect ratio preset ===
@@ -223,14 +226,17 @@ Kirigami.ApplicationWindow {
                 Layout.fillWidth: true
                 spacing: Kirigami.Units.smallSpacing
 
-                Flow {
-                    Layout.fillWidth: true
+                Item { Layout.fillWidth: true }
+
+                RowLayout {
                     spacing: Kirigami.Units.smallSpacing
 
+                    // Generic zone
                     Controls.Button {
                         text: i18n("Free")
                         flat: true
                         checkable: true
+                        implicitWidth: Kirigami.Units.gridUnit * 4
                         Controls.ButtonGroup.group: ratioGroup
                         checked: processor.aspectMode === 0
                         onClicked: processor.aspectMode = 0
@@ -239,6 +245,7 @@ Kirigami.ApplicationWindow {
                         text: "1:1"
                         flat: true
                         checkable: true
+                        implicitWidth: Kirigami.Units.gridUnit * 4
                         Controls.ButtonGroup.group: ratioGroup
                         checked: processor.aspectMode === 1
                         onClicked: processor.aspectMode = 1
@@ -247,30 +254,44 @@ Kirigami.ApplicationWindow {
                         text: "4:3"
                         flat: true
                         checkable: true
+                        implicitWidth: Kirigami.Units.gridUnit * 4
                         Controls.ButtonGroup.group: ratioGroup
                         checked: processor.aspectMode === 2
                         onClicked: processor.aspectMode = 2
                     }
                     Controls.Button {
+                        text: "16:10"
+                        flat: true
+                        checkable: true
+                        implicitWidth: Kirigami.Units.gridUnit * 4
+                        Controls.ButtonGroup.group: ratioGroup
+                        checked: processor.aspectMode === 4
+                        onClicked: processor.aspectMode = 4
+                    }
+
+                    // Separator
+                    Rectangle {
+                        width: 1; height: Kirigami.Units.gridUnit * 1.5
+                        color: Kirigami.Theme.disabledTextColor
+                        Layout.leftMargin: Kirigami.Units.smallSpacing
+                        Layout.rightMargin: Kirigami.Units.smallSpacing
+                    }
+
+                    // Wide zone
+                    Controls.Button {
                         text: "16:9"
                         flat: true
                         checkable: true
+                        implicitWidth: Kirigami.Units.gridUnit * 4
                         Controls.ButtonGroup.group: ratioGroup
                         checked: processor.aspectMode === 3
                         onClicked: processor.aspectMode = 3
                     }
                     Controls.Button {
-                        text: "16:10"
-                        flat: true
-                        checkable: true
-                        Controls.ButtonGroup.group: ratioGroup
-                        checked: processor.aspectMode === 4
-                        onClicked: processor.aspectMode = 4
-                    }
-                    Controls.Button {
                         text: "21:9"
                         flat: true
                         checkable: true
+                        implicitWidth: Kirigami.Units.gridUnit * 4
                         Controls.ButtonGroup.group: ratioGroup
                         checked: processor.aspectMode === 5
                         onClicked: processor.aspectMode = 5
@@ -279,11 +300,14 @@ Kirigami.ApplicationWindow {
                         text: "32:9"
                         flat: true
                         checkable: true
+                        implicitWidth: Kirigami.Units.gridUnit * 4
                         Controls.ButtonGroup.group: ratioGroup
                         checked: processor.aspectMode === 6
                         onClicked: processor.aspectMode = 6
                     }
                 }
+
+                Item { Layout.fillWidth: true }
             }
 
             // === Background mode toggle ===
@@ -293,22 +317,26 @@ Kirigami.ApplicationWindow {
                 Layout.fillWidth: true
                 spacing: Kirigami.Units.smallSpacing
 
+                Item { Layout.fillWidth: true }
+
                 Controls.Button {
                     text: i18n("Blur")
                     checkable: true
+                    implicitWidth: Kirigami.Units.gridUnit * 7
                     checked: processor.blurMode
                     onClicked: processor.blurMode = true
-                    Layout.fillWidth: true
                     Controls.ButtonGroup.group: modeGroup
                 }
                 Controls.Button {
                     text: i18n("Colour")
                     checkable: true
+                    implicitWidth: Kirigami.Units.gridUnit * 7
                     checked: !processor.blurMode
                     onClicked: processor.blurMode = false
-                    Layout.fillWidth: true
                     Controls.ButtonGroup.group: modeGroup
                 }
+
+                Item { Layout.fillWidth: true }
             }
 
             // ── Blur tweaks (visible when Blur selected) ──
@@ -322,6 +350,8 @@ Kirigami.ApplicationWindow {
                     Layout.fillWidth: true
                     spacing: Kirigami.Units.smallSpacing
 
+                    Item { Layout.fillWidth: true }
+
                     Kirigami.Icon {
                         source: "blur"
                         implicitWidth: Kirigami.Units.iconSizes.smallMedium
@@ -330,7 +360,7 @@ Kirigami.ApplicationWindow {
                     }
                     Controls.Slider {
                         id: blurSlider
-                        Layout.fillWidth: true
+                        Layout.preferredWidth: Kirigami.Units.gridUnit * 10
                         from: 0; to: 120; stepSize: 1
                         value: processor.blurRadius
                         Controls.ToolTip.text: processor.blurRadius === 0
@@ -353,12 +383,16 @@ Kirigami.ApplicationWindow {
                         }
                         onValueModified: processor.blurRadius = value
                     }
+
+                    Item { Layout.fillWidth: true }
                 }
 
                 // Saturation
                 RowLayout {
                     Layout.fillWidth: true
                     spacing: Kirigami.Units.smallSpacing
+
+                    Item { Layout.fillWidth: true }
 
                     Kirigami.Icon {
                         source: "color-management"
@@ -368,7 +402,7 @@ Kirigami.ApplicationWindow {
                     }
                     Controls.Slider {
                         id: satSlider
-                        Layout.fillWidth: true
+                        Layout.preferredWidth: Kirigami.Units.gridUnit * 10
                         from: 0; to: 30; stepSize: 1
                         value: processor.saturationFactor * 10
                         Controls.ToolTip.text: i18n("%1×").arg(processor.saturationFactor.toFixed(1))
@@ -389,12 +423,16 @@ Kirigami.ApplicationWindow {
                         }
                         onValueModified: processor.saturationFactor = value / 10.0
                     }
+
+                    Item { Layout.fillWidth: true }
                 }
 
                 // Background zoom
                 RowLayout {
                     Layout.fillWidth: true
                     spacing: Kirigami.Units.smallSpacing
+
+                    Item { Layout.fillWidth: true }
 
                     Kirigami.Icon {
                         source: "zoom-original"
@@ -404,7 +442,7 @@ Kirigami.ApplicationWindow {
                     }
                     Controls.Slider {
                         id: zoomSlider
-                        Layout.fillWidth: true
+                        Layout.preferredWidth: Kirigami.Units.gridUnit * 10
                         from: 5; to: 30; stepSize: 1
                         value: processor.bgZoom * 10
                         Controls.ToolTip.text: i18n("%1×").arg(processor.bgZoom.toFixed(1))
@@ -425,6 +463,8 @@ Kirigami.ApplicationWindow {
                         }
                         onValueModified: processor.bgZoom = value / 10.0
                     }
+
+                    Item { Layout.fillWidth: true }
                 }
             }
 
@@ -441,30 +481,34 @@ Kirigami.ApplicationWindow {
                     Layout.fillWidth: true
                     spacing: Kirigami.Units.smallSpacing
 
+                    Item { Layout.fillWidth: true }
+
                     Controls.Button {
                         text: i18n("Colour")
                         checkable: true
+                        implicitWidth: Kirigami.Units.gridUnit * 5
                         checked: processor.bgGradientStyle === 0
                         onClicked: processor.bgGradientStyle = 0
-                        Layout.fillWidth: true
                         Controls.ButtonGroup.group: fillGroup
                     }
                     Controls.Button {
                         text: i18n("Gradient")
                         checkable: true
+                        implicitWidth: Kirigami.Units.gridUnit * 5
                         checked: processor.bgGradientStyle === 1
                         onClicked: processor.bgGradientStyle = 1
-                        Layout.fillWidth: true
                         Controls.ButtonGroup.group: fillGroup
                     }
                     Controls.Button {
                         text: i18n("Auto")
                         checkable: true
+                        implicitWidth: Kirigami.Units.gridUnit * 5
                         checked: processor.bgGradientStyle === 2
                         onClicked: processor.bgGradientStyle = 2
-                        Layout.fillWidth: true
                         Controls.ButtonGroup.group: fillGroup
                     }
+
+                    Item { Layout.fillWidth: true }
                 }
 
                 // Mood palette buttons — only when Fill=Auto
@@ -642,6 +686,8 @@ Kirigami.ApplicationWindow {
                     Layout.fillWidth: true
                     spacing: Kirigami.Units.smallSpacing
 
+                    Item { Layout.fillWidth: true }
+
                     Kirigami.Icon {
                         source: "transform-rotate"
                         implicitWidth: Kirigami.Units.iconSizes.smallMedium
@@ -650,7 +696,7 @@ Kirigami.ApplicationWindow {
                     }
                     Controls.Slider {
                         id: angleSlider
-                        Layout.fillWidth: true
+                        Layout.preferredWidth: Kirigami.Units.gridUnit * 10
                         from: 0; to: 360; stepSize: 1
                         value: processor.gradientAngle
                         Controls.ToolTip.text: i18n("%1°").arg(processor.gradientAngle)
@@ -664,6 +710,8 @@ Kirigami.ApplicationWindow {
                         editable: true
                         onValueModified: processor.gradientAngle = value
                     }
+
+                    Item { Layout.fillWidth: true }
                 }
             }
 
