@@ -270,7 +270,13 @@ bool WallpaperProcessor::processSingleImage(const QString &sourcePath, QString &
 
     if (m_blurMode) {
         // ── BLUR MODE: zoomed + darkened + blurred background ──
+        // Zoom to fill the output canvas, then center (not top-left)
+        double bgW = srcImage.width() * zoom;
+        double bgH = srcImage.height() * zoom;
+        double bgX = (W - bgW) / 2.0;
+        double bgY = (H - bgH) / 2.0;
         p.save();
+        p.translate(bgX, bgY);
         p.scale(zoom, zoom);
         p.drawImage(0, 0, srcImage);
         p.restore();
