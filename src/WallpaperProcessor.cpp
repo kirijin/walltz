@@ -211,6 +211,14 @@ void WallpaperProcessor::setAutoMood(int m)
     }
 }
 
+void WallpaperProcessor::setUseV2(bool v2)
+{
+    if (m_useV2 != v2) {
+        m_useV2 = v2;
+        Q_EMIT useV2Changed();
+    }
+}
+
 int WallpaperProcessor::gradientPresetCount() const { return 25; }
 
 QString WallpaperProcessor::gradientPresetName(int index) const
@@ -934,6 +942,9 @@ void WallpaperProcessor::computeMoodPalettes(const QImage &image)
     }
 
     m_moodsComputed = true;
+
+    // Also compute V2 for the second row of suggestions
+    computeMoodPalettesV2(image);
 }
 
 
@@ -948,8 +959,8 @@ QColor WP_colorFromCentroid(double r, double g, double b)
 // ── V2: 3D RGB histogram (future use, not wired up) ────────────────────────
 //
 // 8×8×8 RGB cube. Bins scored by population × chroma² × (1 − |0.5 − lightness|).
-// Top-3 well-separated centroids feed all 6 moods.  Kept alongside V1 so the
-// "second row" of suggestions can offer MaterialYou-style alternatives.
+// Top-3 well-separated centroids feed all 6 moods.  Called from
+// computeMoodPalettes() and stored in m_moodColorsV2A/B for the second row.
 //
 void WallpaperProcessor::computeMoodPalettesV2(const QImage &image)
 {
@@ -1003,7 +1014,7 @@ void WallpaperProcessor::computeMoodPalettesV2(const QImage &image)
             }
 
     if (centroids.empty()) {
-        for (int m = 0; m < 6; ++m) { m_moodColorsA[m] = QColor(128,128,128); m_moodColorsB[m] = QColor(180,180,180); }
+        for (int m = 0; m < 6; ++m) { m_moodColorsV2A[m] = QColor(128,128,128); m_moodColorsV2B[m] = QColor(180,180,180); }
         m_moodsComputed = true;
         return;
     }
@@ -1048,11 +1059,11 @@ void WallpaperProcessor::computeMoodPalettesV2(const QImage &image)
     };
 
     auto pair = maxContrastPair();
-    m_moodColorsA[0] = pair.first;  m_moodColorsB[0] = pair.second;
+    m_moodColorsV2A[0] = pair.first;  m_moodColorsV2B[0] = pair.second;
 
     { float h,s,l; pair.first.getHslF(&h,&s,&l);
-      m_moodColorsA[1] = QColor::fromHslF(h, qBound(0.25f,s*0.65f,0.45f), qBound(0.35f,l,0.60f));
-      m_moodColorsB[1] = QColor::fromHslF(fmod(h+1.0f/18.0f,1.0f), qBound(0.20f,s*0.55f,0.38f), qBound(0.45f,l+0.08f,0.70f)); }
+      m_moodColorsV2A[1] = QColor::fromHslF(h, qBound(0.25f,s*0.65f,0.45f), qBound(0.35f,l,0.60f));
+      m_moodColorsV2B[1] = QColor::fromHslF(fmod(h+1.0f/18.0f,1.0f), qBound(0.20f,s*0.55f,0.38f), qBound(0.45f,l+0.08f,0.70f)); }
 
     { int bestVi = 0;
       for (int i = 0; i < 3; ++i) {
@@ -1060,29 +1071,29 @@ void WallpaperProcessor::computeMoodPalettesV2(const QImage &image)
           double mn=qMin(qMin(r,g),b), mx=qMax(qMax(r,g),b);
           if ((mx-mn) > (qMax(qMax(colors[bestVi].redF(),colors[bestVi].greenF()),colors[bestVi].blueF())-qMin(qMin(colors[bestVi].redF(),colors[bestVi].greenF()),colors[bestVi].blueF()))) bestVi = i;
       }
-      m_moodColorsA[2] = moodify(colors[bestVi],1.3f,0.0f,0.55f);
-      m_moodColorsB[2] = moodify(colors[(bestVi+1)%3],1.1f,0.05f,0.40f); }
+      m_moodColorsV2A[2] = moodify(colors[bestVi],1.3f,0.0f,0.55f);
+      m_moodColorsV2B[2] = moodify(colors[(bestVi+1)%3],1.1f,0.05f,0.40f); }
 
     { int warmIdx=0; float warmestH=1.0f;
       for (int i=0;i<3;++i) { float h,s,l; colors[i].getHslF(&h,&s,&l);
         float dist=qMin(h,1.0f-h);
         if ((h<=0.15f||h>=0.85f) && dist<warmestH) { warmestH=dist; warmIdx=i; } }
-      m_moodColorsA[3]=moodify(colors[warmIdx],1.1f,0.02f,0.40f);
-      float hW,sW,lW; m_moodColorsA[3].getHslF(&hW,&sW,&lW);
-      m_moodColorsB[3]=QColor::fromHslF(fmod(hW+1.0f/12.0f,1.0f),qBound(0.30f,sW*0.85f,0.60f),qBound(0.40f,lW+0.10f,0.72f)); }
+      m_moodColorsV2A[3]=moodify(colors[warmIdx],1.1f,0.02f,0.40f);
+      float hW,sW,lW; m_moodColorsV2A[3].getHslF(&hW,&sW,&lW);
+      m_moodColorsV2B[3]=QColor::fromHslF(fmod(hW+1.0f/12.0f,1.0f),qBound(0.30f,sW*0.85f,0.60f),qBound(0.40f,lW+0.10f,0.72f)); }
 
     { int coolIdx=0; float coolestD=999;
       for (int i=0;i<3;++i) { float h,s,l; colors[i].getHslF(&h,&s,&l);
         float d=qAbs(h-0.60f); if (d<coolestD) { coolestD=d; coolIdx=i; } }
-      m_moodColorsA[4]=moodify(colors[coolIdx],1.0f,0.0f,0.38f);
-      float hC,sC,lC; m_moodColorsA[4].getHslF(&hC,&sC,&lC);
-      m_moodColorsB[4]=QColor::fromHslF(fmod(hC-1.0f/12.0f+1.0f,1.0f),qBound(0.30f,sC*0.85f,0.55f),qBound(0.42f,lC+0.10f,0.70f)); }
+      m_moodColorsV2A[4]=moodify(colors[coolIdx],1.0f,0.0f,0.38f);
+      float hC,sC,lC; m_moodColorsV2A[4].getHslF(&hC,&sC,&lC);
+      m_moodColorsV2B[4]=QColor::fromHslF(fmod(hC-1.0f/12.0f+1.0f,1.0f),qBound(0.30f,sC*0.85f,0.55f),qBound(0.42f,lC+0.10f,0.70f)); }
 
     { int darkIdx=0; double minL=colors[0].lightnessF();
       for (int i=1;i<3;++i) { if (colors[i].lightnessF()<minL) { minL=colors[i].lightnessF(); darkIdx=i; } }
-      m_moodColorsA[5]=moodify(colors[darkIdx],0.85f,-0.08f,0.30f);
-      float hD,sD,lD; m_moodColorsA[5].getHslF(&hD,&sD,&lD);
-      m_moodColorsB[5]=QColor::fromHslF(fmod(hD+0.5f,1.0f),qBound(0.25f,sD*0.80f,0.50f),qBound(0.30f,lD+0.15f,0.50f)); }
+      m_moodColorsV2A[5]=moodify(colors[darkIdx],0.85f,-0.08f,0.30f);
+      float hD,sD,lD; m_moodColorsV2A[5].getHslF(&hD,&sD,&lD);
+      m_moodColorsV2B[5]=QColor::fromHslF(fmod(hD+0.5f,1.0f),qBound(0.25f,sD*0.80f,0.50f),qBound(0.30f,lD+0.15f,0.50f)); }
 
     m_moodsComputed = true;
 }
@@ -1093,6 +1104,8 @@ QPair<QColor, QColor> WallpaperProcessor::extractHarmonizedColors(const QImage &
     if (!m_moodsComputed)
         computeMoodPalettes(image);
     int m = qBound(0, mood, 5);
+    if (m_useV2)
+        return {m_moodColorsV2A[m], m_moodColorsV2B[m]};
     return {m_moodColorsA[m], m_moodColorsB[m]};
 }
 
@@ -1122,6 +1135,18 @@ QString WallpaperProcessor::moodColorB(int index) const
 {
     if (index < 0 || index >= 6 || !m_moodsComputed) return {};
     return m_moodColorsB[index].name();
+}
+
+QString WallpaperProcessor::moodColorV2A(int index) const
+{
+    if (index < 0 || index >= 6 || !m_moodsComputed) return {};
+    return m_moodColorsV2A[index].name();
+}
+
+QString WallpaperProcessor::moodColorV2B(int index) const
+{
+    if (index < 0 || index >= 6 || !m_moodsComputed) return {};
+    return m_moodColorsV2B[index].name();
 }
 
 void WallpaperProcessor::stackBlur(QImage &image, int radius)

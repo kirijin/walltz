@@ -38,6 +38,7 @@ class WallpaperProcessor : public QObject
     Q_PROPERTY(double gradientAngle READ gradientAngle WRITE setGradientAngle NOTIFY gradientAngleChanged)
     Q_PROPERTY(double bgZoom READ bgZoom WRITE setBgZoom NOTIFY bgZoomChanged)
     Q_PROPERTY(int autoMood READ autoMood WRITE setAutoMood NOTIFY autoMoodChanged)
+    Q_PROPERTY(bool useV2 READ useV2 WRITE setUseV2 NOTIFY useV2Changed)
 
 public:
     explicit WallpaperProcessor(QObject *parent = nullptr);
@@ -66,6 +67,7 @@ public:
     double gradientAngle() const { return m_gradientAngle; }
     double bgZoom() const { return m_bgZoom; }
     int autoMood() const { return m_autoMood; }
+    bool useV2() const { return m_useV2; }
 
     // ── Existing setters ──
     void setTargetWidth(int w);
@@ -81,6 +83,7 @@ public:
     void setGradientAngle(double a);
     void setBgZoom(double z);
     void setAutoMood(int m);
+    void setUseV2(bool v2);
 
     /// Generate a small processed preview (400px max) — returns file:// URL
     Q_INVOKABLE QString generatePreview(const QString &sourcePath);
@@ -97,6 +100,10 @@ public:
     Q_INVOKABLE QString moodName(int index) const;
     Q_INVOKABLE QString moodColorA(int index) const;
     Q_INVOKABLE QString moodColorB(int index) const;
+
+    /// V2 mood palette access (3D RGB histogram — second row)
+    Q_INVOKABLE QString moodColorV2A(int index) const;
+    Q_INVOKABLE QString moodColorV2B(int index) const;
 
 public Q_SLOTS:
     void detectScreenSize();
@@ -140,6 +147,7 @@ Q_SIGNALS:
     void gradientAngleChanged();
     void bgZoomChanged();
     void autoMoodChanged();
+    void useV2Changed();
 
 private:
     int m_targetWidth = 1920;
@@ -172,8 +180,11 @@ private:
     double m_gradientAngle = 0.0;   // degrees (0 = horizontal, 90 = vertical, 45 = diagonal ↘)
     double m_bgZoom = 1.0;          // background zoom multiplier (0.5–3.0, 1.0 = fill)
     int m_autoMood = 0;             // 0=Auto, 1=Soft, 2=Vivid, 3=Warm, 4=Cool, 5=Deep
+    bool m_useV2 = false;           // use V2 (3D RGB histogram) instead of V1
     QColor m_moodColorsA[6];        // cached mood gradient color A (index = mood)
     QColor m_moodColorsB[6];        // cached mood gradient color B
+    QColor m_moodColorsV2A[6];      // V2 mood gradient color A (second row)
+    QColor m_moodColorsV2B[6];      // V2 mood gradient color B
     bool m_moodsComputed = false;   // true after computeAllMoods()
 
     bool processSingleImage(const QString &sourcePath, QString &outPath);

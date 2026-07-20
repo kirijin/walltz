@@ -541,12 +541,61 @@ Kirigami.ApplicationWindow {
                             checked: processor.autoMood === index
                             onClicked: {
                                 processor.autoMood = index
+                                processor.useV2 = false
                                 moodPreviewTimer.restart()
                             }
                             Layout.fillWidth: true
                             Controls.ButtonGroup.group: moodGroup
                         }
                     }
+                }
+
+                // Second row: V2 suggestions (3D RGB histogram — MaterialYou-style)
+                RowLayout {
+                    visible: processor.bgGradientStyle === 2
+                    Layout.fillWidth: true
+                    spacing: Kirigami.Units.mediumSpacing
+
+                    Item { Layout.fillWidth: true }
+
+                    Repeater {
+                        model: 6
+                        delegate: Rectangle {
+                            required property int index
+                            width: 56; height: 40
+                            radius: Kirigami.Units.cornerRadius
+                            border.color: Kirigami.Theme.textColor
+                            border.width: 1
+
+                            gradient: Gradient {
+                                GradientStop { position: 0.0; color: processor.moodColorV2A(index) }
+                                GradientStop { position: 1.0; color: processor.moodColorV2B(index) }
+                            }
+
+                            Controls.Button {
+                                anchors.fill: parent
+                                opacity: 0
+                                onClicked: {
+                                    processor.autoMood = index
+                                    processor.useV2 = true
+                                    moodPreviewTimer.restart()
+                                }
+                            }
+
+                            Controls.Label {
+                                anchors.bottom: parent.bottom
+                                anchors.horizontalCenter: parent.horizontalCenter
+                                anchors.bottomMargin: 2
+                                text: processor.moodName(index)
+                                font.pixelSize: Kirigami.Theme.smallFont.pixelSize
+                                color: Kirigami.Theme.textColor
+                                style: Text.Outline
+                                styleColor: Kirigami.Theme.backgroundColor
+                            }
+                        }
+                    }
+
+                    Item { Layout.fillWidth: true }
                 }
 
                 // Solid color chooser — inline palette
