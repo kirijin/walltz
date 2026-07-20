@@ -19,38 +19,78 @@ static const int SHADOW_RADIUS = 3;
 
 // ── gradient presets (color-theory-based) ─────────────────────────────────
 
-const WallpaperProcessor::GradientPreset WallpaperProcessor::s_presets[25] = {
+const WallpaperProcessor::GradientPreset WallpaperProcessor::s_presets[65] = {
     // name             color1        color2
-    // ── Warm tones ─────────────────────────────────────┐
-    { "Sunset Warmth",  0xffff6b6b, 0xfffeca57 }, // │
-    { "Amber Glow",     0xfff0932b, 0xfffeca57 }, // │
-    { "Coral Reef",     0xffff6b6b, 0xff48dbfb }, // │
-    { "Lemonade",       0xfffdcb6e, 0xff00cec9 }, // │
-    { "Dusk",           0xff6c5ce7, 0xfffd79a8 }, // │
-    // ── Cool tones ─────────────────────────────────────┤
-    { "Ocean Depths",   0xff0abde3, 0xff48dbfb }, // │
-    { "Tokyo Night",    0xff1a1b26, 0xff7aa2f7 }, // │
-    { "Arctic",         0xff2e3440, 0xff88c0d0 }, // │
-    { "Nordic Blues",   0xff2c3e50, 0xff3498db }, // │
-    { "One Dark",       0xff282c34, 0xff61afef }, // │
-    // ── Greens & nature ────────────────────────────────┤
-    { "Forest Calm",    0xff6ab04c, 0xff22a6b3 }, // │
-    { "Teal Mint",      0xff00b894, 0xff00cec9 }, // │
-    { "Everforest",     0xff2b3339, 0xffa7c080 }, // │
-    { "Aurora",         0xff00b894, 0xff6c5ce7 }, // │
-    { "Monokai",        0xff272822, 0xffa6e22e }, // │
-    // ── Purples & pinks ────────────────────────────────┤
-    { "Lavender Sky",   0xff4834d4, 0xff9b59b6 }, // │
-    { "Rose Blush",     0xffbe2edd, 0xfff368e0 }, // │
-    { "Catppuccin",     0xff1e1e2e, 0xffcba6f7 }, // │
-    { "Dracula",        0xff282a36, 0xffbd93f9 }, // │
-    { "Rose Pine",      0xff191724, 0xffebbcba }, // │
-    // ── Neutrals & dark ────────────────────────────────┤
-    { "Midnight",       0xff1a1a2e, 0xff16213e }, // │
-    { "Gruvbox",        0xff282828, 0xff8f3f1a }, // │
-    { "Solarized",      0xff073642, 0xff268bd2 }, // │
-    { "Mountain",       0xff636e72, 0xffb2bec3 }, // │
-    { "Grayscale",      0xff444444, 0xffcccccc }, // │
+    // ── Warm tones ────────────────────────────────────────
+    { "Sunset Warmth",  0xffff6b6b, 0xfffeca57 },
+    { "Amber Glow",     0xfff0932b, 0xfffeca57 },
+    { "Coral Reef",     0xffff6b6b, 0xff48dbfb },
+    { "Lemonade",       0xfffdcb6e, 0xff00cec9 },
+    { "Dusk",           0xff6c5ce7, 0xfffd79a8 },
+    { "Peach",          0xfffdcb6e, 0xffe17055 },
+    { "Tangy",          0xffe17055, 0xffd63031 },
+    { "Apricot",        0xfff9ca24, 0xfff0932b },
+    { "Ruby Glow",      0xffeb4d4b, 0xffbe2edd },
+    { "Gold Flame",     0xfff9ca24, 0xffe17055 },
+    { "Blazing",        0xffe74c3c, 0xfff39c12 },
+    { "Crimson",        0xffeb4d4b, 0xffd63031 },
+    { "Honey",          0xfff9ca24, 0xfffdcb6e },
+    // ── Cool tones ────────────────────────────────────────
+    { "Ocean Depths",   0xff0abde3, 0xff48dbfb },
+    { "Tokyo Night",    0xff1a1b26, 0xff7aa2f7 },
+    { "Arctic",         0xff2e3440, 0xff88c0d0 },
+    { "Nordic Blues",   0xff2c3e50, 0xff3498db },
+    { "One Dark",       0xff282c34, 0xff61afef },
+    { "Ice Cold",       0xffa29bfe, 0xff6c5ce7 },
+    { "Blue Lagoon",    0xff0984e3, 0xff74b9ff },
+    { "Neon Blue",      0xff48dbfb, 0xff0984e3 },
+    { "Deep Sea",       0xff0c2461, 0xff0fb9b1 },
+    { "Twilight",       0xff182c61, 0xff3b3b98 },
+    { "Steel",          0xff636e72, 0xff74b9ff },
+    { "Skyline",        0xff0984e3, 0xffa29bfe },
+    { "Frost",          0xffdfe6e9, 0xff74b9ff },
+    // ── Greens & nature ────────────────────────────────────
+    { "Forest Calm",    0xff6ab04c, 0xff22a6b3 },
+    { "Teal Mint",      0xff00b894, 0xff00cec9 },
+    { "Everforest",     0xff2b3339, 0xffa7c080 },
+    { "Aurora",         0xff00b894, 0xff6c5ce7 },
+    { "Monokai",        0xff272822, 0xffa6e22e },
+    { "Spring",         0xff55efc4, 0xff00b894 },
+    { "Meadow",         0xffb8e994, 0xff78e08f },
+    { "Jungle",         0xff079992, 0xff38ada9 },
+    { "Olive",          0xffb8e994, 0xffe1b12c },
+    { "Sage",           0xffb8e994, 0xff636e72 },
+    { "Tropical",       0xff00cec9, 0xff0984e3 },
+    { "Minty",          0xff55efc4, 0xff81ecec },
+    { "Fern",           0xff78e08f, 0xff079992 },
+    // ── Purples & pinks ────────────────────────────────────
+    { "Lavender Sky",   0xff4834d4, 0xff9b59b6 },
+    { "Rose Blush",     0xffbe2edd, 0xfff368e0 },
+    { "Catppuccin",     0xff1e1e2e, 0xffcba6f7 },
+    { "Dracula",        0xff282a36, 0xffbd93f9 },
+    { "Rose Pine",      0xff191724, 0xffebbcba },
+    { "Magenta Glow",   0xffbe2edd, 0xffe84393 },
+    { "Plum",           0xff6c5ce7, 0xffe84393 },
+    { "Violet",         0xff6c5ce7, 0xffa29bfe },
+    { "Bubblegum",      0xfffd79a8, 0xffe84393 },
+    { "Wine",           0xffe84393, 0xffd63031 },
+    { "Lilac",          0xffa29bfe, 0xff74b9ff },
+    { "Deep Purple",    0xff2d3436, 0xff6c5ce7 },
+    { "Berry",          0xff6c5ce7, 0xff4834d4 },
+    // ── Neutrals & dark ────────────────────────────────────
+    { "Midnight",       0xff1a1a2e, 0xff16213e },
+    { "Gruvbox",        0xff282828, 0xff8f3f1a },
+    { "Solarized",      0xff073642, 0xff268bd2 },
+    { "Mountain",       0xff636e72, 0xffb2bec3 },
+    { "Grayscale",      0xff444444, 0xffcccccc },
+    { "Slate",          0xff2d3436, 0xff636e72 },
+    { "Concrete",       0xffdfe6e9, 0xffb2bec3 },
+    { "Ash",            0xff636e72, 0xffb2bec3 },
+    { "Charcoal",       0xff1e272e, 0xff2d3436 },
+    { "Ivory",          0xfffff1e6, 0xffdfe6e9 },
+    { "Warm Gray",      0xffdfe6e9, 0xfffdcb6e },
+    { "Obsidian",       0xff0c2461, 0xff1e272e },
+    { "Smoke",          0xffb2bec3, 0xffdfe6e9 },
 };
 
 // ── constructor ──────────────────────────────────────────────────────────
@@ -211,7 +251,7 @@ void WallpaperProcessor::setAutoMood(int m)
     }
 }
 
-int WallpaperProcessor::gradientPresetCount() const { return 25; }
+int WallpaperProcessor::gradientPresetCount() const { return 65; }
 
 QString WallpaperProcessor::gradientPresetName(int index) const
 {
