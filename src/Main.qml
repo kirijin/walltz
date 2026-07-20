@@ -93,13 +93,12 @@ Kirigami.ApplicationWindow {
                                 var entries = [];
                                 var paths = [];
                                 for (var i = 0; i < drop.urls.length; ++i) {
-                                    var url = drop.urls[i].toString();
-                                    if (url.startsWith("file://"))
-                                        url = url.substring(7);
-                                    if (url.length > 0) {
-                                        paths.push(url);
-                                        var pv = processor.generatePreview(url);
-                                        entries.push({path: url, previewUrl: pv});
+                                    var url = drop.urls[i];
+                                    var localPath = url.toLocalFile();
+                                    if (localPath.length > 0) {
+                                        paths.push(localPath);
+                                        var pv = processor.generatePreview(localPath);
+                                        entries.push({path: localPath, previewUrl: pv});
                                     }
                                 }
                                 fileList = entries;
@@ -628,9 +627,6 @@ Kirigami.ApplicationWindow {
             statusMessage.text = i18n("Done");
             statusMessage.visible = true;
             statusMessageTimer.restart();
-        }
-        onScreenWidthChanged: {
-            detectedRes.text = processor.screenWidth + "\u00D7" + processor.screenHeight;
         }
     }
 
