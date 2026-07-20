@@ -6,6 +6,8 @@
 #include <QWindow>
 #include <QFileInfo>
 #include <QtMath>
+#include <QRandomGenerator>
+#include <cmath>
 #include <QPainterPath>
 #include <QDir>
 #include <QTimer>
@@ -216,6 +218,24 @@ void WallpaperProcessor::setUseV2(bool v2)
     if (m_useV2 != v2) {
         m_useV2 = v2;
         Q_EMIT useV2Changed();
+    }
+}
+
+void WallpaperProcessor::setVignetteStrength(double s)
+{
+    s = qBound(0.0, s, 1.0);
+    if (!qFuzzyCompare(m_vignetteStrength, s)) {
+        m_vignetteStrength = s;
+        Q_EMIT vignetteStrengthChanged();
+    }
+}
+
+void WallpaperProcessor::setGrainStrength(double s)
+{
+    s = qBound(0.0, s, 1.0);
+    if (!qFuzzyCompare(m_grainStrength, s)) {
+        m_grainStrength = s;
+        Q_EMIT grainStrengthChanged();
     }
 }
 
@@ -539,6 +559,35 @@ QImage WallpaperProcessor::renderWallpaper(const QImage &src, int W, int H)
         int blurRadius = m_blurRadius > 0 ? m_blurRadius : qBound(1, (int)(0.051 * H), 120);
         stackBlur(bg, blurRadius);
         boostSaturation(bg, m_saturationFactor);
+
+        // ── Vignette (subtle edge darkening) ──
+        if (m_vignetteStrength > 0.001) {
+            double radius = qMax(W, H) * 0.7;
+            QRadialGradient vg(W / 2.0, H / 2.0, radius);
+            vg.setColorAt(0.0, QColor(0, 0, 0, 0));
+            vg.setColorAt(0.7, QColor(0, 0, 0, 0));
+            vg.setColorAt(1.0, QColor(0, 0, 0, (int)(80 * m_vignetteStrength)));
+            QPainter vp(&bg);
+            vp.setCompositionMode(QPainter::CompositionMode_Multiply);
+            vp.fillRect(0, 0, W, H, vg);
+            vp.end();
+        }
+
+        // ── Photo grain (film noise overlay) ──
+        if (m_grainStrength > 0.001) {
+            int intensity = qMax(1, (int)(12 * m_grainStrength));
+            QImage noise(W, H, QImage::Format_Grayscale8);
+            for (int y = 0; y < H; ++y) {
+                unsigned char *line = noise.scanLine(y);
+                for (int x = 0; x < W; ++x)
+                    line[x] = (unsigned char)qBound(0,
+                        (QRandomGenerator::global()->bounded(intensity * 2 + 1)) - intensity + 128, 255);
+            }
+            QPainter gp(&bg);
+            gp.setCompositionMode(QPainter::CompositionMode_SoftLight);
+            gp.drawImage(0, 0, noise);
+            gp.end();
+        }
 
         p.begin(&output);
         p.drawImage(0, 0, bg);

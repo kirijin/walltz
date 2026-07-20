@@ -466,6 +466,70 @@ Kirigami.ApplicationWindow {
 
                     Item { Layout.fillWidth: true }
                 }
+
+                // Vignette
+                RowLayout {
+                    Layout.fillWidth: true
+                    spacing: Kirigami.Units.smallSpacing
+                    visible: processor.blurMode
+
+                    Item { Layout.fillWidth: true }
+
+                    Kirigami.Icon {
+                        source: "contrast"
+                        implicitWidth: Kirigami.Units.iconSizes.smallMedium
+                        implicitHeight: Kirigami.Units.iconSizes.smallMedium
+                        Layout.alignment: Qt.AlignVCenter
+                    }
+                    Controls.Switch {
+                        checked: processor.vignetteStrength > 0
+                        onToggled: processor.vignetteStrength = checked ? 0.5 : 0.0
+                    }
+                    Controls.Slider {
+                        Layout.preferredWidth: Kirigami.Units.gridUnit * 5
+                        from: 0; to: 1.0; stepSize: 0.05
+                        value: processor.vignetteStrength
+                        enabled: processor.vignetteStrength > 0
+                        Controls.ToolTip.text: i18n("%1%").arg(Math.round(processor.vignetteStrength * 100))
+                        Controls.ToolTip.visible: hovered
+                        Controls.ToolTip.delay: 400
+                        onMoved: processor.vignetteStrength = value
+                    }
+
+                    Item { Layout.fillWidth: true }
+                }
+
+                // Grain
+                RowLayout {
+                    Layout.fillWidth: true
+                    spacing: Kirigami.Units.smallSpacing
+                    visible: processor.blurMode
+
+                    Item { Layout.fillWidth: true }
+
+                    Kirigami.Icon {
+                        source: "noise"
+                        implicitWidth: Kirigami.Units.iconSizes.smallMedium
+                        implicitHeight: Kirigami.Units.iconSizes.smallMedium
+                        Layout.alignment: Qt.AlignVCenter
+                    }
+                    Controls.Switch {
+                        checked: processor.grainStrength > 0
+                        onToggled: processor.grainStrength = checked ? 0.5 : 0.0
+                    }
+                    Controls.Slider {
+                        Layout.preferredWidth: Kirigami.Units.gridUnit * 5
+                        from: 0; to: 1.0; stepSize: 0.05
+                        value: processor.grainStrength
+                        enabled: processor.grainStrength > 0
+                        Controls.ToolTip.text: i18n("%1%").arg(Math.round(processor.grainStrength * 100))
+                        Controls.ToolTip.visible: hovered
+                        Controls.ToolTip.delay: 400
+                        onMoved: processor.grainStrength = value
+                    }
+
+                    Item { Layout.fillWidth: true }
+                }
             }
 
             // ── Color/gradient controls (visible when Color selected) ──
@@ -531,8 +595,6 @@ Kirigami.ApplicationWindow {
                     Layout.fillWidth: true
                     spacing: Kirigami.Units.smallSpacing
 
-                    Controls.Label { text: i18n("Mood:") }
-
                     Repeater {
                         model: 6
                         delegate: Controls.Button {
@@ -550,16 +612,11 @@ Kirigami.ApplicationWindow {
                     }
                 }
 
-                // Second row: V2 suggestions (3D RGB histogram — MaterialYou-style)
+                // Second row: V2 suggestions (3D RGB histogram)
                 RowLayout {
                     visible: processor.bgGradientStyle === 2
                     Layout.fillWidth: true
                     spacing: Kirigami.Units.smallSpacing
-
-                    Controls.Label {
-                        text: i18n("V2:")
-                        opacity: 0.5
-                    }
 
                     Repeater {
                         model: 6
