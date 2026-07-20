@@ -190,11 +190,10 @@ void WallpaperProcessor::detectScreenSize()
     static const int MAX_RETRIES = 10;
     static const int RETRY_MS = 200;
 
-    // Try primaryScreen first
+    // Try primaryScreen first — QScreen::size() already returns physical pixels
     QScreen *screen = QGuiApplication::primaryScreen();
     if (screen && screen->size().width() > 0 && screen->size().height() > 0) {
-        QSize phys = screen->size() * screen->devicePixelRatio();
-        updateScreenSize(phys.width(), phys.height());
+        updateScreenSize(screen->size().width(), screen->size().height());
         m_detectAttempt = 0;
         return;
     }
@@ -203,8 +202,7 @@ void WallpaperProcessor::detectScreenSize()
     if (m_window) {
         QScreen *winScreen = m_window->screen();
         if (winScreen && winScreen->size().width() > 0 && winScreen->size().height() > 0) {
-            QSize phys = winScreen->size() * winScreen->devicePixelRatio();
-            updateScreenSize(phys.width(), phys.height());
+            updateScreenSize(winScreen->size().width(), winScreen->size().height());
             m_detectAttempt = 0;
             return;
         }

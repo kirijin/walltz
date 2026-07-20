@@ -340,7 +340,7 @@ Kirigami.ApplicationWindow {
                     Rectangle {
                         id: colorSwatch
                         width: 28; height: 28
-                        radius: Kirigami.Theme.smallBorderRadius
+                        radius: Kirigami.Units.cornerRadius
                         border.width: 1
                         border.color: Kirigami.Theme.textColor
                         color: processor.backgroundColor
@@ -371,7 +371,7 @@ Kirigami.ApplicationWindow {
                             required property int index
 
                             width: 56; height: 40
-                            radius: Kirigami.Theme.smallBorderRadius
+                            radius: Kirigami.Units.cornerRadius
                             border.width: processor.bgGradientPreset === index ? 2 : 1
                             border.color: processor.bgGradientPreset === index
                                            ? Kirigami.Theme.highlightColor
