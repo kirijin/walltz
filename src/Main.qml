@@ -590,10 +590,14 @@ Kirigami.ApplicationWindow {
     function refreshPreviews() {
         var list = dropArea.fileList;
         if (list.length === 0) return;
+        var cacheBust = "?t=" + Date.now();
         var entries = [];
         for (var i = 0; i < list.length; ++i) {
             if (list[i].path) {
-                entries.push({path: list[i].path, previewUrl: processor.generatePreview(list[i].path)});
+                var url = processor.generatePreview(list[i].path);
+                if (url.length > 0)
+                    url += cacheBust;
+                entries.push({path: list[i].path, previewUrl: url});
             }
         }
         dropArea.fileList = entries;
@@ -604,14 +608,14 @@ Kirigami.ApplicationWindow {
 
     Connections {
         target: processor
-        onBlurRadiusChanged: previewDebounce.restart()
-        onSaturationFactorChanged: previewDebounce.restart()
-        onBgGradientStyleChanged: previewDebounce.restart()
-        onBgGradientPresetChanged: previewDebounce.restart()
-        onGradientAngleChanged: previewDebounce.restart()
-        onBlurModeChanged: previewDebounce.restart()
-        onAutoColorChanged: previewDebounce.restart()
-        onBackgroundColorChanged: previewDebounce.restart()
+        function onBlurRadiusChanged() { previewDebounce.restart(); }
+        function onSaturationFactorChanged() { previewDebounce.restart(); }
+        function onBgGradientStyleChanged() { previewDebounce.restart(); }
+        function onBgGradientPresetChanged() { previewDebounce.restart(); }
+        function onGradientAngleChanged() { previewDebounce.restart(); }
+        function onBlurModeChanged() { previewDebounce.restart(); }
+        function onAutoColorChanged() { previewDebounce.restart(); }
+        function onBackgroundColorChanged() { previewDebounce.restart(); }
     }
 
     Connections {
