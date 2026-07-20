@@ -173,8 +173,6 @@ Kirigami.ApplicationWindow {
                 Layout.fillWidth: true
                 spacing: Kirigami.Units.smallSpacing
 
-                Controls.Label { text: i18n("Resolution:") }
-
                 Controls.TextField {
                     id: widthInput
                     Layout.preferredWidth: 80
@@ -224,8 +222,6 @@ Kirigami.ApplicationWindow {
             RowLayout {
                 Layout.fillWidth: true
                 spacing: Kirigami.Units.smallSpacing
-
-                Controls.Label { text: i18n("Ratio:") }
 
                 Flow {
                     Layout.fillWidth: true
@@ -296,8 +292,6 @@ Kirigami.ApplicationWindow {
             RowLayout {
                 Layout.fillWidth: true
                 spacing: Kirigami.Units.smallSpacing
-
-                Controls.Label { text: i18n("Background:") }
 
                 Controls.Button {
                     text: i18n("Blur")
@@ -470,17 +464,24 @@ Kirigami.ApplicationWindow {
                 }
 
                 // Mood palette buttons — only when Fill=Auto
-                Flow {
+                Controls.ButtonGroup { id: moodGroup }
+
+                Timer {
+                    id: moodPreviewTimer
+                    interval: 200
+                    onTriggered: {
+                        if (dropArea.fileCount > 0 && dropArea.filePaths.length > 0) {
+                            imagePreview.source = processor.generatePreview(dropArea.filePaths[0])
+                        }
+                    }
+                }
+
+                RowLayout {
                     visible: processor.bgGradientStyle === 2
                     Layout.fillWidth: true
                     spacing: Kirigami.Units.smallSpacing
 
-                    Controls.Label {
-                        text: i18n("Mood:")
-                        anchors.verticalCenter: parent ? parent.verticalCenter : undefined
-                    }
-
-                    Controls.ButtonGroup { id: moodGroup }
+                    Controls.Label { text: i18n("Mood:") }
 
                     Repeater {
                         model: 6
@@ -490,8 +491,9 @@ Kirigami.ApplicationWindow {
                             checked: processor.autoMood === index
                             onClicked: {
                                 processor.autoMood = index
-                                debouncePreview.restart()
+                                moodPreviewTimer.restart()
                             }
+                            Layout.fillWidth: true
                             Controls.ButtonGroup.group: moodGroup
                         }
                     }
