@@ -564,6 +564,17 @@ QString WallpaperProcessor::generatePreview(const QString &sourcePath)
     pw = qMax((int)(pw * ps), 200);
     ph = qMax((int)(ph * ps), 150);
 
+    // Preserve target aspect ratio after min-clamp
+    if (pw > 0 && ph > 0) {
+        if (pw >= ph) {
+            // Landscape/wide: width is authoritative
+            ph = qMax(qRound(pw * m_targetHeight / (double)m_targetWidth), 1);
+        } else {
+            // Portrait: height is authoritative
+            pw = qMax(qRound(ph * m_targetWidth / (double)m_targetHeight), 1);
+        }
+    }
+
     // Scale source for preview output
     int imgW = srcImage.width(), imgH = srcImage.height();
     if (imgW > pw || imgH > ph) {

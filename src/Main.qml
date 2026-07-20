@@ -9,7 +9,7 @@ Kirigami.ApplicationWindow {
 
     width: 560
     height: 720
-    minimumWidth: 480
+    minimumWidth: 600
     minimumHeight: 600
 
     title: i18nc("@title:window", "Walltz")
