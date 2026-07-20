@@ -506,8 +506,8 @@ QImage WallpaperProcessor::renderWallpaper(const QImage &src, int W, int H)
             break;
         }
         case 2: {
-            // Auto gradient from image dominant colors
-            auto colors = extractDominantColors(src);
+            // Auto gradient from image harmonized colors
+            auto colors = extractHarmonizedColors(src);
             double rad = m_gradientAngle * M_PI / 180.0;
             double dx = W * 0.5 * qAbs(qCos(rad)) + H * 0.5 * qAbs(qSin(rad));
             double dy = W * 0.5 * qAbs(qSin(rad)) + H * 0.5 * qAbs(qCos(rad));
@@ -520,7 +520,11 @@ QImage WallpaperProcessor::renderWallpaper(const QImage &src, int W, int H)
         }
         default:
             // Solid color
-            QColor bgColor = m_autoColor ? extractAverageColor(src) : m_bgColor;
+            QColor bgColor = m_bgColor;
+            if (m_autoColor) {
+                auto hc = extractHarmonizedColors(src);
+                bgColor = hc.first;
+            }
             output.fill(bgColor);
             break;
         }
@@ -624,13 +628,16 @@ QColor WallpaperProcessor::extractAverageColor(const QImage &image)
                   std::clamp(int(bSum / samples), 0, 255));
 }
 
-// ── dominant color extraction (for auto-gradient) ────────────────────────
+// ── harmonized color extraction (for auto-gradient) ──────────────────────
 //
-// Downsamples image to ~64×64, quantizes into 16³ histogram, returns the
-// two most populous bins. If too similar (Euclidean < ~80 per channel),
-// the second color is shifted to a complementary hue.
+// Uses three concepts from HIG / color-theory best practices:
+//   Predominant — most common hue (from 16³ histogram)
+//   Key         — most saturated pixel (vibrancy / character)
+//   Harmonize   — desaturate both heavily for background subtlety, blend hue
+//                 toward key by ~30°, then spread lightness for a gentle gradient.
+// Falls back to a 30° analogous shift when hues would be imperceptible.
 
-QPair<QColor, QColor> WallpaperProcessor::extractDominantColors(const QImage &image)
+QPair<QColor, QColor> WallpaperProcessor::extractHarmonizedColors(const QImage &image)
 {
     static const int BINS = 16;
     static const int BIN_SIZE = 256 / BINS;
@@ -640,6 +647,10 @@ QPair<QColor, QColor> WallpaperProcessor::extractDominantColors(const QImage &im
     int step = qMax(1, qMax(w, h) / 64);
     std::vector<int> hist(TOTAL, 0);
 
+    // Track the most saturated pixel (key color)
+    float maxSat = 0.0f;
+    int keyR = 128, keyG = 128, keyB = 128;
+
     for (int y = 0; y < h; y += step) {
         const QRgb *row = reinterpret_cast<const QRgb *>(image.constScanLine(y));
         for (int x = 0; x < w; x += step) {
@@ -648,18 +659,24 @@ QPair<QColor, QColor> WallpaperProcessor::extractDominantColors(const QImage &im
             int gi = qGreen(px) / BIN_SIZE;
             int bi = qBlue(px) / BIN_SIZE;
             hist[ri * BINS * BINS + gi * BINS + bi]++;
+
+            int r = qRed(px), g = qGreen(px), b = qBlue(px);
+            int mn = qMin(qMin(r, g), b);
+            int mx = qMax(qMax(r, g), b);
+            float sat = (mx == 0) ? 0.0f : (mx - mn) / (float)mx;
+            if (sat > maxSat) {
+                maxSat = sat;
+                keyR = r; keyG = g; keyB = b;
+            }
         }
     }
 
-    // Find top 2 populated bins
-    int best1 = 0, best2 = 0;
-    int max1 = 0, max2 = 0;
+    // Find most populous bin = predominant
+    int best1 = 0, max1 = 0;
     for (int i = 0; i < TOTAL; ++i) {
         if (hist[i] > max1) {
-            max2 = max1; best2 = best1;
-            max1 = hist[i]; best1 = i;
-        } else if (hist[i] > max2) {
-            max2 = hist[i]; best2 = i;
+            max1 = hist[i];
+            best1 = i;
         }
     }
 
@@ -672,21 +689,38 @@ QPair<QColor, QColor> WallpaperProcessor::extractDominantColors(const QImage &im
                       bi * BIN_SIZE + BIN_SIZE / 2);
     };
 
-    QColor c1 = binToColor(best1);
-    QColor c2 = binToColor(best2);
+    QColor predominant = binToColor(best1);
+    QColor key(keyR, keyG, keyB);
 
-    // If too similar (Euclidean distance < ~80/channel), rotate c2 to complementary hue
-    int dr = c1.red() - c2.red();
-    int dg = c1.green() - c2.green();
-    int db = c1.blue() - c2.blue();
-    if (dr*dr + dg*dg + db*db < 6400) {
-        float h = 0, s = 0, l = 0;
-        c1.getHslF(&h, &s, &l);
-        // Complementary: 180° hue rotation
-        c2 = QColor::fromHslF(fmod(h + 0.5f, 1.0f), qMin(s * 1.2f, 1.0f), l);
+    // ── Harmonize ──────────────────────────────────────────────────────
+    float hP, sP, lP, hK, sK, lK;
+    predominant.getHslF(&hP, &sP, &lP);
+    key.getHslF(&hK, &sK, &lK);
+
+    // Gradient color A — start: predominant, desaturated, darker
+    float sA = sP * 0.35f;                  // heavy desaturation for subtlety
+    float lA = qBound(0.18f, lP * 0.85f, 0.55f);  // darker side
+    QColor colorA = QColor::fromHslF(hP, sA, lA);
+
+    // Gradient color B — end: blend hue toward key, very desaturated, lighter
+    float hDiff = hK - hP;
+    if (hDiff > 0.5f) hDiff -= 1.0f;
+    if (hDiff < -0.5f) hDiff += 1.0f;
+
+    float hB = fmod(hP + hDiff * 0.3f + 1.0f, 1.0f);  // 30 % toward key
+    float sB = qMax(sP, sK) * 0.25f;                  // even more muted
+    float lB = qBound(0.30f, (lP + lK) * 0.5f + 0.12f, 0.85f);  // lighter
+    QColor colorB = QColor::fromHslF(hB, sB, lB);
+
+    // Failsafe: if hues are imperceptibly close (< 5°), add an
+    // analogous shift so the gradient has visible depth.
+    float hDist = qAbs(colorA.hslHueF() - colorB.hslHueF());
+    if (hDist > 0.5f) hDist = 1.0f - hDist;
+    if (hDist < 0.014f) {
+        colorB = QColor::fromHslF(fmod(hP + 0.08f + 1.0f, 1.0f), sB, lB);
     }
 
-    return {c1, c2};
+    return {colorA, colorB};
 }
 
 // ── blur engine ──────────────────────────────────────────────────────────

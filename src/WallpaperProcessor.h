@@ -160,7 +160,7 @@ private:
     bool processSingleImage(const QString &sourcePath, QString &outPath);
     QImage renderWallpaper(const QImage &src, int W, int H);
     QColor extractAverageColor(const QImage &image);
-    QPair<QColor, QColor> extractDominantColors(const QImage &image);
+    QPair<QColor, QColor> extractHarmonizedColors(const QImage &image);
 
     static void stackBlur(QImage &image, int radius);
     static void boxBlurPass(QImage &image, int radius);
