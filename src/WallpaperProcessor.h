@@ -105,6 +105,7 @@ private:
 
     static void stackBlur(QImage &image, int radius);
     static void boxBlurPass(QImage &image, int radius);
+    static void boostSaturation(QImage &image, double factor);
 };
 
 #endif // WALLPAPERPROCESSOR_H

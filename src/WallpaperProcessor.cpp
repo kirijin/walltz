@@ -285,7 +285,12 @@ bool WallpaperProcessor::processSingleImage(const QString &sourcePath, QString &
         p.end();
 
         QImage bg = output.copy();
-        stackBlur(bg, 55);
+        // Scaled blur radius: proportional to output height (0.051 ≈ 55@1080p),
+        // capped at 120 per backgroundifier's maximumBlurRadius
+        int blurRadius = qBound(1, (int)(0.051 * H), 120);
+        stackBlur(bg, blurRadius);
+        // Saturation boost (backgroundifier uses 1.8x — makes blur pop)
+        boostSaturation(bg, 1.8);
 
         p.begin(&output);
         p.drawImage(0, 0, bg);
@@ -306,7 +311,9 @@ bool WallpaperProcessor::processSingleImage(const QString &sourcePath, QString &
     shPath.addRoundedRect(cx, cy + 2, imgW, imgH, SHADOW_RADIUS, SHADOW_RADIUS);
     sp.fillPath(shPath, QColor(0, 0, 0, 102)); // ~0.4 alpha
     sp.end();
-    stackBlur(sh, 5);
+    // Scaled shadow blur: proportional to output height (0.0046 ≈ 5@1080p)
+    int shadowBlur = qBound(1, (int)(0.0046 * H), 30);
+    stackBlur(sh, shadowBlur);
     p.drawImage(0, 0, sh);
 
     // ── FOREGROUND IMAGE (rounded clip, matching original) ──
@@ -407,6 +414,34 @@ void WallpaperProcessor::boxBlurPass(QImage &image, int radius)
             }
             uchar *p = imgData + y * bpl + x * 4;
             p[0] = b / div; p[1] = g / div; p[2] = r / div; p[3] = a / div;
+        }
+    }
+}
+
+// ── saturation boost (backgroundifier: 1.8x) ───────────────────────────
+//
+// Quick approximation: scale each channel's distance from gray.
+//   gray = (R + G + B) / 3
+//   channel = gray + (channel - gray) * factor
+//
+// This avoids full HSL conversion while producing a nearly identical result.
+// Works on ARGB32_Premultiplied (B,G,R,A on little-endian x86_64).
+
+void WallpaperProcessor::boostSaturation(QImage &image, double factor)
+{
+    if (qFuzzyCompare(factor, 1.0) || image.isNull()) return;
+    int w = image.width(), h = image.height();
+    int bpl = image.bytesPerLine();
+    uchar *data = image.bits();
+
+    for (int y = 0; y < h; ++y) {
+        uchar *row = data + y * bpl;
+        for (int x = 0; x < w; ++x) {
+            uchar *p = row + x * 4;   // B,G,R,A on little-endian x86_64
+            int gray = (p[2] + p[1] + p[0]) / 3;   // (R+G+B)/3
+            p[0] = (uchar)std::clamp((int)(gray + (p[0] - gray) * factor), 0, 255);
+            p[1] = (uchar)std::clamp((int)(gray + (p[1] - gray) * factor), 0, 255);
+            p[2] = (uchar)std::clamp((int)(gray + (p[2] - gray) * factor), 0, 255);
         }
     }
 }
