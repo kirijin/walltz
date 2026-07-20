@@ -424,18 +424,38 @@ Kirigami.ApplicationWindow {
                 Layout.fillWidth: true
                 spacing: Kirigami.Units.mediumSpacing
 
-                // Style selector
+                // Style selector — toggle buttons
+                Controls.ButtonGroup { id: fillGroup }
+
                 RowLayout {
                     Layout.fillWidth: true
                     spacing: Kirigami.Units.smallSpacing
 
                     Controls.Label { text: i18n("Fill:") }
 
-                    Controls.ComboBox {
-                        id: fillCombo
-                        model: [i18n("Solid"), i18n("Gradient"), i18n("Auto")]
-                        currentIndex: processor.bgGradientStyle
-                        onActivated: processor.bgGradientStyle = currentIndex
+                    Controls.Button {
+                        text: i18n("Colour")
+                        checkable: true
+                        checked: processor.bgGradientStyle === 0
+                        onClicked: processor.bgGradientStyle = 0
+                        Layout.fillWidth: true
+                        Controls.ButtonGroup.group: fillGroup
+                    }
+                    Controls.Button {
+                        text: i18n("Gradient")
+                        checkable: true
+                        checked: processor.bgGradientStyle === 1
+                        onClicked: processor.bgGradientStyle = 1
+                        Layout.fillWidth: true
+                        Controls.ButtonGroup.group: fillGroup
+                    }
+                    Controls.Button {
+                        text: i18n("Auto")
+                        checkable: true
+                        checked: processor.bgGradientStyle === 2
+                        onClicked: processor.bgGradientStyle = 2
+                        Layout.fillWidth: true
+                        Controls.ButtonGroup.group: fillGroup
                     }
                 }
 
