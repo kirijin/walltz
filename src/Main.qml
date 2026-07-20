@@ -9,8 +9,8 @@ Kirigami.ApplicationWindow {
 
     width: 560
     height: 720
-    minimumWidth: 450
-    minimumHeight: 620
+    minimumWidth: 480
+    minimumHeight: 460
 
     title: i18nc("@title:window", "Walltz")
 
@@ -49,104 +49,120 @@ Kirigami.ApplicationWindow {
             anchors.margins: Kirigami.Units.largeSpacing
 
             // === Drop area / preview ===
-            Rectangle {
-                id: dropZone
+            Item {
+                id: previewBox
                 Layout.fillWidth: true
                 Layout.leftMargin: Kirigami.Units.gridUnit
                 Layout.rightMargin: Kirigami.Units.gridUnit
+                Layout.minimumHeight: 100
+
+                readonly property double _ar: processor.targetWidth / Math.max(1, processor.targetHeight)
                 Layout.preferredHeight: Math.min(
-                    width * (processor.targetHeight / Math.max(1, processor.targetWidth)),
+                    width / _ar,
                     root.height * 0.4
                 )
-                color: dropArea.containsDrag ? Kirigami.Theme.highlightColor : Kirigami.Theme.backgroundColor
-                border.color: dropArea.fileCount > 0 ? Kirigami.Theme.positiveTextColor : Kirigami.Theme.disabledTextColor
-                border.width: 2
-                radius: Kirigami.Units.smallSpacing
-                Behavior on color { ColorAnimation { duration: 150 } }
 
-                DropArea {
-                    id: dropArea
-                    anchors.fill: parent
-                    property int fileCount: 0
-                    property var filePaths: []
-                    property var fileList: []  // [{path, previewUrl}]
-
-                    onDropped: function (drop) {
-                        if (drop.hasUrls && drop.urls.length > 0) {
-                            var entries = [];
-                            var paths = [];
-                            for (var i = 0; i < drop.urls.length; ++i) {
-                                var url = drop.urls[i].toString();
-                                if (url.startsWith("file://"))
-                                    url = url.substring(7);
-                                if (url.length > 0) {
-                                    paths.push(url);
-                                    var pv = processor.generatePreview(url);
-                                    entries.push({path: url, previewUrl: pv});
-                                }
-                            }
-                            fileList = entries;
-                            filePaths = paths;
-                            fileCount = paths.length;
-                            previewList.model = fileList;
-                            if (fileList.length > 0)
-                                imagePreview.source = fileList[0].previewUrl;
-                            drop.accept();
-                        }
-                    }
-                    onEntered: function (drag) { if (drag.hasUrls) drag.accept(); }
-                }
-
-                ColumnLayout {
+                Rectangle {
+                    id: dropZone
                     anchors.centerIn: parent
-                    spacing: Kirigami.Units.smallSpacing
 
-                    Kirigami.LoadingPlaceholder {
-                        visible: dropArea.fileCount === 0 && !dropArea.containsDrag
-                        text: i18n("Drop image(s) here")
+                    readonly property double _scale: Math.min(
+                        parent.width / _ar,
+                        parent.height
+                    )
+                    width: _ar * _scale
+                    height: _scale
+
+                    radius: Kirigami.Units.smallSpacing
+                    color: dropArea.containsDrag ? Kirigami.Theme.highlightColor
+                                                 : Kirigami.Theme.backgroundColor
+                    border.color: dropArea.fileCount > 0 ? Kirigami.Theme.positiveTextColor
+                                                         : Kirigami.Theme.disabledTextColor
+                    border.width: 2
+                    Behavior on color { ColorAnimation { duration: 150 } }
+
+                    DropArea {
+                        id: dropArea
+                        anchors.fill: parent
+                        property int fileCount: 0
+                        property var filePaths: []
+                        property var fileList: []  // [{path, previewUrl}]
+
+                        onDropped: function (drop) {
+                            if (drop.hasUrls && drop.urls.length > 0) {
+                                var entries = [];
+                                var paths = [];
+                                for (var i = 0; i < drop.urls.length; ++i) {
+                                    var url = drop.urls[i].toString();
+                                    if (url.startsWith("file://"))
+                                        url = url.substring(7);
+                                    if (url.length > 0) {
+                                        paths.push(url);
+                                        var pv = processor.generatePreview(url);
+                                        entries.push({path: url, previewUrl: pv});
+                                    }
+                                }
+                                fileList = entries;
+                                filePaths = paths;
+                                fileCount = paths.length;
+                                previewList.model = fileList;
+                                if (fileList.length > 0)
+                                    imagePreview.source = fileList[0].previewUrl;
+                                drop.accept();
+                            }
+                        }
+                        onEntered: function (drag) { if (drag.hasUrls) drag.accept(); }
                     }
 
                     Image {
                         id: imagePreview
-                        Layout.fillWidth: true
-                        Layout.fillHeight: true
+                        anchors.fill: parent
                         fillMode: Image.PreserveAspectFit
                         visible: dropArea.fileCount > 0
                         smooth: true
                         clip: true
+                        asynchronous: true
+                    }
+
+                    Kirigami.LoadingPlaceholder {
+                        anchors.centerIn: parent
+                        visible: dropArea.fileCount === 0 && !dropArea.containsDrag
+                        text: i18n("Drop image(s) here")
                     }
 
                     Controls.Label {
+                        id: moreFilesLabel
+                        anchors.bottom: parent.bottom
+                        anchors.bottomMargin: Kirigami.Units.smallSpacing
+                        anchors.horizontalCenter: parent.horizontalCenter
                         visible: dropArea.fileCount > 1
                         text: i18n("+ %1 more files", dropArea.fileCount - 1)
-                        horizontalAlignment: Text.AlignHCenter
-                        Layout.fillWidth: true
                         color: Kirigami.Theme.disabledTextColor
                     }
-                }
 
-                // ── Processing overlay ──
-                Rectangle {
-                    anchors.fill: parent
-                    visible: processor.busy
-                    color: Qt.rgba(0, 0, 0, 0.55)
-                    radius: parent.radius
-                    z: 10
+                    // ── Processing overlay ──
+                    Rectangle {
+                        anchors.fill: parent
+                        visible: processor.busy
+                        color: Qt.rgba(0, 0, 0, 0.55)
+                        radius: parent.radius
+                        z: 10
 
-                    ColumnLayout {
-                        anchors.centerIn: parent
-                        spacing: Kirigami.Units.smallSpacing
+                        ColumnLayout {
+                            anchors.centerIn: parent
+                            spacing: Kirigami.Units.smallSpacing
 
-                        Kirigami.Heading {
-                            text: i18n("Processing\u2026")
-                            color: "white"
-                            Layout.alignment: Qt.AlignHCenter
-                        }
+                            Kirigami.Heading {
+                                text: i18n("Processing\u2026")
+                                color: "white"
+                                Layout.alignment: Qt.AlignHCenter
+                            }
 
-                        Controls.ProgressBar {
-                            indeterminate: true
-                            Layout.fillWidth: true
-                            Layout.preferredWidth: 200
+                            Controls.ProgressBar {
+                                indeterminate: true
+                                Layout.fillWidth: true
+                                Layout.preferredWidth: 200
+                            }
                         }
                     }
                 }
@@ -194,7 +210,10 @@ Kirigami.ApplicationWindow {
                     Controls.ToolTip.text: i18n("Reset to screen resolution (%1\u00D7%2)",
                                        processor.screenWidth, processor.screenHeight)
                     Controls.ToolTip.visible: resetResBtn.hovered
-                    onClicked: processor.detectScreenSize()
+                    onClicked: {
+                        processor.aspectMode = 0;
+                        processor.detectScreenSize();
+                    }
                 }
 
                 Controls.Label {
