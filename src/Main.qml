@@ -538,7 +538,7 @@ Kirigami.ApplicationWindow {
                         delegate: Controls.Button {
                             text: processor.moodName(index)
                             checkable: true
-                            checked: processor.autoMood === index
+                            checked: !processor.useV2 && processor.autoMood === index
                             onClicked: {
                                 processor.autoMood = index
                                 processor.useV2 = false
@@ -564,8 +564,10 @@ Kirigami.ApplicationWindow {
                             required property int index
                             width: 56; height: 40
                             radius: Kirigami.Units.cornerRadius
-                            border.color: Kirigami.Theme.textColor
-                            border.width: 1
+                            border.width: processor.useV2 && processor.autoMood === index ? 2 : 1
+                            border.color: processor.useV2 && processor.autoMood === index
+                                           ? Kirigami.Theme.highlightColor
+                                           : Kirigami.Theme.textColor
 
                             gradient: Gradient {
                                 GradientStop { position: 0.0; color: processor.moodColorV2A(index) }
@@ -586,7 +588,7 @@ Kirigami.ApplicationWindow {
                                 anchors.bottom: parent.bottom
                                 anchors.horizontalCenter: parent.horizontalCenter
                                 anchors.bottomMargin: 2
-                                text: processor.moodName(index)
+                                text: processor.moodNameV2(index)
                                 font.pixelSize: Kirigami.Theme.smallFont.pixelSize
                                 color: Kirigami.Theme.textColor
                                 style: Text.Outline

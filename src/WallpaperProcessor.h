@@ -102,6 +102,7 @@ public:
     Q_INVOKABLE QString moodColorB(int index) const;
 
     /// V2 mood palette access (3D RGB histogram — second row)
+    Q_INVOKABLE QString moodNameV2(int index) const;
     Q_INVOKABLE QString moodColorV2A(int index) const;
     Q_INVOKABLE QString moodColorV2B(int index) const;
 

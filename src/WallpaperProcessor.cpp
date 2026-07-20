@@ -1139,14 +1139,36 @@ QString WallpaperProcessor::moodColorB(int index) const
 
 QString WallpaperProcessor::moodColorV2A(int index) const
 {
-    if (index < 0 || index >= 6 || !m_moodsComputed) return {};
+    if (index < 0 || index >= 6) return {};
+    if (!m_moodsComputed) {
+        static const char *fallback[] = {"#e57373","#a5d6a7","#90caf9","#ffcc80","#80cbc4","#ce93d8"};
+        return QString::fromUtf8(fallback[qBound(0, index, 5)]);
+    }
     return m_moodColorsV2A[index].name();
 }
 
 QString WallpaperProcessor::moodColorV2B(int index) const
 {
-    if (index < 0 || index >= 6 || !m_moodsComputed) return {};
+    if (index < 0 || index >= 6) return {};
+    if (!m_moodsComputed) {
+        static const char *fallback[] = {"#ff8a80","#81c784","#64b5f6","#ffb74d","#4db6ac","#ba68c8"};
+        return QString::fromUtf8(fallback[qBound(0, index, 5)]);
+    }
     return m_moodColorsV2B[index].name();
+}
+
+QString WallpaperProcessor::moodNameV2(int index) const
+{
+    static const char *names[] = {
+        "Dynamic",    // 0 — highest-contrast pair, automatically selected
+        "Tonal",      // 1 — muted, analogous
+        "Expressive", // 2 — most saturated color paired
+        "Ember",      // 3 — warmest tones
+        "Glacier",     // 4 — coolest tones
+        "Shadow"      // 5 — darkest pair
+    };
+    if (index < 0 || index >= 6) return {};
+    return QString::fromUtf8(names[index]);
 }
 
 void WallpaperProcessor::stackBlur(QImage &image, int radius)
