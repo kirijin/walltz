@@ -9,6 +9,8 @@
 #include <QPainterPath>
 #include <QDir>
 #include <QTimer>
+#include <QUrl>
+#include <QUuid>
 #include <KLocalizedString>
 
 static const int SHADOW_RADIUS = 3;
@@ -253,77 +255,7 @@ bool WallpaperProcessor::processSingleImage(const QString &sourcePath, QString &
         srcImage = srcImage.scaled(imgW, imgH, Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
     }
 
-    // Center coordinates for the source image overlay
-    int cx = qMax(0, (W - imgW) / 2);
-    int cy = qMax(0, (H - imgH) / 2);
-
-    // Zoom to fill background (match original: max(W/imgW, H/imgH))
-    double zoom = qMax(W / (double)imgW, H / (double)imgH);
-
-    // ── Build output ──
-    QImage output(W, H, QImage::Format_ARGB32_Premultiplied);
-    output.fill(Qt::white);
-
-    QPainter p;
-    p.begin(&output);
-    p.setRenderHint(QPainter::SmoothPixmapTransform);
-
-    if (m_blurMode) {
-        // ── BLUR MODE: zoomed + darkened + blurred background ──
-        // Zoom to fill the output canvas, then center (not top-left)
-        double bgW = srcImage.width() * zoom;
-        double bgH = srcImage.height() * zoom;
-        double bgX = (W - bgW) / 2.0;
-        double bgY = (H - bgH) / 2.0;
-        p.save();
-        p.translate(bgX, bgY);
-        p.scale(zoom, zoom);
-        p.drawImage(0, 0, srcImage);
-        p.restore();
-        // Dark overlay (original: rgba(0,0,0,0.1))
-        p.fillRect(0, 0, W, H, QColor(0, 0, 0, 25));
-        p.end();
-
-        QImage bg = output.copy();
-        // Scaled blur radius: proportional to output height (0.051 ≈ 55@1080p),
-        // capped at 120 per backgroundifier's maximumBlurRadius
-        int blurRadius = qBound(1, (int)(0.051 * H), 120);
-        stackBlur(bg, blurRadius);
-        // Saturation boost (backgroundifier uses 1.8x — makes blur pop)
-        boostSaturation(bg, 1.8);
-
-        p.begin(&output);
-        p.drawImage(0, 0, bg);
-    } else {
-        // ── COLOR MODE: solid background ──
-        QColor bgColor = m_autoColor ? extractAverageColor(srcImage) : m_bgColor;
-        p.end();
-        output.fill(bgColor);
-        p.begin(&output);
-    }
-
-    // ── SHADOW (matching original: rounded rect, offset +2, alpha 0.4) ──
-    QImage sh(W, H, QImage::Format_ARGB32_Premultiplied);
-    sh.fill(Qt::transparent);
-    QPainter sp(&sh);
-    sp.setRenderHint(QPainter::Antialiasing);
-    QPainterPath shPath;
-    shPath.addRoundedRect(cx, cy + 2, imgW, imgH, SHADOW_RADIUS, SHADOW_RADIUS);
-    sp.fillPath(shPath, QColor(0, 0, 0, 102)); // ~0.4 alpha
-    sp.end();
-    // Scaled shadow blur: proportional to output height (0.0046 ≈ 5@1080p)
-    int shadowBlur = qBound(1, (int)(0.0046 * H), 30);
-    stackBlur(sh, shadowBlur);
-    p.drawImage(0, 0, sh);
-
-    // ── FOREGROUND IMAGE (rounded clip, matching original) ──
-    p.save();
-    QPainterPath clipPath;
-    clipPath.addRoundedRect(cx, cy, imgW, imgH, SHADOW_RADIUS, SHADOW_RADIUS);
-    p.setClipPath(clipPath);
-    p.drawImage(cx, cy, srcImage);
-    p.restore();
-    p.end();
+    QImage output = renderWallpaper(srcImage, W, H);
 
     // Write output
     QFileInfo fi(sourcePath);
@@ -333,6 +265,111 @@ bool WallpaperProcessor::processSingleImage(const QString &sourcePath, QString &
         return false;
     }
     return true;
+}
+
+// ── render pipeline (shared between full output and preview) ────────────
+
+QImage WallpaperProcessor::renderWallpaper(const QImage &src, int W, int H)
+{
+    int imgW = src.width(), imgH = src.height();
+    int cx = qMax(0, (W - imgW) / 2);
+    int cy = qMax(0, (H - imgH) / 2);
+    double zoom = qMax(W / (double)imgW, H / (double)imgH);
+
+    QImage output(W, H, QImage::Format_ARGB32_Premultiplied);
+    output.fill(Qt::white);
+
+    QPainter p;
+    p.begin(&output);
+    p.setRenderHint(QPainter::SmoothPixmapTransform);
+
+    if (m_blurMode) {
+        // Zoom to fill the output canvas, then center
+        double bgW = src.width() * zoom;
+        double bgH = src.height() * zoom;
+        double bgX = (W - bgW) / 2.0;
+        double bgY = (H - bgH) / 2.0;
+        p.save();
+        p.translate(bgX, bgY);
+        p.scale(zoom, zoom);
+        p.drawImage(0, 0, src);
+        p.restore();
+        p.fillRect(0, 0, W, H, QColor(0, 0, 0, 25));
+        p.end();
+
+        QImage bg = output.copy();
+        int blurRadius = qBound(1, (int)(0.051 * H), 120);
+        stackBlur(bg, blurRadius);
+        boostSaturation(bg, 1.8);
+
+        p.begin(&output);
+        p.drawImage(0, 0, bg);
+    } else {
+        QColor bgColor = m_autoColor ? extractAverageColor(src) : m_bgColor;
+        p.end();
+        output.fill(bgColor);
+        p.begin(&output);
+    }
+
+    // Shadow
+    QImage sh(W, H, QImage::Format_ARGB32_Premultiplied);
+    sh.fill(Qt::transparent);
+    QPainter sp(&sh);
+    sp.setRenderHint(QPainter::Antialiasing);
+    QPainterPath shPath;
+    shPath.addRoundedRect(cx, cy + 2, imgW, imgH, SHADOW_RADIUS, SHADOW_RADIUS);
+    sp.fillPath(shPath, QColor(0, 0, 0, 102));
+    sp.end();
+    int shadowBlur = qBound(1, (int)(0.0046 * H), 30);
+    stackBlur(sh, shadowBlur);
+    p.drawImage(0, 0, sh);
+
+    // Foreground image with rounded clip
+    p.save();
+    QPainterPath clipPath;
+    clipPath.addRoundedRect(cx, cy, imgW, imgH, SHADOW_RADIUS, SHADOW_RADIUS);
+    p.setClipPath(clipPath);
+    p.drawImage(cx, cy, src);
+    p.restore();
+    p.end();
+
+    return output;
+}
+
+// ── live preview (wallpaperize feature) ─────────────────────────────────
+
+QString WallpaperProcessor::generatePreview(const QString &sourcePath)
+{
+    QImage srcImage(sourcePath);
+    if (srcImage.isNull()) return {};
+
+    // Scale output dimensions to ~400px on the longest edge
+    int pw = m_targetWidth, ph = m_targetHeight;
+    double ps = qMin(400.0 / qMax(pw, ph), 1.0);
+    pw = qMax((int)(pw * ps), 200);
+    ph = qMax((int)(ph * ps), 150);
+
+    // Scale source for preview output
+    int imgW = srcImage.width(), imgH = srcImage.height();
+    if (imgW > pw || imgH > ph) {
+        while (imgW > pw || imgH > ph) {
+            imgW = imgW * 2 / 5;
+            imgH = imgH * 2 / 5;
+        }
+        srcImage = srcImage.scaled(imgW, imgH, Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
+    }
+
+    QImage preview = renderWallpaper(srcImage, pw, ph);
+
+    // Save to temp
+    QString tmpDir = QDir::tempPath() + QStringLiteral("/walltz");
+    QDir().mkpath(tmpDir);
+    QString tmpPath = tmpDir + QStringLiteral("/preview_")
+        + QUuid::createUuid().toString(QUuid::Id128)  // 32 hex chars
+        + QStringLiteral(".png");
+    if (!preview.save(tmpPath, "PNG")) return {};
+
+    return QStringLiteral("file://") + tmpPath;
 }
 
 // ── simple average color extraction ──────────────────────────────────────

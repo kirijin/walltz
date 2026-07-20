@@ -80,22 +80,28 @@ Kirigami.ApplicationWindow {
                     anchors.fill: parent
                     property int fileCount: 0
                     property var filePaths: []
+                    property var fileList: []  // [{path, previewUrl}]
 
                     onDropped: function (drop) {
                         if (drop.hasUrls && drop.urls.length > 0) {
+                            var entries = [];
                             var paths = [];
                             for (var i = 0; i < drop.urls.length; ++i) {
                                 var url = drop.urls[i].toString();
                                 if (url.startsWith("file://"))
                                     url = url.substring(7);
-                                if (url.length > 0)
+                                if (url.length > 0) {
                                     paths.push(url);
+                                    var pv = processor.generatePreview(url);
+                                    entries.push({path: url, previewUrl: pv});
+                                }
                             }
+                            fileList = entries;
                             filePaths = paths;
                             fileCount = paths.length;
-                            previewList.model = paths;
-                            if (paths.length > 0)
-                                imagePreview.source = "file://" + paths[0];
+                            previewList.model = fileList;
+                            if (fileList.length > 0)
+                                imagePreview.source = fileList[0].previewUrl;
                             drop.accept();
                         }
                     }
@@ -287,7 +293,7 @@ Kirigami.ApplicationWindow {
                 Layout.preferredHeight: Math.min(count * 28, 100)
                 model: []
                 delegate: Controls.Label {
-                    text: modelData.toString().split("/").pop()
+                    text: model.modelData ? model.modelData.path.toString().split("/").pop() : ""
                     elide: Text.ElideMiddle
                     leftPadding: Kirigami.Units.smallSpacing
                 }

@@ -50,6 +50,9 @@ public:
     void setBackgroundColor(const QColor &c);
     void setAutoColor(bool autoC);
 
+    /// Generate a small processed preview (400px max) — returns file:// URL
+    Q_INVOKABLE QString generatePreview(const QString &sourcePath);
+
 public Q_SLOTS:
     void detectScreenSize();
     void setWindow(QWindow *window);
@@ -101,6 +104,7 @@ private:
     int m_currentIndex = 0;
 
     bool processSingleImage(const QString &sourcePath, QString &outPath);
+    QImage renderWallpaper(const QImage &src, int W, int H);
     QColor extractAverageColor(const QImage &image);
 
     static void stackBlur(QImage &image, int radius);
