@@ -403,6 +403,8 @@ Kirigami.ApplicationWindow {
                     Layout.fillWidth: true
                     spacing: Kirigami.Units.smallSpacing
 
+                    Item { Layout.fillWidth: true }
+
                     Repeater {
                         model: 6
                         delegate: Controls.Button {
@@ -418,12 +420,16 @@ Kirigami.ApplicationWindow {
                             Controls.ButtonGroup.group: moodGroup
                         }
                     }
+
+                    Item { Layout.fillWidth: true }
                 }
 
                 RowLayout {
                     visible: !processor.blurMode && processor.bgGradientStyle === 2
                     Layout.fillWidth: true
                     spacing: Kirigami.Units.smallSpacing
+
+                    Item { Layout.fillWidth: true }
 
                     Repeater {
                         model: 6
@@ -439,6 +445,8 @@ Kirigami.ApplicationWindow {
                             implicitWidth: Kirigami.Units.gridUnit * 5
                         }
                     }
+
+                    Item { Layout.fillWidth: true }
                 }
             }
 
