@@ -1034,66 +1034,83 @@ void WallpaperProcessor::computeMoodPalettesV2(const QImage &image)
         if (ok) picks.push_back(&centroids[i]);
     }
 
-    QColor c0 = WP_colorFromCentroid(picks[0]->r, picks[0]->g, picks[0]->b);
-    QColor c1 = (picks.size() > 1) ? WP_colorFromCentroid(picks[1]->r, picks[1]->g, picks[1]->b) : c0;
-    QColor c2 = (picks.size() > 2) ? WP_colorFromCentroid(picks[2]->r, picks[2]->g, picks[2]->b) : c0;
-    QColor colors[3] = {c0, c1, c2};
+    // Raw centroid colors (seed values)
+    QColor colors[3] = {
+        WP_colorFromCentroid(picks[0]->r, picks[0]->g, picks[0]->b),
+        picks.size() > 1 ? WP_colorFromCentroid(picks[1]->r, picks[1]->g, picks[1]->b) : WP_colorFromCentroid(picks[0]->r, picks[0]->g, picks[0]->b),
+        picks.size() > 2 ? WP_colorFromCentroid(picks[2]->r, picks[2]->g, picks[2]->b) : WP_colorFromCentroid(picks[0]->r, picks[0]->g, picks[0]->b)
+    };
 
-    auto maxContrastPair = [&]() -> QPair<QColor, QColor> {
+    // ── Artistically soften centroids for wallpaper-friendly gradients ──
+    //
+    // Color theory rules applied:
+    //   • Saturation > 0.55 → desaturate to [0.25, 0.55] (harsh colors softened)
+    //   • Lightness < 0.30 → brighten; > 0.75 → darken (extreme tones moderated)
+    //   • Hue preserved from image → gradient feels "extracted" not synthetic
+    //   • Mood pairs respect analogous/complementary relationships
+
+    QColor softColors[3];
+    for (int i = 0; i < 3; ++i) {
+        float h, s, l;
+        colors[i].getHslF(&h, &s, &l);
+        s = qBound(0.25f, s * 0.60f, 0.55f);   // desaturate 40%, cap at 0.55
+        l = qBound(0.38f, l, 0.70f);             // keep in gentle mid-range
+        softColors[i] = QColor::fromHslF(h, s, l);
+    }
+
+    auto pairByMaxContrast = [&]() -> QPair<QColor, QColor> {
         double bestDist = -1; int bestA = 0, bestB = 1;
         for (int i = 0; i < 3; ++i)
             for (int j = i+1; j < 3; ++j) {
-                double dr = colors[i].redF() - colors[j].redF();
-                double dg = colors[i].greenF() - colors[j].greenF();
-                double db = colors[i].blueF() - colors[j].blueF();
+                double dr = softColors[i].redF() - softColors[j].redF();
+                double dg = softColors[i].greenF() - softColors[j].greenF();
+                double db = softColors[i].blueF() - softColors[j].blueF();
                 double dist = dr*dr + dg*dg + db*db;
                 if (dist > bestDist) { bestDist = dist; bestA = i; bestB = j; }
             }
-        return {colors[bestA], colors[bestB]};
+        return {softColors[bestA], softColors[bestB]};
     };
 
-    auto moodify = [](QColor c, float ss, float ls, float ms) -> QColor {
-        float h, s, l; c.getHslF(&h, &s, &l);
-        s = qBound(ms, s * ss, 0.85f); l = qBound(0.15f, l + ls, 0.85f);
-        return QColor::fromHslF(h, s, l);
-    };
+    // 0 — Dynamic: highest-contrast pair, both softened
+    { auto p = pairByMaxContrast();
+      m_moodColorsV2A[0] = p.first;
+      m_moodColorsV2B[0] = p.second; }
 
-    auto pair = maxContrastPair();
-    m_moodColorsV2A[0] = pair.first;  m_moodColorsV2B[0] = pair.second;
+    // 1 — Tonal: same-hue gentle shift (analogous, ±15°), low saturation
+    { float h, s, l; softColors[0].getHslF(&h, &s, &l);
+      m_moodColorsV2A[1] = QColor::fromHslF(h, qBound(0.20f, s*0.75f, 0.40f), qBound(0.40f, l*0.95f, 0.60f));
+      m_moodColorsV2B[1] = QColor::fromHslF(fmod(h+1.0f/24.0f,1.0f), qBound(0.18f, s*0.70f, 0.35f), qBound(0.42f, l*1.05f, 0.65f)); }
 
-    { float h,s,l; pair.first.getHslF(&h,&s,&l);
-      m_moodColorsV2A[1] = QColor::fromHslF(h, qBound(0.25f,s*0.65f,0.45f), qBound(0.35f,l,0.60f));
-      m_moodColorsV2B[1] = QColor::fromHslF(fmod(h+1.0f/18.0f,1.0f), qBound(0.20f,s*0.55f,0.38f), qBound(0.45f,l+0.08f,0.70f)); }
+    // 2 — Expressive: most saturated soft color + complement at 120°
+    { int best = 0; float maxS = 0;
+      for (int i=0;i<3;++i) { float h,s,l; softColors[i].getHslF(&h,&s,&l); if (s>maxS) { maxS=s; best=i; } }
+      float h,s,l; softColors[best].getHslF(&h,&s,&l);
+      m_moodColorsV2A[2] = QColor::fromHslF(h, qBound(0.35f,s*1.15f,0.65f), qBound(0.40f,l,0.65f));
+      m_moodColorsV2B[2] = QColor::fromHslF(fmod(h+1.0f/4.0f,1.0f), qBound(0.25f,s*0.70f,0.45f), qBound(0.38f,l+0.05f,0.70f)); }
 
-    { int bestVi = 0;
-      for (int i = 0; i < 3; ++i) {
-          double r=colors[i].redF(),g=colors[i].greenF(),b=colors[i].blueF();
-          double mn=qMin(qMin(r,g),b), mx=qMax(qMax(r,g),b);
-          if ((mx-mn) > (qMax(qMax(colors[bestVi].redF(),colors[bestVi].greenF()),colors[bestVi].blueF())-qMin(qMin(colors[bestVi].redF(),colors[bestVi].greenF()),colors[bestVi].blueF()))) bestVi = i;
-      }
-      m_moodColorsV2A[2] = moodify(colors[bestVi],1.3f,0.0f,0.55f);
-      m_moodColorsV2B[2] = moodify(colors[(bestVi+1)%3],1.1f,0.05f,0.40f); }
+    // 3 — Ember: warmest centroid → golden, gentle accent
+    { int warmIdx=0; float warmestDist=1.0f;
+      for (int i=0;i<3;++i) { float h,s,l; softColors[i].getHslF(&h,&s,&l);
+        float d=qMin(qAbs(h-0.05f), qAbs(h-0.95f));
+        if (d<warmestDist) { warmestDist=d; warmIdx=i; } }
+      float h,s,l; softColors[warmIdx].getHslF(&h,&s,&l);
+      m_moodColorsV2A[3]=QColor::fromHslF(h, qBound(0.30f,s*0.90f,0.50f), qBound(0.40f,l+0.02f,0.65f));
+      m_moodColorsV2B[3]=QColor::fromHslF(fmod(h+1.0f/16.0f,1.0f), qBound(0.25f,s*0.75f,0.40f), qBound(0.45f,l+0.08f,0.72f)); }
 
-    { int warmIdx=0; float warmestH=1.0f;
-      for (int i=0;i<3;++i) { float h,s,l; colors[i].getHslF(&h,&s,&l);
-        float dist=qMin(h,1.0f-h);
-        if ((h<=0.15f||h>=0.85f) && dist<warmestH) { warmestH=dist; warmIdx=i; } }
-      m_moodColorsV2A[3]=moodify(colors[warmIdx],1.1f,0.02f,0.40f);
-      float hW,sW,lW; m_moodColorsV2A[3].getHslF(&hW,&sW,&lW);
-      m_moodColorsV2B[3]=QColor::fromHslF(fmod(hW+1.0f/12.0f,1.0f),qBound(0.30f,sW*0.85f,0.60f),qBound(0.40f,lW+0.10f,0.72f)); }
-
+    // 4 — Glacier: coolest centroid → silver-blue, restful
     { int coolIdx=0; float coolestD=999;
-      for (int i=0;i<3;++i) { float h,s,l; colors[i].getHslF(&h,&s,&l);
-        float d=qAbs(h-0.60f); if (d<coolestD) { coolestD=d; coolIdx=i; } }
-      m_moodColorsV2A[4]=moodify(colors[coolIdx],1.0f,0.0f,0.38f);
-      float hC,sC,lC; m_moodColorsV2A[4].getHslF(&hC,&sC,&lC);
-      m_moodColorsV2B[4]=QColor::fromHslF(fmod(hC-1.0f/12.0f+1.0f,1.0f),qBound(0.30f,sC*0.85f,0.55f),qBound(0.42f,lC+0.10f,0.70f)); }
+      for (int i=0;i<3;++i) { float h,s,l; softColors[i].getHslF(&h,&s,&l);
+        float d=qAbs(h-0.58f); if (d<coolestD) { coolestD=d; coolIdx=i; } }
+      float h,s,l; softColors[coolIdx].getHslF(&h,&s,&l);
+      m_moodColorsV2A[4]=QColor::fromHslF(h, qBound(0.22f,s*0.80f,0.42f), qBound(0.42f,l+0.02f,0.68f));
+      m_moodColorsV2B[4]=QColor::fromHslF(fmod(h-1.0f/18.0f+1.0f,1.0f), qBound(0.20f,s*0.70f,0.35f), qBound(0.45f,l+0.08f,0.72f)); }
 
-    { int darkIdx=0; double minL=colors[0].lightnessF();
-      for (int i=1;i<3;++i) { if (colors[i].lightnessF()<minL) { minL=colors[i].lightnessF(); darkIdx=i; } }
-      m_moodColorsV2A[5]=moodify(colors[darkIdx],0.85f,-0.08f,0.30f);
-      float hD,sD,lD; m_moodColorsV2A[5].getHslF(&hD,&sD,&lD);
-      m_moodColorsV2B[5]=QColor::fromHslF(fmod(hD+0.5f,1.0f),qBound(0.25f,sD*0.80f,0.50f),qBound(0.30f,lD+0.15f,0.50f)); }
+    // 5 — Shadow: darkest centroid, muted, gentle depth
+    { int darkIdx=0; double minL=softColors[0].lightnessF();
+      for (int i=1;i<3;++i) { if (softColors[i].lightnessF()<minL) { minL=softColors[i].lightnessF(); darkIdx=i; } }
+      float h,s,l; softColors[darkIdx].getHslF(&h,&s,&l);
+      m_moodColorsV2A[5]=QColor::fromHslF(h, qBound(0.20f,s*0.75f,0.38f), qBound(0.32f,l-0.05f,0.50f));
+      m_moodColorsV2B[5]=QColor::fromHslF(fmod(h+0.5f,1.0f), qBound(0.20f,s*0.70f,0.35f), qBound(0.35f,l+0.08f,0.45f)); }
 
     m_moodsComputed = true;
 }

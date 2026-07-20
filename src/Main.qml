@@ -554,50 +554,27 @@ Kirigami.ApplicationWindow {
                 RowLayout {
                     visible: processor.bgGradientStyle === 2
                     Layout.fillWidth: true
-                    spacing: Kirigami.Units.mediumSpacing
+                    spacing: Kirigami.Units.smallSpacing
 
-                    Item { Layout.fillWidth: true }
+                    Controls.Label {
+                        text: i18n("V2:")
+                        opacity: 0.5
+                    }
 
                     Repeater {
                         model: 6
-                        delegate: Rectangle {
-                            required property int index
-                            width: 56; height: 40
-                            radius: Kirigami.Units.cornerRadius
-                            border.width: processor.useV2 && processor.autoMood === index ? 2 : 1
-                            border.color: processor.useV2 && processor.autoMood === index
-                                           ? Kirigami.Theme.highlightColor
-                                           : Kirigami.Theme.textColor
-
-                            gradient: Gradient {
-                                GradientStop { position: 0.0; color: processor.moodColorV2A(index) }
-                                GradientStop { position: 1.0; color: processor.moodColorV2B(index) }
+                        delegate: Controls.Button {
+                            text: processor.moodNameV2(index)
+                            checkable: true
+                            checked: processor.useV2 && processor.autoMood === index
+                            onClicked: {
+                                processor.autoMood = index
+                                processor.useV2 = true
+                                moodPreviewTimer.restart()
                             }
-
-                            Controls.Button {
-                                anchors.fill: parent
-                                opacity: 0
-                                onClicked: {
-                                    processor.autoMood = index
-                                    processor.useV2 = true
-                                    moodPreviewTimer.restart()
-                                }
-                            }
-
-                            Controls.Label {
-                                anchors.bottom: parent.bottom
-                                anchors.horizontalCenter: parent.horizontalCenter
-                                anchors.bottomMargin: 2
-                                text: processor.moodNameV2(index)
-                                font.pixelSize: Kirigami.Theme.smallFont.pixelSize
-                                color: Kirigami.Theme.textColor
-                                style: Text.Outline
-                                styleColor: Kirigami.Theme.backgroundColor
-                            }
+                            Layout.fillWidth: true
                         }
                     }
-
-                    Item { Layout.fillWidth: true }
                 }
 
                 // Solid color chooser — inline palette
