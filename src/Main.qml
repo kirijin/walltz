@@ -236,7 +236,6 @@ Kirigami.ApplicationWindow {
                 Flow {
                     Layout.fillWidth: true
                     spacing: Kirigami.Units.smallSpacing
-                    verticalSpacing: Kirigami.Units.smallSpacing
 
                     Controls.Button {
                         text: i18n("Free")
