@@ -196,7 +196,7 @@ Kirigami.ApplicationWindow {
                     icon.name: "video-display-symbolic"
                     text: i18n("Detect")
                     display: Controls.AbstractButton.IconOnly
-                    hovered: true
+                    hoverEnabled: true
                     ToolTip.text: i18n("Reset to screen resolution (%1\u00D7%2)",
                                       processor.screenWidth, processor.screenHeight)
                     ToolTip.visible: resetResBtn.hovered
