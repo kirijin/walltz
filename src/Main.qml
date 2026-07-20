@@ -505,32 +505,86 @@ Kirigami.ApplicationWindow {
                     }
                 }
 
-                // Solid color chooser
+                // Solid color chooser — inline palette
                 RowLayout {
                     visible: processor.bgGradientStyle === 0
                     Layout.fillWidth: true
                     spacing: Kirigami.Units.smallSpacing
 
-                    Controls.CheckBox {
-                        text: i18n("Auto")
-                        checked: processor.autoColor
-                        onClicked: processor.autoColor = checked
-                    }
-
+                    // Auto square — spaced apart
                     Rectangle {
-                        id: colorSwatch
-                        width: 28; height: 28
-                        radius: Kirigami.Units.cornerRadius
-                        border.width: 1
-                        border.color: Kirigami.Theme.textColor
-                        color: processor.backgroundColor
-                        enabled: !processor.autoColor
+                        id: autoColorRect
+                        implicitWidth: 28; implicitHeight: 28
+                        radius: 4
+                        border.width: processor.autoColor ? 2 : 1
+                        border.color: processor.autoColor
+                                       ? Kirigami.Theme.highlightColor
+                                       : Kirigami.Theme.disabledTextColor
+                        color: processor.autoColor && dropArea.fileCount > 0
+                               ? processor.backgroundColor
+                               : "transparent"
+
+                        Controls.Label {
+                            anchors.centerIn: parent
+                            text: "\u2605"
+                            font.pixelSize: Kirigami.Theme.defaultFont.pixelSize
+                            color: autoColorRect.border.color
+                        }
 
                         Controls.Button {
                             anchors.fill: parent
                             opacity: 0
-                            onClicked: colorDialog.open()
+                            onClicked: processor.autoColor = true
                         }
+                    }
+
+                    // Visual spacer after auto
+                    Item {
+                        implicitWidth: Kirigami.Units.largeSpacing
+                        implicitHeight: 1
+                    }
+
+                    // Preset swatches
+                    Repeater {
+                        model: [
+                            "#ff6b6b","#f0932b","#f9ca24","#6ab04c",
+                            "#22a6b3","#4834d4","#be2edd","#666666","#000000"
+                        ]
+
+                        Rectangle {
+                            required property string modelData
+
+                            implicitWidth: 28; implicitHeight: 28
+                            radius: 4
+                            border.width: (!processor.autoColor
+                                           && processor.backgroundColor.toString().toUpperCase() === modelData.toUpperCase())
+                                          ? 2 : 1
+                            border.color: (!processor.autoColor
+                                           && processor.backgroundColor.toString().toUpperCase() === modelData.toUpperCase())
+                                          ? Kirigami.Theme.highlightColor
+                                          : Kirigami.Theme.textColor
+                            color: modelData
+
+                            Controls.Button {
+                                anchors.fill: parent
+                                opacity: 0
+                                onClicked: {
+                                    processor.autoColor = false
+                                    processor.backgroundColor = modelData
+                                }
+                            }
+                        }
+                    }
+
+                    // More button (opens full dialog)
+                    Controls.ToolButton {
+                        text: "+"
+                        implicitWidth: 28; implicitHeight: 28
+                        font.bold: true
+                        onClicked: colorDialog.open()
+                        Controls.ToolTip.text: i18n("More colors\u2026")
+                        Controls.ToolTip.visible: hovered
+                        Controls.ToolTip.delay: 400
                     }
                 }
 
@@ -682,7 +736,10 @@ Kirigami.ApplicationWindow {
                     color: modelData
                     Controls.Button {
                         anchors.fill: parent; opacity: 0
-                        onClicked: processor.backgroundColor = modelData
+                        onClicked: {
+                            processor.autoColor = false;
+                            processor.backgroundColor = modelData;
+                        }
                     }
                 }
             }
