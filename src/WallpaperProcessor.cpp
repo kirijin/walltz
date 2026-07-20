@@ -612,10 +612,10 @@ QImage WallpaperProcessor::renderWallpaper(const QImage &src, int W, int H)
         vg.setColorAt(0.0, QColor(0, 0, 0, 0));
         vg.setColorAt(0.7, QColor(0, 0, 0, 0));
         vg.setColorAt(1.0, QColor(0, 0, 0, (int)(80 * m_vignetteStrength)));
-        QPainter vp(&output);
-        vp.setCompositionMode(QPainter::CompositionMode_Multiply);
-        vp.fillRect(0, 0, W, H, vg);
-        vp.end();
+        p.save();
+        p.setCompositionMode(QPainter::CompositionMode_Multiply);
+        p.fillRect(0, 0, W, H, vg);
+        p.restore();
     }
     if (m_grainStrength > 0.001) {
         int intensity = qMax(1, (int)(12 * m_grainStrength));
@@ -626,10 +626,10 @@ QImage WallpaperProcessor::renderWallpaper(const QImage &src, int W, int H)
                 line[x] = (unsigned char)qBound(0,
                     (QRandomGenerator::global()->bounded(intensity * 2 + 1)) - intensity + 128, 255);
         }
-        QPainter gp(&output);
-        gp.setCompositionMode(QPainter::CompositionMode_SoftLight);
-        gp.drawImage(0, 0, noise);
-        gp.end();
+        p.save();
+        p.setCompositionMode(QPainter::CompositionMode_SoftLight);
+        p.drawImage(0, 0, noise);
+        p.restore();
     }
 
     // ── Shadow ──
