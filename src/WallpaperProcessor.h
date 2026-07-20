@@ -141,7 +141,6 @@ private:
     bool m_cancelRequested = false;
     QWindow *m_window = nullptr;
     double m_windowDpr = 1.0;
-    int m_dprPollCount = 0;
     bool m_keepAbove = false;
     int m_aspectMode = 0;
     double m_aspectRatio = 0.0;

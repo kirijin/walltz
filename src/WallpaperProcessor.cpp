@@ -217,16 +217,17 @@ void WallpaperProcessor::setWindow(QWindow *window)
             Q_EMIT windowDprChanged();
         }
 
-        // Initial detection — on Wayland the compositor delivers
-        // wp_fractional_scale async, so devicePixelRatio may still be
-        // the integer wl_output scale at this point.
+        // Initial detection — on Wayland the window's screen may not be
+        // ready yet; detectFromWindow() retries with a timer.
         detectFromWindow();
 
-        // Poll for fractional DPR arrival (up to ~1 s at 200 ms intervals)
-        m_dprPollCount = 0;
-        QTimer::singleShot(200, this, &WallpaperProcessor::pollDpr);
+        // Poll for fractional DPR arrival (Qt emits no signal for this
+        // on Qt < 6.8).  Poll every second indefinitely so the correct
+        // scale is always picked up, even when it arrives late.
+        QTimer::singleShot(1000, this, &WallpaperProcessor::pollDpr);
     }
 }
+
 
 void WallpaperProcessor::pollDpr()
 {
@@ -236,11 +237,10 @@ void WallpaperProcessor::pollDpr()
         m_windowDpr = dpr;
         Q_EMIT windowDprChanged();
         detectFromWindow();
-        m_dprPollCount = 0;
-        return;
     }
-    if (++m_dprPollCount < 5)
-        QTimer::singleShot(200, this, &WallpaperProcessor::pollDpr);
+    // Keep polling while the app lives; no bounded limit — fractional DPR
+    // on Wayland can arrive unpredictably late (seconds not ms).
+    QTimer::singleShot(1000, this, &WallpaperProcessor::pollDpr);
 }
 
 void WallpaperProcessor::setKeepAbove(bool keep)
