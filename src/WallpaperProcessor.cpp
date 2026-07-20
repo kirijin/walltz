@@ -3,6 +3,7 @@
 #include <QPainter>
 #include <QScreen>
 #include <QGuiApplication>
+#include <QWindow>
 #include <QFileInfo>
 #include <QtMath>
 #include <QPainterPath>
@@ -61,31 +62,101 @@ void WallpaperProcessor::setAutoColor(bool autoC)
     }
 }
 
-// ── screen detection ─────────────────────────────────────────────────────
+// ── window binding ──────────────────────────────────────────────────────
+
+void WallpaperProcessor::setWindow(QWindow *window)
+{
+    m_window = window;
+}
+
+void WallpaperProcessor::setKeepAbove(bool keep)
+{
+    if (m_keepAbove == keep) return;
+    m_keepAbove = keep;
+    Q_EMIT keepAboveChanged();
+
+    if (m_window) {
+        Qt::WindowFlags cur = m_window->flags();
+        if (keep) {
+            m_window->setFlags(cur | Qt::WindowStaysOnTopHint);
+        } else {
+            m_window->setFlags(cur & ~Qt::WindowStaysOnTopHint);
+        }
+        m_window->show(); // re-assert flags on Wayland
+    }
+}
+
+// ── screen detection ────────────────────────────────────────────────────
+//
+// Three converging paths:
+//   1. C++ primaryScreen() + QTimer retry (original)
+//   2. QWindow::screen() after window is mapped (main.cpp wires it)
+//   3. QML Screen.width/height → detectFromQML (for Wayland)
+//
+// All converge to updateScreenSize() which sets the canonical m_screenWidth/m_screenHeight
+// and optionally copies to m_targetWidth/m_targetHeight.
 
 void WallpaperProcessor::detectScreenSize()
 {
-    // Try screen via C++ — will succeed when the Wayland wl_output protocol
-    // events have arrived. On first call the screen may exist but have zero
-    // size; retry via QTimer so the event loop delivers compositor events.
-    // Also called from QML's setScreenResolution — the two paths converge.
-    static const int MAX_RETRIES = 8;
-    static int attempt = 0;
+    static const int MAX_RETRIES = 10;
+    static const int RETRY_MS = 200;
 
+    // Try primaryScreen first
     QScreen *screen = QGuiApplication::primaryScreen();
     if (screen && screen->size().width() > 0 && screen->size().height() > 0) {
-        m_targetWidth = screen->size().width();
-        m_targetHeight = screen->size().height();
-        attempt = 0;
-        Q_EMIT targetWidthChanged();
-        Q_EMIT targetHeightChanged();
+        QSize phys = screen->size() * screen->devicePixelRatio();
+        updateScreenSize(phys.width(), phys.height());
+        m_detectAttempt = 0;
         return;
     }
 
-    if (++attempt <= MAX_RETRIES) {
-        QTimer::singleShot(150, this, &WallpaperProcessor::detectScreenSize);
+    // Try window's screen (more reliable on Wayland after window is mapped)
+    if (m_window) {
+        QScreen *winScreen = m_window->screen();
+        if (winScreen && winScreen->size().width() > 0 && winScreen->size().height() > 0) {
+            QSize phys = winScreen->size() * winScreen->devicePixelRatio();
+            updateScreenSize(phys.width(), phys.height());
+            m_detectAttempt = 0;
+            return;
+        }
+    }
+
+    // Retry with backoff (give compositor time to deliver wl_output events)
+    if (++m_detectAttempt <= MAX_RETRIES) {
+        int delay = qMin(RETRY_MS * (1 + m_detectAttempt / 3), 1000);
+        QTimer::singleShot(delay, this, &WallpaperProcessor::detectScreenSize);
     } else {
-        attempt = 0; // give up; user can type manually
+        m_detectAttempt = 0;
+        // Fallback: keep existing defaults (1920x1080) — user can type manually
+    }
+}
+
+void WallpaperProcessor::detectFromQML(int qmlW, int qmlH, double dpr)
+{
+    // Called from QML when Screen.width/height become available
+    // QML Screen properties return logical pixels — multiply by DPR for physical
+    int physW = qRound(qmlW * dpr);
+    int physH = qRound(qmlH * dpr);
+    updateScreenSize(physW, physH);
+    m_detectAttempt = 0;
+}
+
+void WallpaperProcessor::updateScreenSize(int w, int h)
+{
+    if (w < 1 || h < 1) return;
+    if (m_screenWidth == w && m_screenHeight == h) return;
+
+    m_screenWidth = w;
+    m_screenHeight = h;
+    Q_EMIT screenWidthChanged();
+    Q_EMIT screenHeightChanged();
+
+    // Auto-apply to target dimensions too (can override via QML binding)
+    if (m_targetWidth != w || m_targetHeight != h) {
+        m_targetWidth = w;
+        m_targetHeight = h;
+        Q_EMIT targetWidthChanged();
+        Q_EMIT targetHeightChanged();
     }
 }
 

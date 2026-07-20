@@ -1,11 +1,9 @@
 [Desktop Entry]
 Name=Walltz
-Name[ru]=Walltz
-Comment=Turn oddly-sized wallpapers into works of art
-Comment[ru]=Превратите изображения неподходящего размера в произведение искусства
-Exec=walltz
-Icon=walltz
+Comment=Create wallpapers from images with blur and color backgrounds
 Type=Application
+Categories=Qt;KDE;Graphics;
+Icon=org.walltz.walltz
+Exec=walltz
 Terminal=false
-Categories=Graphics;Qt;KDE;
-X-KDE-GettextPropertyDomain=walltz
+X-KDE-FormFactor=desktop

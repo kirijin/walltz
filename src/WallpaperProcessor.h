@@ -8,6 +8,8 @@
 #include <QColor>
 #include <QStringList>
 
+class QWindow;
+
 class WallpaperProcessor : public QObject
 {
     Q_OBJECT
@@ -21,6 +23,9 @@ class WallpaperProcessor : public QObject
     Q_PROPERTY(bool autoColor READ autoColor WRITE setAutoColor NOTIFY backgroundColorChanged)
     Q_PROPERTY(int queueSize READ queueSize NOTIFY queueChanged)
     Q_PROPERTY(int queueProgress READ queueProgress NOTIFY queueProgressChanged)
+    Q_PROPERTY(int screenWidth READ screenWidth NOTIFY screenWidthChanged)
+    Q_PROPERTY(int screenHeight READ screenHeight NOTIFY screenHeightChanged)
+    Q_PROPERTY(bool keepAbove READ keepAbove NOTIFY keepAboveChanged)
 
 public:
     explicit WallpaperProcessor(QObject *parent = nullptr);
@@ -35,6 +40,9 @@ public:
     bool autoColor() const { return m_autoColor; }
     int queueSize() const { return m_queue.size(); }
     int queueProgress() const { return m_queueProgress; }
+    int screenWidth() const { return m_screenWidth; }
+    int screenHeight() const { return m_screenHeight; }
+    bool keepAbove() const { return m_keepAbove; }
 
     void setTargetWidth(int w);
     void setTargetHeight(int h);
@@ -44,12 +52,16 @@ public:
 
 public Q_SLOTS:
     void detectScreenSize();
+    void setWindow(QWindow *window);
+    void setKeepAbove(bool keep);
     void processImage(const QString &sourcePath);
     void processQueue(const QStringList &paths);
     void cancelProcessing();
+    void updateScreenSize(int w, int h);
 
 private Q_SLOTS:
     void processNext();
+    void detectFromQML(int qmlW, int qmlH, double dpr);
 
 Q_SIGNALS:
     void targetWidthChanged();
@@ -61,6 +73,9 @@ Q_SIGNALS:
     void queueChanged();
     void queueProgressChanged();
     void busyChanged();
+    void screenWidthChanged();
+    void screenHeightChanged();
+    void keepAboveChanged();
     void processingStarted();
     void processingFinished();
     void errorOccurred(const QString &message);
@@ -68,6 +83,8 @@ Q_SIGNALS:
 private:
     int m_targetWidth = 1920;
     int m_targetHeight = 1080;
+    int m_screenWidth = 1920;
+    int m_screenHeight = 1080;
     QString m_statusMessage;
     QString m_outputPath;
     bool m_blurMode = true;
@@ -75,6 +92,9 @@ private:
     QColor m_bgColor = Qt::white;
     bool m_autoColor = true;
     bool m_cancelRequested = false;
+    QWindow *m_window = nullptr;
+    bool m_keepAbove = false;
+    int m_detectAttempt = 0;
 
     QStringList m_queue;
     int m_queueProgress = 0;

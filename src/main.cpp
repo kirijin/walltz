@@ -3,6 +3,7 @@
 #include <QtQml>
 #include <QUrl>
 #include <QQuickStyle>
+#include <QQuickWindow>
 #include <KLocalizedString>
 #include <KLocalizedQmlContext>
 #include <KIconTheme>
@@ -35,6 +36,20 @@ int main(int argc, char *argv[])
 
     if (engine.rootObjects().isEmpty()) {
         return -1;
+    }
+
+    // Wire the root QQuickWindow to the processor for Wayland screen detection
+    auto *window = qobject_cast<QQuickWindow *>(engine.rootObjects().first());
+    if (window) {
+        auto *processor = engine.singletonInstance<WallpaperProcessor *>(
+            QStringLiteral("org.walltz.processor"), QStringLiteral("WallpaperProcessor"));
+        // If not a singleton, find via root object's children
+        if (!processor) {
+            processor = window->findChild<WallpaperProcessor *>();
+        }
+        if (processor) {
+            processor->setWindow(window);
+        }
     }
 
     return app.exec();

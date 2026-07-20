@@ -39,9 +39,24 @@ Kirigami.ApplicationWindow {
         Kirigami.Theme.colorSet: Kirigami.Theme.View
 
         Component.onCompleted: {
-            // C++ detectScreenSize has a QTimer retry loop (8×150ms)
+            // C++ detectScreenSize has a QTimer retry loop (10×200ms)
             // that waits for the Wayland wl_output protocol events to arrive.
             processor.detectScreenSize();
+
+            // QML-side fallback: Screen.width/height are invalid at
+            // Component.onCompleted (window not yet displayed). Defer
+            // until the window is actually on a screen.
+            Qt.callLater(function() {
+                // Try Screen attached — valid once the page item is displayed
+                var w = Screen.width;
+                var h = Screen.height;
+                if (w > 0 && h > 0) {
+                    processor.detectFromQML(w, h, Screen.devicePixelRatio);
+                } else {
+                    // Last resort: try again after a short delay
+                    timerDetect.start();
+                }
+            });
         }
 
         ColumnLayout {
@@ -175,6 +190,25 @@ Kirigami.ApplicationWindow {
                         if (!isNaN(v) && v > 0) processor.targetHeight = v;
                     }
                 }
+
+                Controls.ToolButton {
+                    id: resetResBtn
+                    icon.name: "video-display-symbolic"
+                    text: i18n("Detect")
+                    display: Controls.AbstractButton.IconOnly
+                    hovered: true
+                    ToolTip.text: i18n("Reset to screen resolution (%1\u00D7%2)",
+                                      processor.screenWidth, processor.screenHeight)
+                    ToolTip.visible: resetResBtn.hovered
+                    onClicked: processor.detectScreenSize()
+                }
+
+                Controls.Label {
+                    id: detectedRes
+                    text: processor.screenWidth + "\u00D7" + processor.screenHeight
+                    color: Kirigami.Theme.disabledTextColor
+                    font.pixelSize: Kirigami.Theme.smallFont.pixelSize
+                }
             }
 
             // === Background mode row ===
@@ -221,6 +255,23 @@ Kirigami.ApplicationWindow {
                         }
                     }
                 }
+            }
+
+            // === Always on top ===
+            RowLayout {
+                Layout.fillWidth: true
+                spacing: Kirigami.Units.smallSpacing
+
+                Controls.CheckBox {
+                    id: keepAboveCb
+                    text: i18n("Always on top")
+                    checked: processor.keepAbove
+                    onClicked: processor.setKeepAbove(checked)
+                }
+
+                Item { Layout.fillWidth: true }
+
+                Item { width: Kirigami.Units.smallSpacing }
             }
 
             // === File list (batch) ===
@@ -310,6 +361,25 @@ Kirigami.ApplicationWindow {
             // Show the processed output in the preview
             if (processor.outputPath.length > 0)
                 imagePreview.source = "file://" + processor.outputPath;
+        }
+        onScreenWidthChanged: {
+            detectedRes.text = processor.screenWidth + "\u00D7" + processor.screenHeight;
+        }
+    }
+
+    // QML-side timer fallback for screen detection
+    Timer {
+        id: timerDetect
+        interval: 300
+        repeat: true
+        running: false
+        onTriggered: {
+            var w = Screen.width;
+            var h = Screen.height;
+            if (w > 0 && h > 0) {
+                processor.detectFromQML(w, h, Screen.devicePixelRatio);
+                timerDetect.stop();
+            }
         }
     }
 

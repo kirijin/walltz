@@ -34,6 +34,17 @@ ecm_find_qmlmodule(org.kde.kirigami)
 
 add_subdirectory(src)
 
+# Install desktop file
 install(FILES org.walltz.walltz.desktop
     DESTINATION ${KDE_INSTALL_APPDIR}
+)
+
+# Install icon
+install(FILES icons/hicolor/scalable/apps/org.walltz.walltz.svg
+    DESTINATION ${KDE_INSTALL_ICONDIR}/hicolor/scalable/apps
+)
+
+# Install appdata
+install(FILES src/org.walltz.walltz.appdata.xml
+    DESTINATION ${KDE_INSTALL_METAINFODIR}
 )
