@@ -1,0 +1,17 @@
+build/
+*.o
+*.os
+*.obj
+moc_*
+*.moc
+qrc_*
+.rcc/
+.qmlcache/
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+Makefile
+.vscode/
+.idea/
+*.autogen
+meta_types/
