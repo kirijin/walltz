@@ -157,12 +157,40 @@ void WallpaperProcessor::setWindow(QWindow *window)
 {
     m_window = window;
     if (m_window) {
+        // Re-detect on screen change (moving to a different monitor)
+        connect(m_window, &QWindow::screenChanged,
+                this, &WallpaperProcessor::detectFromWindow);
+
         double dpr = m_window->devicePixelRatio();
         if (!qFuzzyCompare(m_windowDpr, dpr)) {
             m_windowDpr = dpr;
             Q_EMIT windowDprChanged();
         }
+
+        // Initial detection — on Wayland the compositor delivers
+        // wp_fractional_scale async, so devicePixelRatio may still be
+        // the integer wl_output scale at this point.
+        detectFromWindow();
+
+        // Poll for fractional DPR arrival (up to ~1 s at 200 ms intervals)
+        m_dprPollCount = 0;
+        QTimer::singleShot(200, this, &WallpaperProcessor::pollDpr);
     }
+}
+
+void WallpaperProcessor::pollDpr()
+{
+    if (!m_window) return;
+    double dpr = m_window->devicePixelRatio();
+    if (!qFuzzyCompare(dpr, m_windowDpr)) {
+        m_windowDpr = dpr;
+        Q_EMIT windowDprChanged();
+        detectFromWindow();
+        m_dprPollCount = 0;
+        return;
+    }
+    if (++m_dprPollCount < 5)
+        QTimer::singleShot(200, this, &WallpaperProcessor::pollDpr);
 }
 
 void WallpaperProcessor::setKeepAbove(bool keep)
@@ -184,32 +212,45 @@ void WallpaperProcessor::setKeepAbove(bool keep)
 
 // ── screen detection ────────────────────────────────────────────────────
 //
-// Three converging paths:
-//   1. C++ primaryScreen() + QTimer retry (original)
-//   2. QWindow::screen() after window is mapped (main.cpp wires it)
-//   3. QML Screen.width/height → detectFromQML (for Wayland)
-//
-// All converge to updateScreenSize() which sets the canonical m_screenWidth/m_screenHeight
-// and optionally copies to m_targetWidth/m_targetHeight.
+// Unified via detectFromWindow() — uses m_window→screen() × m_window→devicePixelRatio()
+// for correct fractional scale on Wayland.  Called initially from setWindow() and
+// every time devicePixelRatio changes (the compositor delivers wp_fractional_scale).
+// detectScreenSize() is the public entry for the Detect button / startup.
+
+void WallpaperProcessor::detectFromWindow()
+{
+    if (!m_window) return;
+
+    // Try the window's specific screen first
+    QScreen *screen = m_window->screen();
+    if (screen && screen->size().width() > 0 && screen->size().height() > 0) {
+        QSize dips = screen->size();
+        qreal dpr = m_window->devicePixelRatio();
+        updateScreenSize(qRound(dips.width() * dpr), qRound(dips.height() * dpr));
+        m_detectAttempt = 0;
+        return;
+    }
+
+    // Screen not yet ready (Wayland compositor hasn't sent configure yet)
+    static const int MAX_RETRIES = 6;
+    static const int RETRY_MS = 200;
+    if (++m_detectAttempt <= MAX_RETRIES) {
+        QTimer::singleShot(RETRY_MS, this, &WallpaperProcessor::detectFromWindow);
+    } else {
+        m_detectAttempt = 0;
+        // Fallback: keep previous value (user can type manually or click Detect)
+    }
+}
 
 void WallpaperProcessor::detectScreenSize()
 {
-    static const int MAX_RETRIES = 10;
-    static const int RETRY_MS = 200;
-
-    // Use m_window's screen + per-window devicePixelRatio (includes fractional scale on Wayland)
+    // Try window path first (includes fractional DPR on Wayland)
     if (m_window) {
-        QScreen *screen = m_window->screen();
-        if (screen && screen->size().width() > 0 && screen->size().height() > 0) {
-            QSize dips = screen->size();
-            qreal dpr = m_window->devicePixelRatio();
-            updateScreenSize(qRound(dips.width() * dpr), qRound(dips.height() * dpr));
-            m_detectAttempt = 0;
-            return;
-        }
+        detectFromWindow();
+        return;
     }
 
-    // Fallback via primaryScreen (no DPR multiply — QScreen::devicePixelRatio is integer-only on Wayland)
+    // No window yet — fallback via primaryScreen (dips only, no DPR multiply)
     QScreen *screen = QGuiApplication::primaryScreen();
     if (screen && screen->size().width() > 0 && screen->size().height() > 0) {
         updateScreenSize(screen->size().width(), screen->size().height());
@@ -217,23 +258,14 @@ void WallpaperProcessor::detectScreenSize()
         return;
     }
 
-    // Retry with backoff (give compositor time to deliver wl_output events)
+    // Retry with timer (rare — only if both screen and window are unavailable)
+    static const int MAX_RETRIES = 6;
+    static const int RETRY_MS = 200;
     if (++m_detectAttempt <= MAX_RETRIES) {
-        int delay = qMin(RETRY_MS * (1 + m_detectAttempt / 3), 1000);
-        QTimer::singleShot(delay, this, &WallpaperProcessor::detectScreenSize);
+        QTimer::singleShot(RETRY_MS, this, &WallpaperProcessor::detectScreenSize);
     } else {
         m_detectAttempt = 0;
-        // Fallback: keep existing defaults (1920x1080) — user can type manually
     }
-}
-
-void WallpaperProcessor::detectFromQML(int qmlW, int qmlH, double dpr)
-{
-    // Called from QML when Screen.width/height become available (Wayland fallback)
-    // qmlW/qmlH are dips from QML Screen. dpr is the window devicePixelRatio.
-    // On Qt6/Wayland with fractional scaling, window DPR includes fractional part.
-    updateScreenSize(qRound(qmlW * dpr), qRound(qmlH * dpr));
-    m_detectAttempt = 0;
 }
 
 void WallpaperProcessor::updateScreenSize(int w, int h)

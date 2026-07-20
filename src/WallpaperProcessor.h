@@ -91,10 +91,11 @@ public Q_SLOTS:
     void processQueue(const QStringList &paths);
     void cancelProcessing();
     void updateScreenSize(int w, int h);
-    Q_INVOKABLE void detectFromQML(int qmlW, int qmlH, double dpr);
 
 private Q_SLOTS:
     void processNext();
+    void detectFromWindow();
+    void pollDpr();
 
 Q_SIGNALS:
     void targetWidthChanged();
@@ -135,6 +136,7 @@ private:
     bool m_cancelRequested = false;
     QWindow *m_window = nullptr;
     double m_windowDpr = 1.0;
+    int m_dprPollCount = 0;
     bool m_keepAbove = false;
     int m_detectAttempt = 0;
 

@@ -41,16 +41,6 @@ Kirigami.ApplicationWindow {
 
         Component.onCompleted: {
             processor.detectScreenSize();
-            Qt.callLater(function() {
-                var w = Screen.width;
-                var h = Screen.height;
-                // Use the window's devicePixelRatio (may be fractional on Wayland,
-                // unlike Screen.devicePixelRatio which is integer-only).
-                var dpr = processor.windowDpr;
-                if (w > 0 && h > 0 && processor.screenWidth <= 1920) {
-                    processor.detectFromQML(w, h, dpr);
-                }
-            });
         }
 
         ColumnLayout {
@@ -560,22 +550,6 @@ Kirigami.ApplicationWindow {
         id: statusMessageTimer
         interval: 4000
         onTriggered: statusMessage.visible = false
-    }
-
-    // QML-side timer fallback for screen detection
-    Timer {
-        id: timerDetect
-        interval: 300
-        repeat: true
-        running: false
-        onTriggered: {
-            var w = Screen.width;
-            var h = Screen.height;
-            if (w > 0 && h > 0) {
-                processor.detectFromQML(w, h, processor.windowDpr);
-                timerDetect.stop();
-            }
-        }
     }
 
     // ── Live preview update on tweak changes (debounced) ──
