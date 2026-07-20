@@ -19,78 +19,38 @@ static const int SHADOW_RADIUS = 3;
 
 // ── gradient presets (color-theory-based) ─────────────────────────────────
 
-const WallpaperProcessor::GradientPreset WallpaperProcessor::s_presets[65] = {
+const WallpaperProcessor::GradientPreset WallpaperProcessor::s_presets[25] = {
     // name             color1        color2
-    // ── Warm tones ────────────────────────────────────────
+    // ── Warm tones ──
     { "Sunset Warmth",  0xffff6b6b, 0xfffeca57 },
     { "Amber Glow",     0xfff0932b, 0xfffeca57 },
     { "Coral Reef",     0xffff6b6b, 0xff48dbfb },
     { "Lemonade",       0xfffdcb6e, 0xff00cec9 },
     { "Dusk",           0xff6c5ce7, 0xfffd79a8 },
-    { "Peach",          0xfffdcb6e, 0xffe17055 },
-    { "Tangy",          0xffe17055, 0xffd63031 },
-    { "Apricot",        0xfff9ca24, 0xfff0932b },
-    { "Ruby Glow",      0xffeb4d4b, 0xffbe2edd },
-    { "Gold Flame",     0xfff9ca24, 0xffe17055 },
-    { "Blazing",        0xffe74c3c, 0xfff39c12 },
-    { "Crimson",        0xffeb4d4b, 0xffd63031 },
-    { "Honey",          0xfff9ca24, 0xfffdcb6e },
-    // ── Cool tones ────────────────────────────────────────
+    // ── Cool tones ──
     { "Ocean Depths",   0xff0abde3, 0xff48dbfb },
     { "Tokyo Night",    0xff1a1b26, 0xff7aa2f7 },
     { "Arctic",         0xff2e3440, 0xff88c0d0 },
     { "Nordic Blues",   0xff2c3e50, 0xff3498db },
     { "One Dark",       0xff282c34, 0xff61afef },
-    { "Ice Cold",       0xffa29bfe, 0xff6c5ce7 },
-    { "Blue Lagoon",    0xff0984e3, 0xff74b9ff },
-    { "Neon Blue",      0xff48dbfb, 0xff0984e3 },
-    { "Deep Sea",       0xff0c2461, 0xff0fb9b1 },
-    { "Twilight",       0xff182c61, 0xff3b3b98 },
-    { "Steel",          0xff636e72, 0xff74b9ff },
-    { "Skyline",        0xff0984e3, 0xffa29bfe },
-    { "Frost",          0xffdfe6e9, 0xff74b9ff },
-    // ── Greens & nature ────────────────────────────────────
+    // ── Greens & nature ──
     { "Forest Calm",    0xff6ab04c, 0xff22a6b3 },
     { "Teal Mint",      0xff00b894, 0xff00cec9 },
     { "Everforest",     0xff2b3339, 0xffa7c080 },
     { "Aurora",         0xff00b894, 0xff6c5ce7 },
     { "Monokai",        0xff272822, 0xffa6e22e },
-    { "Spring",         0xff55efc4, 0xff00b894 },
-    { "Meadow",         0xffb8e994, 0xff78e08f },
-    { "Jungle",         0xff079992, 0xff38ada9 },
-    { "Olive",          0xffb8e994, 0xffe1b12c },
-    { "Sage",           0xffb8e994, 0xff636e72 },
-    { "Tropical",       0xff00cec9, 0xff0984e3 },
-    { "Minty",          0xff55efc4, 0xff81ecec },
-    { "Fern",           0xff78e08f, 0xff079992 },
-    // ── Purples & pinks ────────────────────────────────────
+    // ── Purples & pinks ──
     { "Lavender Sky",   0xff4834d4, 0xff9b59b6 },
     { "Rose Blush",     0xffbe2edd, 0xfff368e0 },
     { "Catppuccin",     0xff1e1e2e, 0xffcba6f7 },
     { "Dracula",        0xff282a36, 0xffbd93f9 },
     { "Rose Pine",      0xff191724, 0xffebbcba },
-    { "Magenta Glow",   0xffbe2edd, 0xffe84393 },
-    { "Plum",           0xff6c5ce7, 0xffe84393 },
-    { "Violet",         0xff6c5ce7, 0xffa29bfe },
-    { "Bubblegum",      0xfffd79a8, 0xffe84393 },
-    { "Wine",           0xffe84393, 0xffd63031 },
-    { "Lilac",          0xffa29bfe, 0xff74b9ff },
-    { "Deep Purple",    0xff2d3436, 0xff6c5ce7 },
-    { "Berry",          0xff6c5ce7, 0xff4834d4 },
-    // ── Neutrals & dark ────────────────────────────────────
+    // ── Neutrals & dark ──
     { "Midnight",       0xff1a1a2e, 0xff16213e },
     { "Gruvbox",        0xff282828, 0xff8f3f1a },
     { "Solarized",      0xff073642, 0xff268bd2 },
     { "Mountain",       0xff636e72, 0xffb2bec3 },
     { "Grayscale",      0xff444444, 0xffcccccc },
-    { "Slate",          0xff2d3436, 0xff636e72 },
-    { "Concrete",       0xffdfe6e9, 0xffb2bec3 },
-    { "Ash",            0xff636e72, 0xffb2bec3 },
-    { "Charcoal",       0xff1e272e, 0xff2d3436 },
-    { "Ivory",          0xfffff1e6, 0xffdfe6e9 },
-    { "Warm Gray",      0xffdfe6e9, 0xfffdcb6e },
-    { "Obsidian",       0xff0c2461, 0xff1e272e },
-    { "Smoke",          0xffb2bec3, 0xffdfe6e9 },
 };
 
 // ── constructor ──────────────────────────────────────────────────────────
@@ -251,7 +211,7 @@ void WallpaperProcessor::setAutoMood(int m)
     }
 }
 
-int WallpaperProcessor::gradientPresetCount() const { return 65; }
+int WallpaperProcessor::gradientPresetCount() const { return 25; }
 
 QString WallpaperProcessor::gradientPresetName(int index) const
 {
@@ -719,35 +679,37 @@ QColor WallpaperProcessor::extractAverageColor(const QImage &image)
                   std::clamp(int(bSum / samples), 0, 255));
 }
 
-// ── harmonized color extraction (for auto-gradient) ──────────────────────
+// ── 3D RGB-histogram color extraction (for auto-gradient) ──────────────────
 //
-// Uses a saturation-weighted hue histogram to extract real chromatic colors
-// from the image. White/black/gray pixels (saturation < 0.15) are excluded
-// so they don't pollute the palette with their meaningless hue.
-// Supports 6 mood variants (0=Auto, 1=Soft, 2=Vivid, 3=Warm, 4=Cool, 5=Deep).
-// Heavy histogram computation runs once, results cached in m_moodColorsA/B[].
+// Replaces the old 24-bin hue-only histogram with an 8×8×8 RGB cube (512 bins).
+// Each pixel is quantized into an RGB bin; bins are scored by:
+//   score = population × chroma² × (1 − |0.5 − lightness|)
 //
-// Falls back to a 30° analogous shift if only one hue family is found.
+// The top-3 bins (with ≥ 2-bin distance separation) become candidate centroids.
+// Mood variants pick from these candidates: Auto picks highest-contrast pair,
+// Vivid picks highest-chroma pair, Warm picks warmest, Cool picks coolest, etc.
+//
+// This avoids the "undefined hue on white/gray" problem entirely — white pixels
+// land in the (7,7,7) bin and have near-zero chroma score, so they're naturally
+// deprioritised vs vivid colors like sky-blue, skin-brown, or cloth-white.
 
 void WallpaperProcessor::computeMoodPalettes(const QImage &image)
 {
-    static const int HUE_BINS = 24;       // 15° each
-    static const float SAT_THRESHOLD = 0.15f;
-    static const float LIGHT_MIN = 0.15f;
-    static const float LIGHT_MAX = 0.90f;
+    static const int RGB_BINS = 8;       // 8 per channel = 512 bin cube
+    static const float SAT_THRESHOLD = 0.12f;
+    static const float LIGHT_MIN = 0.10f;
+    static const float LIGHT_MAX = 0.92f;
 
     int w = image.width(), h = image.height();
     int step = qMax(1, qMax(w, h) / 64);
 
-    // Hue histogram weighted by saturation
-    double hueWeight[HUE_BINS] = {0};
-    double hueSat[HUE_BINS] = {0};    // avg saturation per bin
-    double hueLight[HUE_BINS] = {0};  // avg lightness per bin
-    int hueCount[HUE_BINS] = {0};
-
-    // Track the single most-saturated chromatic pixel as the "key"
-    float maxSat = 0.0f;
-    int keyR = 128, keyG = 128, keyB = 128;
+    // 3D histogram: bins[ri][gi][bi] = { weight, r_sum, g_sum, b_sum, count }
+    struct Bin {
+        double weight = 0;
+        double rSum = 0, gSum = 0, bSum = 0;
+        int count = 0;
+    };
+    Bin bins[RGB_BINS][RGB_BINS][RGB_BINS];
 
     for (int y = 0; y < h; y += step) {
         const QRgb *row = reinterpret_cast<const QRgb *>(image.constScanLine(y));
@@ -759,218 +721,221 @@ void WallpaperProcessor::computeMoodPalettes(const QImage &image)
             float sat = (mx == 0) ? 0.0f : (mx - mn) / (float)mx;
             float lgt = (mx + mn) / 510.0f;
 
-            // Skip desaturated or near-black/near-white pixels
+            // Skip desaturated and extreme-lightness
             if (sat < SAT_THRESHOLD || lgt < LIGHT_MIN || lgt > LIGHT_MAX)
                 continue;
 
-            // Hue in 0..1 from RGB
-            float hue = 0.0f;
-            float delta = mx - mn;
-            if (delta > 0) {
-                if (mx == r)
-                    hue = (g - b) / delta;
-                else if (mx == g)
-                    hue = 2.0f + (b - r) / delta;
-                else
-                    hue = 4.0f + (r - g) / delta;
-                hue /= 6.0f;
-                if (hue < 0) hue += 1.0f;
-            }
+            int ri = qMin(r * RGB_BINS / 256, RGB_BINS - 1);
+            int gi = qMin(g * RGB_BINS / 256, RGB_BINS - 1);
+            int bi = qMin(b * RGB_BINS / 256, RGB_BINS - 1);
 
-            int bin = qMin(int(hue * HUE_BINS), HUE_BINS - 1);
-            double wgt = qMax(sat * 100.0, 1.0);
-            hueWeight[bin] += wgt;
-            hueSat[bin] += sat * wgt;
-            hueLight[bin] += lgt * wgt;
-            hueCount[bin]++;
-
-            // Key color
-            float score = sat * qMax(0.0f, lgt - 0.15f) * 1.5f;
-            if (score > maxSat) {
-                maxSat = score;
-                keyR = r; keyG = g; keyB = b;
-            }
+            double wgt = sat * sat * (1.0 - qAbs(0.5 - lgt));
+            bins[ri][gi][bi].weight += wgt;
+            bins[ri][gi][bi].rSum += r * wgt;
+            bins[ri][gi][bi].gSum += g * wgt;
+            bins[ri][gi][bi].bSum += b * wgt;
+            bins[ri][gi][bi].count++;
         }
     }
 
-    // --- Find top 2 hue bins (by weight) ---
-    int best1 = 0, best2 = 0;
-    double bestW1 = 0, bestW2 = 0;
-    for (int i = 0; i < HUE_BINS; ++i) {
-        if (hueWeight[i] > bestW1) {
-            bestW2 = bestW1; best2 = best1;
-            bestW1 = hueWeight[i]; best1 = i;
-        } else if (hueWeight[i] > bestW2) {
-            bestW2 = hueWeight[i]; best2 = i;
-        }
-    }
-
-    QColor key(keyR, keyG, keyB);
-    float hK, sK, lK;
-    key.getHslF(&hK, &sK, &lK);
-
-    // Helper: representative color from a hue bin with clamping
-    auto binColor = [&](int bin, float defaultSat, float defaultLight) -> QColor {
-        float h = (bin + 0.5f) / HUE_BINS;
-        float s = (hueCount[bin] > 0) ? hueSat[bin] / hueWeight[bin] : defaultSat;
-        float l = (hueCount[bin] > 0) ? hueLight[bin] / hueWeight[bin] : defaultLight;
-        s = qBound(0.35f, s, 0.75f);
-        l = qBound(0.35f, l, 0.70f);
-        return QColor::fromHslF(h, s, l);
+    // Collect non-empty bins with their centroids
+    struct Centroid {
+        double r, g, b;     // weighted average
+        double score;
+        int ri, gi, bi;     // bin indices (for distance check)
     };
+    std::vector<Centroid> centroids;
+    for (int ri = 0; ri < RGB_BINS; ++ri) {
+        for (int gi = 0; gi < RGB_BINS; ++gi) {
+            for (int bi = 0; bi < RGB_BINS; ++bi) {
+                const auto &bin = bins[ri][gi][bi];
+                if (bin.weight < 0.5) continue;
+                double rAvg = bin.rSum / bin.weight;
+                double gAvg = bin.gSum / bin.weight;
+                double bAvg = bin.bSum / bin.weight;
+                // Compute chroma in RGB space
+                double mnC = qMin(qMin(rAvg, gAvg), bAvg);
+                double mxC = qMax(qMax(rAvg, gAvg), bAvg);
+                double chroma = (mxC == 0) ? 0.0 : (mxC - mnC) / mxC;
+                centroids.push_back({
+                    rAvg, gAvg, bAvg,
+                    bin.weight * chroma * chroma,
+                    ri, gi, bi
+                });
+            }
+        }
+    }
 
-    // ── Compute all 6 mood palettes ──────────────────────────────────────
-
-    // Mood 0: Auto (top-2 weighted bins, current algorithm)
-    if (bestW1 < 1.0) {
+    // Default fallback (no chromatic pixels found)
+    auto setFallback = [&]() {
         for (int m = 0; m < 6; ++m) {
             m_moodColorsA[m] = QColor(128, 128, 128);
             m_moodColorsB[m] = QColor(180, 180, 180);
         }
-    } else {
-        QColor autoA = binColor(best1, 0.50f, 0.50f);
-        float hueA = (best1 + 0.5f) / HUE_BINS;
-        float hueB;
-        if (bestW2 < 1.0) {
-            hueB = fmod(hueA + 1.0f / 12.0f, 1.0f);
-        } else {
-            hueB = (best2 + 0.5f) / HUE_BINS;
-            float hD = hK - hueB;
-            if (hD > 0.5f) hD -= 1.0f;
-            if (hD < -0.5f) hD += 1.0f;
-            hueB = fmod(hueB + hD * 0.2f + 1.0f, 1.0f);
-        }
-        float sB = qBound(0.30f, (autoA.hslSaturationF() + sK) * 0.45f, 0.65f);
-        float lB = qBound(0.40f, autoA.lightnessF() + 0.15f, 0.78f);
-        QColor autoB = QColor::fromHslF(hueB, sB, lB);
-        float spread = qAbs(autoB.hslHueF() - autoA.hslHueF());
-        if (spread > 0.5f) spread = 1.0f - spread;
-        if (spread < 0.014f)
-            autoB = QColor::fromHslF(fmod(hueA + 1.0f / 12.0f, 1.0f), sB, lB);
-        m_moodColorsA[0] = autoA;
-        m_moodColorsB[0] = autoB;
+    };
 
-        // ── Helper: pick robust bin with character-preserving fallback ──
-        // If no bin matches the predicate, return sentinel so caller
-        // transforms best1 to fit the mood's character.
-        auto pickMoodBin = [&](const std::function<bool(int)> &pred) -> int {
-            for (int i = 0; i < HUE_BINS; ++i)
-                if (hueWeight[i] > 0 && pred(i)) return i;
-            return -1;
-        };
+    if (centroids.empty()) {
+        setFallback();
+        m_moodsComputed = true;
+        return;
+    }
 
-        // ── Mood 1: Soft — mid-sat, mid-light ──
-        {
-            int sb = pickMoodBin([&](int i){
-                float s = hueSat[i]/hueWeight[i];
-                float l = hueLight[i]/hueWeight[i];
-                return s >= 0.25f && s <= 0.60f && l >= 0.35f && l <= 0.70f;
-            });
-            float h = (sb >= 0)
-                ? ((sb + 0.5f) / HUE_BINS)
-                : ((best1 + 0.5f) / HUE_BINS);
-            float sV = qBound(0.28f,
-                (sb >= 0) ? hueSat[sb]/hueWeight[sb] : 0.40f,
-                0.48f);
-            float lV = qBound(0.38f,
-                (sb >= 0) ? hueLight[sb]/hueWeight[sb] : 0.52f,
-                0.62f);
-            m_moodColorsA[1] = QColor::fromHslF(h, sV, lV);
-            m_moodColorsB[1] = QColor::fromHslF(
-                fmod(h + 1.0f/12.0f, 1.0f),
-                qBound(0.22f, sV*0.85f, 0.40f),
-                qBound(0.48f, lV+0.10f, 0.72f));
-        }
+    // Sort by score descending
+    std::sort(centroids.begin(), centroids.end(),
+        [](const Centroid &a, const Centroid &b) { return a.score > b.score; });
 
-        // ── Mood 2: Vivid — highest sat×light ──
-        {
-            int vb = best1;
-            double vs = -1;
-            for (int i = 0; i < HUE_BINS; ++i) {
-                if (hueWeight[i] <= 0) continue;
-                double sc = (hueSat[i]/hueWeight[i]) * (hueLight[i]/hueWeight[i]);
-                if (sc > vs) { vs = sc; vb = i; }
+    // Pick top-3 with ≥ 2-bin separation
+    const int MIN_BIN_DIST = 2;
+    std::vector<Centroid *> picks;
+    picks.push_back(&centroids[0]);
+    for (size_t i = 1; i < centroids.size() && picks.size() < 3; ++i) {
+        bool ok = true;
+        for (auto *p : picks) {
+            int dr = qAbs(centroids[i].ri - p->ri);
+            int dg = qAbs(centroids[i].gi - p->gi);
+            int db = qAbs(centroids[i].bi - p->bi);
+            if (dr < MIN_BIN_DIST && dg < MIN_BIN_DIST && db < MIN_BIN_DIST) {
+                ok = false;
+                break;
             }
-            float hV = (vb + 0.5f) / HUE_BINS;
-            float sV = qBound(0.55f,
-                (hueCount[vb] > 0) ? hueSat[vb]/hueWeight[vb] : 0.65f,
-                0.85f);
-            float lV = qBound(0.40f,
-                (hueCount[vb] > 0) ? hueLight[vb]/hueWeight[vb] : 0.55f,
-                0.68f);
-            m_moodColorsA[2] = QColor::fromHslF(hV, sV, lV);
-            float h2 = (best2 != vb && bestW2 > 1.0)
-                ? ((best2 + 0.5f) / HUE_BINS)
-                : fmod(hV + 1.0f/8.0f, 1.0f);
-            m_moodColorsB[2] = QColor::fromHslF(h2,
-                qBound(0.45f, sV*0.80f, 0.70f),
-                qBound(0.45f, lV+0.10f, 0.72f));
         }
+        if (ok) picks.push_back(&centroids[i]);
+    }
 
-        // ── Mood 3: Warm — hues 0-60° (bins 0-3) ──
-        {
-            int wb = -1;
-            for (int i = 0; i <= 3; ++i)
-                if (hueWeight[i] > 0) { wb = i; break; }
-            float hW = (wb >= 0)
-                ? ((wb + 0.5f) / HUE_BINS)
-                : 0.10f; // ~36° — safe warm orange if no warm bin exists
-            float sW = qBound(0.40f,
-                (wb >= 0 && hueCount[wb] > 0) ? hueSat[wb]/hueWeight[wb] : 0.55f,
-                0.72f);
-            float lW = qBound(0.38f,
-                (wb >= 0 && hueCount[wb] > 0) ? hueLight[wb]/hueWeight[wb] : 0.50f,
-                0.65f);
-            m_moodColorsA[3] = QColor::fromHslF(hW, sW, lW);
-            m_moodColorsB[3] = QColor::fromHslF(
-                fmod(hW + 1.0f/10.0f, 1.0f),
-                qBound(0.35f, sW*0.85f, 0.60f),
-                qBound(0.42f, lW+0.12f, 0.72f));
-        }
+    // Convert picks to QColor
+    auto toQColor = [](const Centroid &c) -> QColor {
+        return QColor(qBound(0, (int)qRound(c.r), 255),
+                      qBound(0, (int)qRound(c.g), 255),
+                      qBound(0, (int)qRound(c.b), 255));
+    };
 
-        // ── Mood 4: Cool — hues 180-270° (bins 12-17) ──
-        {
-            int cb = -1;
-            for (int i = 12; i <= 17; ++i)
-                if (hueWeight[i] > 0) { cb = i; break; }
-            float hC = (cb >= 0)
-                ? ((cb + 0.5f) / HUE_BINS)
-                : 0.60f; // ~216° — safe cool blue
-            float sC = qBound(0.40f,
-                (cb >= 0 && hueCount[cb] > 0) ? hueSat[cb]/hueWeight[cb] : 0.50f,
-                0.72f);
-            float lC = qBound(0.38f,
-                (cb >= 0 && hueCount[cb] > 0) ? hueLight[cb]/hueWeight[cb] : 0.50f,
-                0.65f);
-            m_moodColorsA[4] = QColor::fromHslF(hC, sC, lC);
-            m_moodColorsB[4] = QColor::fromHslF(
-                fmod(hC - 1.0f/10.0f + 1.0f, 1.0f),
-                qBound(0.35f, sC*0.85f, 0.60f),
-                qBound(0.42f, lC+0.12f, 0.72f));
-        }
+    QColor c0 = toQColor(*picks[0]);
+    QColor c1 = (picks.size() > 1) ? toQColor(*picks[1]) : c0;
+    QColor c2 = (picks.size() > 2) ? toQColor(*picks[2]) : c0;
+    QColor colors[3] = { c0, c1, c2 };
 
-        // ── Mood 5: Deep — lowest-lightness bin ──
-        {
-            int db = best1;
-            double ml = 1.0;
-            for (int i = 0; i < HUE_BINS; ++i) {
-                if (hueWeight[i] <= 0) continue;
-                float l = hueLight[i] / hueWeight[i];
-                if (l < ml) { ml = l; db = i; }
+    // Helper: pick 2 colors with max perceptual contrast
+    auto maxContrastPair = [&]() -> QPair<QColor, QColor> {
+        double bestDist = -1;
+        int bestA = 0, bestB = 1;
+        for (int i = 0; i < 3; ++i) {
+            for (int j = i + 1; j < 3; ++j) {
+                double dr = colors[i].redF() - colors[j].redF();
+                double dg = colors[i].greenF() - colors[j].greenF();
+                double db = colors[i].blueF() - colors[j].blueF();
+                double dist = dr * dr + dg * dg + db * db;
+                if (dist > bestDist) {
+                    bestDist = dist;
+                    bestA = i; bestB = j;
+                }
             }
-            float hD = (db + 0.5f) / HUE_BINS;
-            float sD = qBound(0.35f,
-                (hueCount[db] > 0) ? hueSat[db]/hueWeight[db] : 0.40f,
-                0.60f);
-            float lD = qBound(0.20f,
-                (hueCount[db] > 0) ? hueLight[db]/hueWeight[db] : 0.35f,
-                0.40f);
-            m_moodColorsA[5] = QColor::fromHslF(hD, sD, lD);
-            m_moodColorsB[5] = QColor::fromHslF(
-                fmod(hD + 1.0f/12.0f, 1.0f),
-                qBound(0.30f, sD*0.90f, 0.50f),
-                qBound(0.30f, lD+0.12f, 0.50f));
         }
+        return {colors[bestA], colors[bestB]};
+    };
+
+    // Helper: adjust sat+light of a color for mood
+    auto moodify = [](QColor c, float satScale, float lightShift, float minSat) -> QColor {
+        float h, s, l;
+        c.getHslF(&h, &s, &l);
+        s = qBound(minSat, s * satScale, 0.85f);
+        l = qBound(0.15f, l + lightShift, 0.85f);
+        return QColor::fromHslF(h, s, l);
+    };
+
+    // ── Compute all 6 mood palettes ──
+    auto pair = maxContrastPair();
+
+    // Mood 0: Auto — highest contrast pair
+    m_moodColorsA[0] = pair.first;
+    m_moodColorsB[0] = pair.second;
+
+    // Mood 1: Soft — mid-sat, analogous (same hue family, slightly shifted)
+    {
+        float h, s, l;
+        pair.first.getHslF(&h, &s, &l);
+        m_moodColorsA[1] = QColor::fromHslF(h, qBound(0.25f, s * 0.65f, 0.45f),
+                                            qBound(0.35f, l, 0.60f));
+        m_moodColorsB[1] = QColor::fromHslF(fmod(h + 1.0f/18.0f, 1.0f),
+                                            qBound(0.20f, s * 0.55f, 0.38f),
+                                            qBound(0.45f, l + 0.08f, 0.70f));
+    }
+
+    // Mood 2: Vivid — highest-chroma pick(s)
+    {
+        int bestVi = 0;
+        for (int i = 0; i < 3; ++i) {
+            double r = colors[i].redF(), g = colors[i].greenF(), b = colors[i].blueF();
+            double mn = qMin(qMin(r, g), b), mx = qMax(qMax(r, g), b);
+            if ((mx - mn) > (qMax(qMax(colors[bestVi].redF(), colors[bestVi].greenF()), colors[bestVi].blueF())
+                           - qMin(qMin(colors[bestVi].redF(), colors[bestVi].greenF()), colors[bestVi].blueF()))) {
+                bestVi = i;
+            }
+        }
+        m_moodColorsA[2] = moodify(colors[bestVi], 1.3f, 0.0f, 0.55f);
+        int other = (bestVi + 1) % 3;
+        m_moodColorsB[2] = moodify(colors[other], 1.1f, 0.05f, 0.40f);
+    }
+
+    // Mood 3: Warm — pick warmest color, pair with analogous warm
+    {
+        int warmIdx = 0;
+        float warmestH = 1.0f; // 0° = red, closest to 0 is warmest
+        for (int i = 0; i < 3; ++i) {
+            float h, s, l;
+            colors[i].getHslF(&h, &s, &l);
+            float dist = qMin(h, 1.0f - h);
+            if (h <= 0.15f || h >= 0.85f) { // warm range: reds, oranges
+                if (dist < warmestH) {
+                    warmestH = dist;
+                    warmIdx = i;
+                }
+            }
+        }
+        m_moodColorsA[3] = moodify(colors[warmIdx], 1.1f, 0.02f, 0.40f);
+        float hW, sW, lW;
+        m_moodColorsA[3].getHslF(&hW, &sW, &lW);
+        m_moodColorsB[3] = QColor::fromHslF(fmod(hW + 1.0f/12.0f, 1.0f),
+                                            qBound(0.30f, sW * 0.85f, 0.60f),
+                                            qBound(0.40f, lW + 0.10f, 0.72f));
+    }
+
+    // Mood 4: Cool — pick coolest color (hue 0.45–0.75 = blue range)
+    {
+        int coolIdx = 0;
+        float coolestD = 999;
+        for (int i = 0; i < 3; ++i) {
+            float h, s, l;
+            colors[i].getHslF(&h, &s, &l);
+            float d = qAbs(h - 0.60f); // distance from "true blue" (~216°)
+            if (d < coolestD) {
+                coolestD = d;
+                coolIdx = i;
+            }
+        }
+        m_moodColorsA[4] = moodify(colors[coolIdx], 1.0f, 0.0f, 0.38f);
+        float hC, sC, lC;
+        m_moodColorsA[4].getHslF(&hC, &sC, &lC);
+        m_moodColorsB[4] = QColor::fromHslF(fmod(hC - 1.0f/12.0f + 1.0f, 1.0f),
+                                            qBound(0.30f, sC * 0.85f, 0.55f),
+                                            qBound(0.42f, lC + 0.10f, 0.70f));
+    }
+
+    // Mood 5: Deep — darkest color, paired with its complement
+    {
+        int darkIdx = 0;
+        double minL = colors[0].lightnessF();
+        for (int i = 1; i < 3; ++i) {
+            if (colors[i].lightnessF() < minL) {
+                minL = colors[i].lightnessF();
+                darkIdx = i;
+            }
+        }
+        m_moodColorsA[5] = moodify(colors[darkIdx], 0.85f, -0.08f, 0.30f);
+        float hD, sD, lD;
+        m_moodColorsA[5].getHslF(&hD, &sD, &lD);
+        m_moodColorsB[5] = QColor::fromHslF(fmod(hD + 0.5f, 1.0f),   // complement
+                                            qBound(0.25f, sD * 0.80f, 0.50f),
+                                            qBound(0.30f, lD + 0.15f, 0.50f));
     }
 
     m_moodsComputed = true;

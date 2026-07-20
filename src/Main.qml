@@ -633,51 +633,59 @@ Kirigami.ApplicationWindow {
                 }
 
                 // Gradient preset picker
-                GridLayout {
+                RowLayout {
                     visible: processor.bgGradientStyle === 1
-                    columns: 5
-                    columnSpacing: Kirigami.Units.mediumSpacing
-                    rowSpacing: Kirigami.Units.mediumSpacing
                     Layout.fillWidth: true
+                    spacing: 0
 
-                    Repeater {
-                        model: processor.gradientPresetCount()
+                    Item { Layout.fillWidth: true }
 
-                        Rectangle {
-                            id: presetDelegate
+                    GridLayout {
+                        columns: 5
+                        columnSpacing: Kirigami.Units.mediumSpacing
+                        rowSpacing: Kirigami.Units.mediumSpacing
 
-                            required property int index
+                        Repeater {
+                            model: processor.gradientPresetCount()
 
-                            width: 56; height: 40
-                            radius: Kirigami.Units.cornerRadius
-                            border.width: processor.bgGradientPreset === index ? 2 : 1
-                            border.color: processor.bgGradientPreset === index
-                                           ? Kirigami.Theme.highlightColor
-                                           : Kirigami.Theme.textColor
+                            Rectangle {
+                                id: presetDelegate
 
-                            gradient: Gradient {
-                                GradientStop { position: 0.0; color: processor.gradientPresetColor1(presetDelegate.index) }
-                                GradientStop { position: 1.0; color: processor.gradientPresetColor2(presetDelegate.index) }
-                            }
+                                required property int index
 
-                            Controls.Button {
-                                anchors.fill: parent
-                                opacity: 0
-                                onClicked: processor.bgGradientPreset = index
-                            }
+                                width: 56; height: 40
+                                radius: Kirigami.Units.cornerRadius
+                                border.width: processor.bgGradientPreset === index ? 2 : 1
+                                border.color: processor.bgGradientPreset === index
+                                               ? Kirigami.Theme.highlightColor
+                                               : Kirigami.Theme.textColor
 
-                            Controls.Label {
-                                anchors.bottom: parent.bottom
-                                anchors.horizontalCenter: parent.horizontalCenter
-                                anchors.bottomMargin: 2
-                                text: String(presetDelegate.index + 1)
-                                font.pixelSize: Kirigami.Theme.smallFont.pixelSize
-                                color: Kirigami.Theme.textColor
-                                style: Text.Outline
-                                styleColor: Kirigami.Theme.backgroundColor
+                                gradient: Gradient {
+                                    GradientStop { position: 0.0; color: processor.gradientPresetColor1(presetDelegate.index) }
+                                    GradientStop { position: 1.0; color: processor.gradientPresetColor2(presetDelegate.index) }
+                                }
+
+                                Controls.Button {
+                                    anchors.fill: parent
+                                    opacity: 0
+                                    onClicked: processor.bgGradientPreset = index
+                                }
+
+                                Controls.Label {
+                                    anchors.bottom: parent.bottom
+                                    anchors.horizontalCenter: parent.horizontalCenter
+                                    anchors.bottomMargin: 2
+                                    text: String(presetDelegate.index + 1)
+                                    font.pixelSize: Kirigami.Theme.smallFont.pixelSize
+                                    color: Kirigami.Theme.textColor
+                                    style: Text.Outline
+                                    styleColor: Kirigami.Theme.backgroundColor
+                                }
                             }
                         }
                     }
+
+                    Item { Layout.fillWidth: true }
                 }
 
                 // Gradient angle (only for gradient modes)
