@@ -89,10 +89,10 @@ public Q_SLOTS:
     void processQueue(const QStringList &paths);
     void cancelProcessing();
     void updateScreenSize(int w, int h);
+    void detectFromQML(int qmlW, int qmlH, double dpr);
 
 private Q_SLOTS:
     void processNext();
-    void detectFromQML(int qmlW, int qmlH, double dpr);
 
 Q_SIGNALS:
     void targetWidthChanged();

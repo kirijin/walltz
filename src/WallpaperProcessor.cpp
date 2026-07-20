@@ -222,11 +222,11 @@ void WallpaperProcessor::detectScreenSize()
 
 void WallpaperProcessor::detectFromQML(int qmlW, int qmlH, double dpr)
 {
-    // Called from QML when Screen.width/height become available
-    // QML Screen properties return logical pixels — multiply by DPR for physical
-    int physW = qRound(qmlW * dpr);
-    int physH = qRound(qmlH * dpr);
-    updateScreenSize(physW, physH);
+    // Called from QML when Screen.width/height become available (Wayland fallback)
+    // On Qt6/Wayland, QML Screen.width/height already return physical pixels.
+    // dpr is only used for reference (not multiplied — that would double-scale).
+    Q_UNUSED(dpr)
+    updateScreenSize(qmlW, qmlH);
     m_detectAttempt = 0;
 }
 

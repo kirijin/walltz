@@ -44,10 +44,10 @@ Kirigami.ApplicationWindow {
             Qt.callLater(function() {
                 var w = Screen.width;
                 var h = Screen.height;
-                if (w > 0 && h > 0) {
+                // On Wayland, QML Screen.width/height already return physical pixels.
+                // Only use QML fallback if C++ path didn't resolve (default 1920x1080).
+                if (w > 0 && h > 0 && processor.screenWidth <= 1920) {
                     processor.detectFromQML(w, h, Screen.devicePixelRatio);
-                } else {
-                    timerDetect.start();
                 }
             });
         }
@@ -196,9 +196,9 @@ Kirigami.ApplicationWindow {
                     text: i18n("Detect")
                     display: Controls.AbstractButton.IconOnly
                     hoverEnabled: true
-                    ToolTip.text: i18n("Reset to screen resolution (%1\u00D7%2)",
+                    Controls.ToolTip.text: i18n("Reset to screen resolution (%1\u00D7%2)",
                                        processor.screenWidth, processor.screenHeight)
-                    ToolTip.visible: resetResBtn.hovered
+                    Controls.ToolTip.visible: resetResBtn.hovered
                     onClicked: processor.detectScreenSize()
                 }
 
@@ -247,11 +247,11 @@ Kirigami.ApplicationWindow {
                         Layout.fillWidth: true
                         from: 0; to: 120; stepSize: 1
                         value: processor.blurRadius
-                        ToolTip.text: processor.blurRadius === 0
+                        Controls.ToolTip.text: processor.blurRadius === 0
                                       ? i18n("Auto")
                                       : i18n("%1 px").arg(processor.blurRadius)
-                        ToolTip.visible: hovered
-                        ToolTip.delay: 400
+                        Controls.ToolTip.visible: hovered
+                        Controls.ToolTip.delay: 400
                         onMoved: processor.blurRadius = value
                     }
                     Controls.SpinBox {
@@ -283,9 +283,9 @@ Kirigami.ApplicationWindow {
                         Layout.fillWidth: true
                         from: 0; to: 30; stepSize: 1
                         value: processor.saturationFactor * 10
-                        ToolTip.text: i18n("%1×").arg(processor.saturationFactor.toFixed(1))
-                        ToolTip.visible: hovered
-                        ToolTip.delay: 400
+                        Controls.ToolTip.text: i18n("%1×").arg(processor.saturationFactor.toFixed(1))
+                        Controls.ToolTip.visible: hovered
+                        Controls.ToolTip.delay: 400
                         onMoved: processor.saturationFactor = value / 10.0
                     }
                     Controls.SpinBox {
@@ -340,7 +340,7 @@ Kirigami.ApplicationWindow {
                     Rectangle {
                         id: colorSwatch
                         width: 28; height: 28
-                        radius: Kirigami.Units.smallBorderRadius
+                        radius: Kirigami.Theme.smallBorderRadius
                         border.width: 1
                         border.color: Kirigami.Theme.textColor
                         color: processor.backgroundColor
@@ -371,7 +371,7 @@ Kirigami.ApplicationWindow {
                             required property int index
 
                             width: 56; height: 40
-                            radius: Kirigami.Units.smallBorderRadius
+                            radius: Kirigami.Theme.smallBorderRadius
                             border.width: processor.bgGradientPreset === index ? 2 : 1
                             border.color: processor.bgGradientPreset === index
                                            ? Kirigami.Theme.highlightColor
@@ -417,8 +417,8 @@ Kirigami.ApplicationWindow {
                         Layout.fillWidth: true
                         from: 0; to: 360; stepSize: 1
                         value: processor.gradientAngle
-                        ToolTip.text: i18n("%1°").arg(processor.gradientAngle)
-                        ToolTip.visible: hovered
+                        Controls.ToolTip.text: i18n("%1°").arg(processor.gradientAngle)
+                        Controls.ToolTip.visible: hovered
                         onMoved: processor.gradientAngle = value
                     }
                     Controls.SpinBox {
