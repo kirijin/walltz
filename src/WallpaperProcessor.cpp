@@ -46,6 +46,13 @@ void WallpaperProcessor::setTargetWidth(int w)
     if (m_targetWidth != w && w > 0 && w < 15000) {
         m_targetWidth = w;
         Q_EMIT targetWidthChanged();
+        if (m_aspectRatio > 0.0) {
+            int newH = qRound(w / m_aspectRatio);
+            if (newH != m_targetHeight) {
+                m_targetHeight = newH;
+                Q_EMIT targetHeightChanged();
+            }
+        }
     }
 }
 
@@ -54,6 +61,13 @@ void WallpaperProcessor::setTargetHeight(int h)
     if (m_targetHeight != h && h > 0 && h < 15000) {
         m_targetHeight = h;
         Q_EMIT targetHeightChanged();
+        if (m_aspectRatio > 0.0) {
+            int newW = qRound(h * m_aspectRatio);
+            if (newW != m_targetWidth) {
+                m_targetWidth = newW;
+                Q_EMIT targetWidthChanged();
+            }
+        }
     }
 }
 
@@ -110,6 +124,35 @@ void WallpaperProcessor::setBgGradientStyle(int s)
     }
 }
 
+void WallpaperProcessor::setAspectMode(int mode)
+{
+    mode = qBound(0, mode, 6);
+    if (m_aspectMode == mode) return;
+    m_aspectMode = mode;
+
+    if (mode == 0) {
+        m_aspectRatio = 0.0;
+    } else {
+        static const double ratios[] = {0.0, 1.0, 4.0/3.0, 16.0/9.0, 16.0/10.0, 21.0/9.0, 32.0/9.0};
+        m_aspectRatio = ratios[mode];
+        // Keep the longer dimension, recalc the shorter
+        if (m_targetWidth >= m_targetHeight) {
+            int newH = qRound(m_targetWidth / m_aspectRatio);
+            if (newH != m_targetHeight) {
+                m_targetHeight = newH;
+                Q_EMIT targetHeightChanged();
+            }
+        } else {
+            int newW = qRound(m_targetHeight * m_aspectRatio);
+            if (newW != m_targetWidth) {
+                m_targetWidth = newW;
+                Q_EMIT targetWidthChanged();
+            }
+        }
+    }
+    Q_EMIT aspectModeChanged();
+}
+
 void WallpaperProcessor::setBgGradientPreset(int p)
 {
     p = qBound(0, p, 9);
@@ -149,6 +192,13 @@ QString WallpaperProcessor::gradientPresetColor2(int index) const
 {
     if (index < 0 || index >= 10) return {};
     return QColor(s_presets[index].color2).name();
+}
+
+double WallpaperProcessor::aspectRatioForMode(int mode) const
+{
+    static const double ratios[] = {0.0, 1.0, 4.0/3.0, 16.0/9.0, 16.0/10.0, 21.0/9.0, 32.0/9.0};
+    if (mode < 0 || mode > 6) return 0.0;
+    return ratios[mode];
 }
 
 // ── window binding ──────────────────────────────────────────────────────

@@ -29,6 +29,7 @@ class WallpaperProcessor : public QObject
     Q_PROPERTY(int screenHeight READ screenHeight NOTIFY screenHeightChanged)
     Q_PROPERTY(double windowDpr READ windowDpr NOTIFY windowDprChanged)
     Q_PROPERTY(bool keepAbove READ keepAbove NOTIFY keepAboveChanged)
+    Q_PROPERTY(int aspectMode READ aspectMode WRITE setAspectMode NOTIFY aspectModeChanged)
     // ── New tweakable parameters ──
     Q_PROPERTY(int blurRadius READ blurRadius WRITE setBlurRadius NOTIFY blurRadiusChanged)
     Q_PROPERTY(double saturationFactor READ saturationFactor WRITE setSaturationFactor NOTIFY saturationFactorChanged)
@@ -54,6 +55,7 @@ public:
     int screenHeight() const { return m_screenHeight; }
     bool keepAbove() const { return m_keepAbove; }
     double windowDpr() const { return m_windowDpr; }
+    int aspectMode() const { return m_aspectMode; }
     // ── New getters ──
     int blurRadius() const { return m_blurRadius; }
     double saturationFactor() const { return m_saturationFactor; }
@@ -82,11 +84,13 @@ public:
     Q_INVOKABLE QString gradientPresetName(int index) const;
     Q_INVOKABLE QString gradientPresetColor1(int index) const;
     Q_INVOKABLE QString gradientPresetColor2(int index) const;
+    Q_INVOKABLE double aspectRatioForMode(int mode) const;
 
 public Q_SLOTS:
     void detectScreenSize();
     void setWindow(QWindow *window);
     void setKeepAbove(bool keep);
+    void setAspectMode(int mode);
     void processImage(const QString &sourcePath);
     void processQueue(const QStringList &paths);
     void cancelProcessing();
@@ -111,6 +115,7 @@ Q_SIGNALS:
     void screenWidthChanged();
     void screenHeightChanged();
     void keepAboveChanged();
+    void aspectModeChanged();
     void windowDprChanged();
     void processingStarted();
     void processingFinished();
@@ -138,6 +143,8 @@ private:
     double m_windowDpr = 1.0;
     int m_dprPollCount = 0;
     bool m_keepAbove = false;
+    int m_aspectMode = 0;
+    double m_aspectRatio = 0.0;
     int m_detectAttempt = 0;
 
     QStringList m_queue;

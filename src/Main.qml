@@ -52,7 +52,12 @@ Kirigami.ApplicationWindow {
             Rectangle {
                 id: dropZone
                 Layout.fillWidth: true
-                Layout.preferredHeight: 220
+                Layout.leftMargin: Kirigami.Units.gridUnit
+                Layout.rightMargin: Kirigami.Units.gridUnit
+                Layout.preferredHeight: Math.min(
+                    width * (processor.targetHeight / Math.max(1, processor.targetWidth)),
+                    root.height * 0.4
+                )
                 color: dropArea.containsDrag ? Kirigami.Theme.highlightColor : Kirigami.Theme.backgroundColor
                 border.color: dropArea.fileCount > 0 ? Kirigami.Theme.positiveTextColor : Kirigami.Theme.disabledTextColor
                 border.width: 2
@@ -105,7 +110,6 @@ Kirigami.ApplicationWindow {
                         id: imagePreview
                         Layout.fillWidth: true
                         Layout.fillHeight: true
-                        Layout.maximumHeight: 200
                         fillMode: Image.PreserveAspectFit
                         visible: dropArea.fileCount > 0
                         smooth: true
@@ -198,6 +202,73 @@ Kirigami.ApplicationWindow {
                     text: processor.screenWidth + "\u00D7" + processor.screenHeight
                     color: Kirigami.Theme.disabledTextColor
                     font.pixelSize: Kirigami.Theme.smallFont.pixelSize
+                }
+            }
+
+            // === Aspect ratio preset ===
+            Controls.ButtonGroup { id: ratioGroup }
+
+            RowLayout {
+                Layout.fillWidth: true
+                spacing: Kirigami.Units.smallSpacing
+
+                Controls.Label { text: i18n("Ratio:") }
+
+                Controls.Button {
+                    text: i18n("Free")
+                    flat: true
+                    checkable: true
+                    Controls.ButtonGroup.group: ratioGroup
+                    checked: processor.aspectMode === 0
+                    onClicked: processor.aspectMode = 0
+                }
+                Controls.Button {
+                    text: "1:1"
+                    flat: true
+                    checkable: true
+                    Controls.ButtonGroup.group: ratioGroup
+                    checked: processor.aspectMode === 1
+                    onClicked: processor.aspectMode = 1
+                }
+                Controls.Button {
+                    text: "4:3"
+                    flat: true
+                    checkable: true
+                    Controls.ButtonGroup.group: ratioGroup
+                    checked: processor.aspectMode === 2
+                    onClicked: processor.aspectMode = 2
+                }
+                Controls.Button {
+                    text: "16:9"
+                    flat: true
+                    checkable: true
+                    Controls.ButtonGroup.group: ratioGroup
+                    checked: processor.aspectMode === 3
+                    onClicked: processor.aspectMode = 3
+                }
+                Controls.Button {
+                    text: "16:10"
+                    flat: true
+                    checkable: true
+                    Controls.ButtonGroup.group: ratioGroup
+                    checked: processor.aspectMode === 4
+                    onClicked: processor.aspectMode = 4
+                }
+                Controls.Button {
+                    text: "21:9"
+                    flat: true
+                    checkable: true
+                    Controls.ButtonGroup.group: ratioGroup
+                    checked: processor.aspectMode === 5
+                    onClicked: processor.aspectMode = 5
+                }
+                Controls.Button {
+                    text: "32:9"
+                    flat: true
+                    checkable: true
+                    Controls.ButtonGroup.group: ratioGroup
+                    checked: processor.aspectMode === 6
+                    onClicked: processor.aspectMode = 6
                 }
             }
 
