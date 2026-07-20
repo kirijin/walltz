@@ -78,8 +78,8 @@ Kirigami.ApplicationWindow {
 
                     radius: Kirigami.Units.smallSpacing
                     color: dropArea.containsDrag ? Kirigami.Theme.highlightColor
-                                                 : _canvasColor
-                    border.color: Qt.darker(_canvasColor, 1.2)
+                                                 : previewBox._canvasColor
+                    border.color: Qt.darker(previewBox._canvasColor, 1.2)
                     border.width: 1
                     Behavior on color { ColorAnimation { duration: 150 } }
 
@@ -468,12 +468,6 @@ Kirigami.ApplicationWindow {
 
                     Item { Layout.fillWidth: true }
                 }
-            }
-
-            // ── Post-processing effects (visible on all background styles) ──
-            ColumnLayout {
-                Layout.fillWidth: true
-                spacing: Kirigami.Units.mediumSpacing
 
                 // Vignette
                 RowLayout {
@@ -824,6 +818,80 @@ Kirigami.ApplicationWindow {
                         value: processor.gradientAngle
                         editable: true
                         onValueModified: processor.gradientAngle = value
+                    }
+
+                    Item { Layout.fillWidth: true }
+                }
+
+                // Vignette
+                RowLayout {
+                    Layout.fillWidth: true
+                    spacing: Kirigami.Units.smallSpacing
+
+                    Item { Layout.fillWidth: true }
+
+                    Kirigami.Icon {
+                        source: "contrast"
+                        implicitWidth: Kirigami.Units.iconSizes.smallMedium
+                        implicitHeight: Kirigami.Units.iconSizes.smallMedium
+                        Layout.alignment: Qt.AlignVCenter
+                    }
+                    Controls.Switch {
+                        checked: processor.vignetteStrength > 0
+                        onToggled: {
+                            processor.vignetteStrength = checked ? 0.5 : 0.0
+                            previewDebounce.restart()
+                        }
+                    }
+                    Controls.Slider {
+                        Layout.preferredWidth: Kirigami.Units.gridUnit * 10
+                        from: 0; to: 1.0; stepSize: 0.05
+                        value: processor.vignetteStrength
+                        enabled: processor.vignetteStrength > 0
+                        Controls.ToolTip.text: i18n("%1%").arg(Math.round(processor.vignetteStrength * 100))
+                        Controls.ToolTip.visible: hovered
+                        Controls.ToolTip.delay: 400
+                        onMoved: {
+                            processor.vignetteStrength = value
+                            previewDebounce.restart()
+                        }
+                    }
+
+                    Item { Layout.fillWidth: true }
+                }
+
+                // Grain
+                RowLayout {
+                    Layout.fillWidth: true
+                    spacing: Kirigami.Units.smallSpacing
+
+                    Item { Layout.fillWidth: true }
+
+                    Kirigami.Icon {
+                        source: "noise"
+                        implicitWidth: Kirigami.Units.iconSizes.smallMedium
+                        implicitHeight: Kirigami.Units.iconSizes.smallMedium
+                        Layout.alignment: Qt.AlignVCenter
+                    }
+                    Controls.Switch {
+                        checked: processor.grainStrength > 0
+                        onToggled: {
+                            processor.grainStrength = checked ? 0.5 : 0.0
+                            previewDebounce.restart()
+                        }
+                    }
+                    Controls.Slider {
+                        Layout.preferredWidth: Kirigami.Units.gridUnit * 10
+                        from: 0; to: 1.0; stepSize: 0.05
+                        value: processor.grainStrength
+                        enabled: processor.grainStrength > 0
+                        Controls.ToolTip.text: i18n("%1%").arg(Math.round(processor.grainStrength * 100))
+                        Controls.ToolTip.visible: hovered
+                        Controls.ToolTip.delay: 400
+                        onMoved: {
+                            processor.grainStrength = value
+                            previewDebounce.restart()
+                        }
                     }
 
                     Item { Layout.fillWidth: true }

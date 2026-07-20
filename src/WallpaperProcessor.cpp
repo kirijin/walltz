@@ -611,14 +611,12 @@ QImage WallpaperProcessor::renderWallpaper(const QImage &src, int W, int H)
         QRadialGradient vg(W / 2.0, H / 2.0, radius);
         vg.setColorAt(0.0, QColor(0, 0, 0, 0));
         vg.setColorAt(0.7, QColor(0, 0, 0, 0));
-        vg.setColorAt(1.0, QColor(0, 0, 0, (int)(80 * m_vignetteStrength)));
-        p.save();
-        p.setCompositionMode(QPainter::CompositionMode_Multiply);
+        int alpha = qMin(255, (int)(120 * m_vignetteStrength));
+        vg.setColorAt(1.0, QColor(0, 0, 0, alpha));
         p.fillRect(0, 0, W, H, vg);
-        p.restore();
     }
     if (m_grainStrength > 0.001) {
-        int intensity = qMax(1, (int)(12 * m_grainStrength));
+        int intensity = qMax(1, (int)(15 * m_grainStrength));
         QImage noise(W, H, QImage::Format_Grayscale8);
         for (int y = 0; y < H; ++y) {
             unsigned char *line = noise.scanLine(y);
