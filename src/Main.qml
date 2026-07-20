@@ -62,7 +62,9 @@ Kirigami.ApplicationWindow {
                     root.height * 0.4
                 )
 
-                readonly property color _canvasColor: Qt.darker(Kirigami.Theme.backgroundColor, 1.08)
+                readonly property color _canvasColor: Kirigami.Theme.colorScheme === Kirigami.Theme.Dark
+                    ? Qt.darker(Kirigami.Theme.backgroundColor, 2.5)
+                    : Qt.darker(Kirigami.Theme.backgroundColor, 3.0)
                 Rectangle {
                     id: dropZone
                     anchors.centerIn: parent
@@ -466,6 +468,12 @@ Kirigami.ApplicationWindow {
 
                     Item { Layout.fillWidth: true }
                 }
+            }
+
+            // ── Post-processing effects (visible on all background styles) ──
+            ColumnLayout {
+                Layout.fillWidth: true
+                spacing: Kirigami.Units.mediumSpacing
 
                 // Vignette
                 RowLayout {

@@ -560,35 +560,6 @@ QImage WallpaperProcessor::renderWallpaper(const QImage &src, int W, int H)
         stackBlur(bg, blurRadius);
         boostSaturation(bg, m_saturationFactor);
 
-        // ── Vignette (subtle edge darkening) ──
-        if (m_vignetteStrength > 0.001) {
-            double radius = qMax(W, H) * 0.7;
-            QRadialGradient vg(W / 2.0, H / 2.0, radius);
-            vg.setColorAt(0.0, QColor(0, 0, 0, 0));
-            vg.setColorAt(0.7, QColor(0, 0, 0, 0));
-            vg.setColorAt(1.0, QColor(0, 0, 0, (int)(80 * m_vignetteStrength)));
-            QPainter vp(&bg);
-            vp.setCompositionMode(QPainter::CompositionMode_Multiply);
-            vp.fillRect(0, 0, W, H, vg);
-            vp.end();
-        }
-
-        // ── Photo grain (film noise overlay) ──
-        if (m_grainStrength > 0.001) {
-            int intensity = qMax(1, (int)(12 * m_grainStrength));
-            QImage noise(W, H, QImage::Format_Grayscale8);
-            for (int y = 0; y < H; ++y) {
-                unsigned char *line = noise.scanLine(y);
-                for (int x = 0; x < W; ++x)
-                    line[x] = (unsigned char)qBound(0,
-                        (QRandomGenerator::global()->bounded(intensity * 2 + 1)) - intensity + 128, 255);
-            }
-            QPainter gp(&bg);
-            gp.setCompositionMode(QPainter::CompositionMode_SoftLight);
-            gp.drawImage(0, 0, noise);
-            gp.end();
-        }
-
         p.begin(&output);
         p.drawImage(0, 0, bg);
     } else {
@@ -632,6 +603,33 @@ QImage WallpaperProcessor::renderWallpaper(const QImage &src, int W, int H)
             output.fill(bgColor);
             break;
         }
+    }
+
+    // ── Effects (post-processing, applies on all background styles) ──
+    if (m_vignetteStrength > 0.001) {
+        double radius = qMax(W, H) * 0.7;
+        QRadialGradient vg(W / 2.0, H / 2.0, radius);
+        vg.setColorAt(0.0, QColor(0, 0, 0, 0));
+        vg.setColorAt(0.7, QColor(0, 0, 0, 0));
+        vg.setColorAt(1.0, QColor(0, 0, 0, (int)(80 * m_vignetteStrength)));
+        QPainter vp(&output);
+        vp.setCompositionMode(QPainter::CompositionMode_Multiply);
+        vp.fillRect(0, 0, W, H, vg);
+        vp.end();
+    }
+    if (m_grainStrength > 0.001) {
+        int intensity = qMax(1, (int)(12 * m_grainStrength));
+        QImage noise(W, H, QImage::Format_Grayscale8);
+        for (int y = 0; y < H; ++y) {
+            unsigned char *line = noise.scanLine(y);
+            for (int x = 0; x < W; ++x)
+                line[x] = (unsigned char)qBound(0,
+                    (QRandomGenerator::global()->bounded(intensity * 2 + 1)) - intensity + 128, 255);
+        }
+        QPainter gp(&output);
+        gp.setCompositionMode(QPainter::CompositionMode_SoftLight);
+        gp.drawImage(0, 0, noise);
+        gp.end();
     }
 
     // ── Shadow ──
