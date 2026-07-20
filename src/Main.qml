@@ -233,61 +233,67 @@ Kirigami.ApplicationWindow {
 
                 Controls.Label { text: i18n("Ratio:") }
 
-                Controls.Button {
-                    text: i18n("Free")
-                    flat: true
-                    checkable: true
-                    Controls.ButtonGroup.group: ratioGroup
-                    checked: processor.aspectMode === 0
-                    onClicked: processor.aspectMode = 0
-                }
-                Controls.Button {
-                    text: "1:1"
-                    flat: true
-                    checkable: true
-                    Controls.ButtonGroup.group: ratioGroup
-                    checked: processor.aspectMode === 1
-                    onClicked: processor.aspectMode = 1
-                }
-                Controls.Button {
-                    text: "4:3"
-                    flat: true
-                    checkable: true
-                    Controls.ButtonGroup.group: ratioGroup
-                    checked: processor.aspectMode === 2
-                    onClicked: processor.aspectMode = 2
-                }
-                Controls.Button {
-                    text: "16:9"
-                    flat: true
-                    checkable: true
-                    Controls.ButtonGroup.group: ratioGroup
-                    checked: processor.aspectMode === 3
-                    onClicked: processor.aspectMode = 3
-                }
-                Controls.Button {
-                    text: "16:10"
-                    flat: true
-                    checkable: true
-                    Controls.ButtonGroup.group: ratioGroup
-                    checked: processor.aspectMode === 4
-                    onClicked: processor.aspectMode = 4
-                }
-                Controls.Button {
-                    text: "21:9"
-                    flat: true
-                    checkable: true
-                    Controls.ButtonGroup.group: ratioGroup
-                    checked: processor.aspectMode === 5
-                    onClicked: processor.aspectMode = 5
-                }
-                Controls.Button {
-                    text: "32:9"
-                    flat: true
-                    checkable: true
-                    Controls.ButtonGroup.group: ratioGroup
-                    checked: processor.aspectMode === 6
-                    onClicked: processor.aspectMode = 6
+                Flow {
+                    Layout.fillWidth: true
+                    spacing: Kirigami.Units.smallSpacing
+                    verticalSpacing: Kirigami.Units.smallSpacing
+
+                    Controls.Button {
+                        text: i18n("Free")
+                        flat: true
+                        checkable: true
+                        Controls.ButtonGroup.group: ratioGroup
+                        checked: processor.aspectMode === 0
+                        onClicked: processor.aspectMode = 0
+                    }
+                    Controls.Button {
+                        text: "1:1"
+                        flat: true
+                        checkable: true
+                        Controls.ButtonGroup.group: ratioGroup
+                        checked: processor.aspectMode === 1
+                        onClicked: processor.aspectMode = 1
+                    }
+                    Controls.Button {
+                        text: "4:3"
+                        flat: true
+                        checkable: true
+                        Controls.ButtonGroup.group: ratioGroup
+                        checked: processor.aspectMode === 2
+                        onClicked: processor.aspectMode = 2
+                    }
+                    Controls.Button {
+                        text: "16:9"
+                        flat: true
+                        checkable: true
+                        Controls.ButtonGroup.group: ratioGroup
+                        checked: processor.aspectMode === 3
+                        onClicked: processor.aspectMode = 3
+                    }
+                    Controls.Button {
+                        text: "16:10"
+                        flat: true
+                        checkable: true
+                        Controls.ButtonGroup.group: ratioGroup
+                        checked: processor.aspectMode === 4
+                        onClicked: processor.aspectMode = 4
+                    }
+                    Controls.Button {
+                        text: "21:9"
+                        flat: true
+                        checkable: true
+                        Controls.ButtonGroup.group: ratioGroup
+                        checked: processor.aspectMode === 5
+                        onClicked: processor.aspectMode = 5
+                    }
+                    Controls.Button {
+                        text: "32:9"
+                        flat: true
+                        checkable: true
+                        Controls.ButtonGroup.group: ratioGroup
+                        checked: processor.aspectMode === 6
+                        onClicked: processor.aspectMode = 6
+                    }
                 }
             }
 
