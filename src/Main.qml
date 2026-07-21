@@ -1,6 +1,7 @@
 import QtQuick
 import QtQuick.Layouts
 import QtQuick.Controls as Controls
+import QtQuick.Effects
 import org.kde.kirigami as Kirigami
 import org.walltz.processor 1.0
 
@@ -65,6 +66,16 @@ Kirigami.ApplicationWindow {
                 Rectangle {
                     id: dropZone
                     anchors.centerIn: parent
+                    clip: true
+                    layer.enabled: true
+                    layer.effect: MultiEffect {
+                        shadowEnabled: true
+                        shadowColor: Qt.rgba(0, 0, 0, 0.4)
+                        shadowBlur: 16
+                        shadowHorizontalOffset: 0
+                        shadowVerticalOffset: 4
+                        shadowOpacity: 0.7
+                    }
 
                     readonly property double _scale: Math.min(
                         parent.width / previewBox._ar,
@@ -73,7 +84,7 @@ Kirigami.ApplicationWindow {
                     width: previewBox._ar * _scale
                     height: _scale
 
-                    radius: Kirigami.Units.smallSpacing
+                    radius: Kirigami.Units.cornerRadius
                     color: dropArea.containsDrag ? Kirigami.Theme.highlightColor
                                                  : previewBox._canvasColor
                     border.color: Qt.darker(previewBox._canvasColor, 1.2)
@@ -139,15 +150,11 @@ Kirigami.ApplicationWindow {
 
                         SequentialAnimation {
                             id: fadeAnim
-                            ParallelAnimation {
-                                NumberAnimation { target: previewA; property: "opacity"; to: 0.0; duration: 200 }
-                                NumberAnimation { target: previewB; property: "opacity"; to: 1.0; duration: 200 }
-                            }
+                            NumberAnimation { target: previewB; property: "opacity"; to: 1.0; duration: 200 }
                             ScriptAction {
                                 script: {
                                     // Keep A as the active layer, recycle B for next crossfade
                                     previewA.source = previewB.source;
-                                    previewA.opacity = 1.0;
                                     previewB.opacity = 0.0;
                                     previewB.source = "";
                                 }

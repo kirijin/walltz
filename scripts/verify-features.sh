@@ -128,7 +128,7 @@ grep -q 'onCaStrengthChanged' "$ROOT/src/Main.qml" \
   && ok "CA debounce wired" \
   || fail "CA debounce not wired"
 
-# 10) Preview crossfade
+# 10) Preview crossfade (no canvas bleed-through)
 echo "--- Feature 10: Preview crossfade ---"
 grep -q 'id: previewA' "$ROOT/src/Main.qml" \
   && ok "Two-layer preview (previewA)" \
@@ -139,12 +139,14 @@ grep -q 'id: previewB' "$ROOT/src/Main.qml" \
 grep -q 'crossfadePreview' "$ROOT/src/Main.qml" \
   && ok "crossfadePreview function defined" \
   || fail "crossfadePreview function missing"
+# Verify previewA stays opaque (no opacity animation on A)
+grep -q 'NumberAnimation.*previewB.*opacity.*to: 1.0' "$ROOT/src/Main.qml" \
+  && ok "Only previewB fades in (previewA stays opaque)" \
+  || fail "Crossfade still animates previewA"
+# Ensure no ParallelAnimation (old style)
 grep -q 'ParallelAnimation' "$ROOT/src/Main.qml" \
-  && ok "ParallelAnimation for opacity crossfade" \
-  || fail "Crossfade animation missing"
-grep -q 'duration: 200' "$ROOT/src/Main.qml" \
-  && ok "Crossfade duration 200ms" \
-  || fail "Crossfade duration not 200ms"
+  && fail "Old ParallelAnimation crossfade still present" \
+  || ok "New single-target crossfade, no ParallelAnimation"
 
 # 11) No SpinBoxes remain
 echo "--- Feature 11: No SpinBox inputs ---"
@@ -154,6 +156,27 @@ if [ "$SPINBOX_COUNT" -eq 0 ]; then
 else
   fail "Expected 0 SpinBox, found $SPINBOX_COUNT"
 fi
+
+# 12) Visual polish: clip, corner radius, drop shadow
+echo "--- Feature 12: Visual polish ---"
+grep -q 'clip: true' "$ROOT/src/Main.qml" \
+  && ok "dropZone clips children to rounded shape" \
+  || fail "dropZone missing clip"
+grep -q 'cornerRadius' "$ROOT/src/Main.qml" \
+  && ok "Uses Kirigami.Units.cornerRadius" \
+  || fail "Still uses smallSpacing radius"
+grep -q 'MultiEffect' "$ROOT/src/Main.qml" \
+  && ok "MultiEffect imported and configured" \
+  || fail "MultiEffect missing"
+grep -q 'layer.enabled: true' "$ROOT/src/Main.qml" \
+  && ok "Drop shadow layer enabled" \
+  || fail "Layer not enabled"
+grep -q 'shadowBlur: 16' "$ROOT/src/Main.qml" \
+  && ok "Drop shadow blur 16px" \
+  || fail "Shadow blur not 16"
+grep -q 'shadowVerticalOffset: 4' "$ROOT/src/Main.qml" \
+  && ok "Drop shadow vertical offset 4px" \
+  || fail "Shadow offset not 4"
 
 echo
 echo "Result: $PASS passed, $FAIL failed"
