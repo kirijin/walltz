@@ -128,6 +128,33 @@ grep -q 'onCaStrengthChanged' "$ROOT/src/Main.qml" \
   && ok "CA debounce wired" \
   || fail "CA debounce not wired"
 
+# 10) Preview crossfade
+echo "--- Feature 10: Preview crossfade ---"
+grep -q 'id: previewA' "$ROOT/src/Main.qml" \
+  && ok "Two-layer preview (previewA)" \
+  || fail "Missing previewA layer"
+grep -q 'id: previewB' "$ROOT/src/Main.qml" \
+  && ok "Two-layer preview (previewB)" \
+  || fail "Missing previewB layer"
+grep -q 'crossfadePreview' "$ROOT/src/Main.qml" \
+  && ok "crossfadePreview function defined" \
+  || fail "crossfadePreview function missing"
+grep -q 'ParallelAnimation' "$ROOT/src/Main.qml" \
+  && ok "ParallelAnimation for opacity crossfade" \
+  || fail "Crossfade animation missing"
+grep -q 'duration: 200' "$ROOT/src/Main.qml" \
+  && ok "Crossfade duration 200ms" \
+  || fail "Crossfade duration not 200ms"
+
+# 11) No SpinBoxes remain
+echo "--- Feature 11: No SpinBox inputs ---"
+SPINBOX_COUNT=$(grep -c 'Controls.SpinBox' "$ROOT/src/Main.qml" || true)
+if [ "$SPINBOX_COUNT" -eq 0 ]; then
+  ok "All SpinBox (text input) fields removed"
+else
+  fail "Expected 0 SpinBox, found $SPINBOX_COUNT"
+fi
+
 echo
 echo "Result: $PASS passed, $FAIL failed"
 [ "$FAIL" -eq 0 ] && echo "All checks OK" || exit 1

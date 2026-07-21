@@ -106,21 +106,53 @@ Kirigami.ApplicationWindow {
                                 fileCount = paths.length;
                                 previewList.model = fileList;
                                 if (fileList.length > 0)
-                                    imagePreview.source = fileList[0].previewUrl;
+                                    previewA.source = fileList[0].previewUrl;
                                 drop.accept();
                             }
                         }
                         onEntered: function (drag) { if (drag.hasUrls) drag.accept(); }
                     }
 
-                    Image {
-                        id: imagePreview
+                    Item {
+                        id: previewContainer
                         anchors.fill: parent
-                        fillMode: Image.PreserveAspectFit
                         visible: dropArea.fileCount > 0
-                        smooth: true
                         clip: true
-                        asynchronous: true
+
+                        Image {
+                            id: previewA
+                            anchors.fill: parent
+                            fillMode: Image.PreserveAspectFit
+                            smooth: true
+                            asynchronous: true
+                            opacity: 1.0
+                        }
+
+                        Image {
+                            id: previewB
+                            anchors.fill: parent
+                            fillMode: Image.PreserveAspectFit
+                            smooth: true
+                            asynchronous: true
+                            opacity: 0.0
+                        }
+
+                        SequentialAnimation {
+                            id: fadeAnim
+                            ParallelAnimation {
+                                NumberAnimation { target: previewA; property: "opacity"; to: 0.0; duration: 200 }
+                                NumberAnimation { target: previewB; property: "opacity"; to: 1.0; duration: 200 }
+                            }
+                            ScriptAction {
+                                script: {
+                                    // Keep A as the active layer, recycle B for next crossfade
+                                    previewA.source = previewB.source;
+                                    previewA.opacity = 1.0;
+                                    previewB.opacity = 0.0;
+                                    previewB.source = "";
+                                }
+                            }
+                        }
                     }
 
                     Item {
@@ -777,19 +809,6 @@ Kirigami.ApplicationWindow {
                         Controls.ToolTip.delay: 400
                         onMoved: processor.blurRadius = value
                     }
-                    Controls.SpinBox {
-                        id: blurSpinBox
-                        Layout.preferredWidth: 80
-                        from: 0; to: 120
-                        value: processor.blurRadius
-                        editable: true
-                        textFromValue: function(v) { return v === 0 ? i18n("Auto") : String(v); }
-                        valueFromText: function(t) {
-                            var v = parseInt(t);
-                            return isNaN(v) ? 0 : Math.max(0, Math.min(120, v));
-                        }
-                        onValueModified: processor.blurRadius = value
-                    }
                     Item { Layout.fillWidth: true }
                 }
 
@@ -823,19 +842,6 @@ Kirigami.ApplicationWindow {
                         Controls.ToolTip.visible: hovered
                         Controls.ToolTip.delay: 400
                         onMoved: processor.saturationFactor = value / 10.0
-                    }
-                    Controls.SpinBox {
-                        id: satSpinBox
-                        Layout.preferredWidth: 80
-                        from: 0; to: 30
-                        value: processor.saturationFactor * 10
-                        editable: true
-                        textFromValue: function(v) { return (v / 10.0).toFixed(1); }
-                        valueFromText: function(t) {
-                            var v = parseFloat(t);
-                            return isNaN(v) ? 10 : Math.max(0, Math.min(30, Math.round(v * 10)));
-                        }
-                        onValueModified: processor.saturationFactor = value / 10.0
                     }
                     Item { Layout.fillWidth: true }
                 }
@@ -871,19 +877,6 @@ Kirigami.ApplicationWindow {
                         Controls.ToolTip.delay: 400
                         onMoved: processor.bgZoom = value / 10.0
                     }
-                    Controls.SpinBox {
-                        id: zoomSpinBox
-                        Layout.preferredWidth: 80
-                        from: 5; to: 30
-                        value: Math.round(processor.bgZoom * 10)
-                        editable: true
-                        textFromValue: function(v) { return (v * 10) + i18n("%"); }
-                        valueFromText: function(t) {
-                            var v = parseFloat(t);
-                            return isNaN(v) ? 10 : Math.max(5, Math.min(30, Math.round(v * 10)));
-                        }
-                        onValueModified: processor.bgZoom = value / 10.0
-                    }
                     Item { Layout.fillWidth: true }
                 }
 
@@ -917,13 +910,6 @@ Kirigami.ApplicationWindow {
                         Controls.ToolTip.visible: hovered
                         onMoved: processor.bgBlurAngle = value
                     }
-                    Controls.SpinBox {
-                        Layout.preferredWidth: 80
-                        from: 0; to: 360
-                        value: processor.bgBlurAngle
-                        editable: true
-                        onValueModified: processor.bgBlurAngle = value
-                    }
                     Item { Layout.fillWidth: true }
                 }
 
@@ -949,20 +935,13 @@ Kirigami.ApplicationWindow {
                         }
                     }
                     Controls.Slider {
-                        id: angleSlider
+                        id: gradSlider
                         Layout.preferredWidth: Kirigami.Units.gridUnit * 10
                         from: 0; to: 360; stepSize: 1
                         value: processor.gradientAngle
                         Controls.ToolTip.text: i18n("%1°").arg(processor.gradientAngle)
                         Controls.ToolTip.visible: hovered
                         onMoved: processor.gradientAngle = value
-                    }
-                    Controls.SpinBox {
-                        Layout.preferredWidth: 80
-                        from: 0; to: 360
-                        value: processor.gradientAngle
-                        editable: true
-                        onValueModified: processor.gradientAngle = value
                     }
                     Item { Layout.fillWidth: true }
                 }
@@ -1124,7 +1103,27 @@ Kirigami.ApplicationWindow {
         dropArea.fileList = entries;
         previewList.model = dropArea.fileList;
         if (dropArea.fileList.length > 0)
-            imagePreview.source = dropArea.fileList[0].previewUrl;
+            crossfadePreview(dropArea.fileList[0].previewUrl);
+    }
+
+    function crossfadePreview(newUrl) {
+        // Skip if no animation possible (first load)
+        if (!previewA.source.toString() || previewA.source.toString() === "") {
+            previewA.source = newUrl;
+            return;
+        }
+        // Skip if same source (cache-bust only, no visual change)
+        if (previewA.source.toString() === newUrl && previewB.source.toString() !== newUrl) {
+            return;
+        }
+        // Cancel any running crossfade
+        fadeAnim.stop();
+        previewA.opacity = 1.0;
+        previewB.opacity = 0.0;
+        previewB.source = "";
+        // Start crossfade to new image
+        previewB.source = newUrl;
+        fadeAnim.start();
     }
 
     Connections {
