@@ -709,6 +709,48 @@ Kirigami.ApplicationWindow {
                     Item { Layout.fillWidth: true }
                 }
 
+                // Chromatic aberration (always visible)
+                RowLayout {
+                    Layout.fillWidth: true
+                    spacing: Kirigami.Units.smallSpacing
+
+                    Item { Layout.fillWidth: true }
+                    Controls.ToolButton {
+                        icon.name: "channelmixer"
+                        display: Controls.AbstractButton.IconOnly
+                        implicitWidth: Kirigami.Units.iconSizes.smallMedium
+                        implicitHeight: Kirigami.Units.iconSizes.smallMedium
+                        hoverEnabled: true
+                        Controls.ToolTip.text: i18n("Reset chromatic aberration")
+                        Controls.ToolTip.visible: hovered
+                        Controls.ToolTip.delay: 400
+                        onClicked: {
+                            processor.caStrength = 0.0
+                            previewDebounce.restart()
+                        }
+                    }
+                    Controls.Switch {
+                        checked: processor.caStrength > 0
+                        onToggled: {
+                            processor.caStrength = checked ? 0.5 : 0.0
+                            previewDebounce.restart()
+                        }
+                    }
+                    Controls.Slider {
+                        Layout.preferredWidth: Kirigami.Units.gridUnit * 10
+                        from: 0; to: 1.0; stepSize: 0.05
+                        value: processor.caStrength
+                        Controls.ToolTip.text: i18n("%1%").arg(Math.round(processor.caStrength * 100))
+                        Controls.ToolTip.visible: hovered
+                        Controls.ToolTip.delay: 400
+                        onMoved: {
+                            processor.caStrength = value
+                            previewDebounce.restart()
+                        }
+                    }
+                    Item { Layout.fillWidth: true }
+                }
+
                 // Blur radius (when Blur selected)
                 RowLayout {
                     visible: processor.blurMode
@@ -944,6 +986,7 @@ Kirigami.ApplicationWindow {
                         processor.bgZoom = 1.0
                         processor.bgBlurAngle = 0.0
                         processor.gradientAngle = 0.0
+                        processor.caStrength = 0.0
                         previewDebounce.restart()
                     }
                 }
@@ -1107,6 +1150,7 @@ Kirigami.ApplicationWindow {
         function onTargetHeightChanged() { previewDebounce.restart(); }
         function onVignetteStrengthChanged() { previewDebounce.restart(); }
         function onGrainStrengthChanged() { previewDebounce.restart(); }
+        function onCaStrengthChanged() { previewDebounce.restart(); }
     }
 
     Connections {

@@ -249,6 +249,15 @@ void WallpaperProcessor::setGrainStrength(double s)
     }
 }
 
+void WallpaperProcessor::setCaStrength(double s)
+{
+    s = qBound(0.0, s, 1.0);
+    if (!qFuzzyCompare(m_caStrength, s)) {
+        m_caStrength = s;
+        Q_EMIT caStrengthChanged();
+    }
+}
+
 int WallpaperProcessor::gradientPresetCount() const { return 25; }
 
 QString WallpaperProcessor::gradientPresetName(int index) const
@@ -618,7 +627,7 @@ QImage WallpaperProcessor::renderWallpaper(const QImage &src, int W, int H)
 
     // ── Effects (post-processing, applies on all background styles) ──
     if (m_vignetteStrength > 0.001) {
-        double radius = qMax(W, H) * 0.8;
+        double radius = std::sqrt((W/2.0)*(W/2.0) + (H/2.0)*(H/2.0));
         double s = m_vignetteStrength;
         QRadialGradient vg(W / 2.0, H / 2.0, radius);
         vg.setColorAt(0.0, QColor(0, 0, 0, 0));
@@ -664,6 +673,47 @@ QImage WallpaperProcessor::renderWallpaper(const QImage &src, int W, int H)
     p.drawImage(cx, cy, src);
     p.restore();
     p.end();
+
+    // ── Chromatic aberration (post-processing on full render) ──
+    if (m_caStrength > 0.001) {
+        double maxShift = m_caStrength * 12.0;
+        double cx = W / 2.0, cy = H / 2.0;
+        double maxDist = std::sqrt(cx * cx + cy * cy);
+
+        QImage ca(W, H, QImage::Format_ARGB32_Premultiplied);
+        const int bpp = 4;
+        const int stride = output.bytesPerLine();
+
+        for (int y = 0; y < H; ++y) {
+            uchar *dstLine = ca.bits() + y * stride;
+            for (int x = 0; x < W; ++x) {
+                double dx = (x - cx) / maxDist;
+                double dy = (y - cy) / maxDist;
+                double dist = std::sqrt(dx * dx + dy * dy);
+                int shift = (int)(dist * maxShift);
+
+                int sx = (int)(dx * shift);
+                int sy = (int)(dy * shift);
+
+                int rx = qBound(0, x + sx, W - 1);
+                int ry = qBound(0, y + sy, H - 1);
+                int bx = qBound(0, x - sx, W - 1);
+                int by = qBound(0, y - sy, H - 1);
+
+                const uchar *srcPx = output.constBits() + y * stride + x * bpp;
+                const uchar *rPx   = output.constBits() + ry * stride + rx * bpp;
+                const uchar *bPx   = output.constBits() + by * stride + bx * bpp;
+                uchar *dst = dstLine + x * bpp;
+
+                // B shifts inward, R shifts outward, G stays
+                dst[0] = bPx[0];   // B
+                dst[1] = srcPx[1]; // G (unchanged)
+                dst[2] = rPx[2];   // R
+                dst[3] = srcPx[3]; // A (unchanged)
+            }
+        }
+        output = ca;
+    }
 
     return output;
 }

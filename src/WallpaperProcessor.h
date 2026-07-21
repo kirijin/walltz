@@ -42,6 +42,7 @@ class WallpaperProcessor : public QObject
     Q_PROPERTY(bool useV2 READ useV2 WRITE setUseV2 NOTIFY useV2Changed)
     Q_PROPERTY(double vignetteStrength READ vignetteStrength WRITE setVignetteStrength NOTIFY vignetteStrengthChanged)
     Q_PROPERTY(double grainStrength READ grainStrength WRITE setGrainStrength NOTIFY grainStrengthChanged)
+    Q_PROPERTY(double caStrength READ caStrength WRITE setCaStrength NOTIFY caStrengthChanged)
 
 public:
     explicit WallpaperProcessor(QObject *parent = nullptr);
@@ -74,6 +75,7 @@ public:
     bool useV2() const { return m_useV2; }
     double vignetteStrength() const { return m_vignetteStrength; }
     double grainStrength() const { return m_grainStrength; }
+    double caStrength() const { return m_caStrength; }
 
     // ── Existing setters ──
     void setTargetWidth(int w);
@@ -93,6 +95,7 @@ public:
     void setUseV2(bool v2);
     void setVignetteStrength(double s);
     void setGrainStrength(double s);
+    void setCaStrength(double s);
 
     /// Generate a small processed preview (400px max) — returns file:// URL
     Q_INVOKABLE QString generatePreview(const QString &sourcePath);
@@ -161,6 +164,7 @@ Q_SIGNALS:
     void useV2Changed();
     void vignetteStrengthChanged();
     void grainStrengthChanged();
+    void caStrengthChanged();
 
 private:
     int m_targetWidth = 1920;
@@ -197,6 +201,7 @@ private:
     bool m_useV2 = false;           // use V2 (3D RGB histogram) instead of V1
     double m_vignetteStrength = 0.0; // vignette: 0 = off, 1 = max
     double m_grainStrength = 0.0;    // grain: 0 = off, 1 = max
+    double m_caStrength = 0.0;       // chromatic aberration: 0 = off, 1 = max
     QColor m_moodColorsA[6];        // cached mood gradient color A (index = mood)
     QColor m_moodColorsB[6];        // cached mood gradient color B
     QColor m_moodColorsV2A[6];      // V2 mood gradient color A (second row)

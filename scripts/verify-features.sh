@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Verify all four walltz features are wired correctly
+# Verify all walltz features are wired correctly
 # Run from host (not inside distrobox)
 set -euo pipefail
 ROOT="/var/home/pavel/src/walltz/walltz"
@@ -64,20 +64,23 @@ grep -q 'boxBlurPass' "$ROOT/src/WallpaperProcessor.cpp" \
 grep -q 'boxBlurPass' "$ROOT/src/WallpaperProcessor.h" \
   && fail "boxBlurPass declaration still in header" \
   || ok "boxBlurPass declaration removed from header"
-# Verify kernel is >1D (not uniform) — Gaussian uses exp()
 grep -q 'std::exp' "$ROOT/src/WallpaperProcessor.cpp" \
   && ok "Gaussian kernel uses exp()" \
   || fail "No exp() in blur code"
 
-# 6) Slider icons reset on click — no bare Kirigami.Icon or Switches remain
+# 6) Slider icons reset on click
 echo "--- Feature 6: Icon reset buttons ---"
 grep -q 'Kirigami.Icon' "$ROOT/src/Main.qml" \
   && fail "Bare Kirigami.Icon still present" \
   || ok "All slider icons converted to ToolButtons"
-grep -q 'Controls.Switch' "$ROOT/src/Main.qml" \
-  && fail "Controls.Switch still present in sliders" \
-  || ok "All slider Switches removed"
-for icon in contrast noise blur color-management zoom-original transform-rotate; do
+# Exactly 1 Switch allowed (CA row). Vignette/grain have none.
+SWITCH_COUNT=$(grep -c 'Controls.Switch' "$ROOT/src/Main.qml")
+if [ "$SWITCH_COUNT" -eq 1 ]; then
+  ok "Only CA has a Switch (vignette/grain clean)"
+else
+  fail "Expected exactly 1 Controls.Switch, found $SWITCH_COUNT"
+fi
+for icon in contrast noise blur color-management zoom-original transform-rotate channelmixer; do
   grep -q "icon.name: \"$icon\"" "$ROOT/src/Main.qml" \
     && ok "ToolButton icon $icon found" \
     || fail "ToolButton icon $icon missing"
@@ -88,18 +91,42 @@ echo "--- Feature 7: Reset effects button ---"
 grep -q 'Reset effects' "$ROOT/src/Main.qml" \
   && ok "Reset effects button found" \
   || fail "Reset effects button missing"
-grep -q 'vignetteStrength = 0.0' "$ROOT/src/Main.qml" \
-  && ok "Reset effects resets vignette" \
-  || fail "Reset effects doesn't reset vignette"
+grep -q 'caStrength = 0.0' "$ROOT/src/Main.qml" \
+  && ok "Reset effects includes CA" \
+  || fail "CA not in Reset effects button"
 
 # 8) Improved vignette rendering
 echo "--- Feature 8: Stronger vignette ---"
 grep -q 'fadeStart' "$ROOT/src/WallpaperProcessor.cpp" \
   && ok "Vignette uses dynamic fadeStart" \
   || fail "Vignette missing fadeStart"
-grep -q '200 \* s' "$ROOT/src/WallpaperProcessor.cpp" \
+grep -qF '(200 * s)' "$ROOT/src/WallpaperProcessor.cpp" \
   && ok "Vignette uses stronger alpha (200)" \
   || fail "Vignette alpha still 120 or lower"
+grep -q 'std::sqrt((W/2.0)' "$ROOT/src/WallpaperProcessor.cpp" \
+  && ok "Vignette radius matches image diagonal" \
+  || fail "Vignette radius still qMax-based"
+
+# 9) Chromatic aberration
+echo "--- Feature 9: Chromatic aberration ---"
+grep -q 'caStrength' "$ROOT/src/WallpaperProcessor.h" \
+  && ok "caStrength Q_PROPERTY declared" \
+  || fail "caStrength missing from header"
+grep -q 'm_caStrength' "$ROOT/src/WallpaperProcessor.h" \
+  && ok "caStrength member declared" \
+  || fail "caStrength member missing"
+grep -q 'setCaStrength' "$ROOT/src/WallpaperProcessor.cpp" \
+  && ok "caStrength setter defined" \
+  || fail "caStrength setter missing"
+grep -q 'dx \* shift' "$ROOT/src/WallpaperProcessor.cpp" \
+  && ok "CA uses radial displacement" \
+  || fail "CA rendering missing radial shift"
+grep -q 'channelmixer' "$ROOT/src/Main.qml" \
+  && ok "CA icon channelmixer in QML" \
+  || fail "CA icon missing in QML"
+grep -q 'onCaStrengthChanged' "$ROOT/src/Main.qml" \
+  && ok "CA debounce wired" \
+  || fail "CA debounce not wired"
 
 echo
 echo "Result: $PASS passed, $FAIL failed"
