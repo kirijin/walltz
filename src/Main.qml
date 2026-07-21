@@ -57,10 +57,7 @@ Kirigami.ApplicationWindow {
                 Layout.minimumHeight: 100
 
                 readonly property double _ar: processor.targetWidth / Math.max(1, processor.targetHeight)
-                Layout.preferredHeight: Math.min(
-                    width / _ar,
-                    root.height * 0.4
-                )
+                Layout.preferredHeight: root.height * 0.40
 
                 readonly property color _canvasColor: Kirigami.Theme.colorScheme === Kirigami.Theme.Dark
                     ? Qt.darker(Kirigami.Theme.backgroundColor, 2.5)
@@ -126,10 +123,40 @@ Kirigami.ApplicationWindow {
                         asynchronous: true
                     }
 
-                    Kirigami.LoadingPlaceholder {
+                    Item {
                         anchors.centerIn: parent
                         visible: dropArea.fileCount === 0 && !dropArea.containsDrag
-                        text: i18n("Drop image(s) here")
+
+                        readonly property var _frames: [
+                            "\u280B", "\u2819", "\u2839", "\u2838", "\u283C",
+                            "\u2834", "\u2826", "\u2827", "\u2807", "\u280F"
+                        ]
+                        property int _frame: 0
+
+                        Timer {
+                            interval: 100; repeat: true
+                            running: parent.visible
+                            onTriggered: {
+                                parent._frame = (parent._frame + 1) % parent._frames.length
+                            }
+                        }
+
+                        ColumnLayout {
+                            anchors.centerIn: parent
+                            spacing: Kirigami.Units.smallSpacing
+
+                            Controls.Label {
+                                Layout.alignment: Qt.AlignHCenter
+                                text: parent.parent._frames[parent.parent._frame]
+                                font.pixelSize: Kirigami.Theme.defaultFont.pixelSize * 2
+                                color: Kirigami.Theme.disabledTextColor
+                            }
+                            Controls.Label {
+                                Layout.alignment: Qt.AlignHCenter
+                                text: i18n("Drop image(s) here")
+                                color: Kirigami.Theme.disabledTextColor
+                            }
+                        }
                     }
 
                     Controls.Label {
@@ -189,7 +216,21 @@ Kirigami.ApplicationWindow {
                         if (!isNaN(v) && v > 0) processor.targetWidth = v;
                     }
                 }
-                Controls.Label { text: "\u00D7" }
+                Controls.ToolButton {
+                    id: swapBtn
+                    icon.name: "swap-panels"
+                    display: Controls.AbstractButton.IconOnly
+                    hoverEnabled: true
+                    Controls.ToolTip.text: i18n("Swap width and height")
+                    Controls.ToolTip.visible: swapBtn.hovered
+                    Controls.ToolTip.delay: 400
+                    onClicked: {
+                        var tmp = processor.targetWidth;
+                        processor.targetWidth = processor.targetHeight;
+                        processor.targetHeight = tmp;
+                        processor.aspectMode = 0;
+                    }
+                }
                 Controls.TextField {
                     id: heightInput
                     Layout.preferredWidth: 80
@@ -787,6 +828,38 @@ Kirigami.ApplicationWindow {
                     Item { Layout.fillWidth: true }
                 }
 
+                // Background rotation (when Blur selected)
+                RowLayout {
+                    visible: processor.blurMode
+                    Layout.fillWidth: true
+                    spacing: Kirigami.Units.smallSpacing
+
+                    Item { Layout.fillWidth: true }
+                    Kirigami.Icon {
+                        source: "transform-rotate"
+                        implicitWidth: Kirigami.Units.iconSizes.smallMedium
+                        implicitHeight: Kirigami.Units.iconSizes.smallMedium
+                        Layout.alignment: Qt.AlignVCenter
+                    }
+                    Controls.Slider {
+                        id: bgRotSlider
+                        Layout.preferredWidth: Kirigami.Units.gridUnit * 10
+                        from: 0; to: 360; stepSize: 1
+                        value: processor.bgBlurAngle
+                        Controls.ToolTip.text: i18n("%1°").arg(processor.bgBlurAngle)
+                        Controls.ToolTip.visible: hovered
+                        onMoved: processor.bgBlurAngle = value
+                    }
+                    Controls.SpinBox {
+                        Layout.preferredWidth: 80
+                        from: 0; to: 360
+                        value: processor.bgBlurAngle
+                        editable: true
+                        onValueModified: processor.bgBlurAngle = value
+                    }
+                    Item { Layout.fillWidth: true }
+                }
+
                 // Gradient angle (when Colour + Gradient/Auto)
                 RowLayout {
                     visible: !processor.blurMode && processor.bgGradientStyle > 0
@@ -970,6 +1043,7 @@ Kirigami.ApplicationWindow {
         function onBgGradientPresetChanged() { previewDebounce.restart(); }
         function onGradientAngleChanged() { previewDebounce.restart(); }
         function onBgZoomChanged() { previewDebounce.restart(); }
+        function onBgBlurAngleChanged() { previewDebounce.restart(); }
         function onBlurModeChanged() { previewDebounce.restart(); }
         function onAutoColorChanged() { previewDebounce.restart(); }
         function onBackgroundColorChanged() { previewDebounce.restart(); }

@@ -37,6 +37,7 @@ class WallpaperProcessor : public QObject
     Q_PROPERTY(int bgGradientPreset READ bgGradientPreset WRITE setBgGradientPreset NOTIFY bgGradientPresetChanged)
     Q_PROPERTY(double gradientAngle READ gradientAngle WRITE setGradientAngle NOTIFY gradientAngleChanged)
     Q_PROPERTY(double bgZoom READ bgZoom WRITE setBgZoom NOTIFY bgZoomChanged)
+    Q_PROPERTY(double bgBlurAngle READ bgBlurAngle WRITE setBgBlurAngle NOTIFY bgBlurAngleChanged)
     Q_PROPERTY(int autoMood READ autoMood WRITE setAutoMood NOTIFY autoMoodChanged)
     Q_PROPERTY(bool useV2 READ useV2 WRITE setUseV2 NOTIFY useV2Changed)
     Q_PROPERTY(double vignetteStrength READ vignetteStrength WRITE setVignetteStrength NOTIFY vignetteStrengthChanged)
@@ -68,6 +69,7 @@ public:
     int bgGradientPreset() const { return m_bgGradientPreset; }
     double gradientAngle() const { return m_gradientAngle; }
     double bgZoom() const { return m_bgZoom; }
+    double bgBlurAngle() const { return m_bgBlurAngle; }
     int autoMood() const { return m_autoMood; }
     bool useV2() const { return m_useV2; }
     double vignetteStrength() const { return m_vignetteStrength; }
@@ -86,6 +88,7 @@ public:
     void setBgGradientPreset(int p);
     void setGradientAngle(double a);
     void setBgZoom(double z);
+    void setBgBlurAngle(double a);
     void setAutoMood(int m);
     void setUseV2(bool v2);
     void setVignetteStrength(double s);
@@ -153,6 +156,7 @@ Q_SIGNALS:
     void bgGradientPresetChanged();
     void gradientAngleChanged();
     void bgZoomChanged();
+    void bgBlurAngleChanged();
     void autoMoodChanged();
     void useV2Changed();
     void vignetteStrengthChanged();
@@ -188,6 +192,7 @@ private:
     int m_bgGradientPreset = 0;     // index into s_presets[]
     double m_gradientAngle = 0.0;   // degrees (0 = horizontal, 90 = vertical, 45 = diagonal ↘)
     double m_bgZoom = 1.0;          // background zoom multiplier (0.5–3.0, 1.0 = fill)
+    double m_bgBlurAngle = 0.0;     // blur background rotation (degrees, 0 = normal)
     int m_autoMood = 0;             // 0=Auto, 1=Soft, 2=Vivid, 3=Warm, 4=Cool, 5=Deep
     bool m_useV2 = false;           // use V2 (3D RGB histogram) instead of V1
     double m_vignetteStrength = 0.0; // vignette: 0 = off, 1 = max
@@ -214,7 +219,6 @@ private:
     };
 
     static void stackBlur(QImage &image, int radius);
-    static void boxBlurPass(QImage &image, int radius);
     static void boostSaturation(QImage &image, double factor);
 
     /// Gradient preset data

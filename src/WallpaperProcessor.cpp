@@ -204,6 +204,16 @@ void WallpaperProcessor::setBgZoom(double z)
     }
 }
 
+void WallpaperProcessor::setBgBlurAngle(double a)
+{
+    a = std::fmod(a, 360.0);
+    if (a < 0) a += 360.0;
+    if (!qFuzzyCompare(m_bgBlurAngle, a)) {
+        m_bgBlurAngle = a;
+        Q_EMIT bgBlurAngleChanged();
+    }
+}
+
 void WallpaperProcessor::setAutoMood(int m)
 {
     m = qBound(0, m, 5);
@@ -544,10 +554,11 @@ QImage WallpaperProcessor::renderWallpaper(const QImage &src, int W, int H)
 
         double bgW = src.width() * zoom;
         double bgH = src.height() * zoom;
-        double bgX = (W - bgW) / 2.0;
-        double bgY = (H - bgH) / 2.0;
         p.save();
-        p.translate(bgX, bgY);
+        p.translate(W / 2.0, H / 2.0);
+        if (m_bgBlurAngle != 0.0)
+            p.rotate(m_bgBlurAngle);
+        p.translate(-bgW / 2.0, -bgH / 2.0);
         p.scale(zoom, zoom);
         p.drawImage(0, 0, src);
         p.restore();
@@ -1235,56 +1246,68 @@ QString WallpaperProcessor::moodNameV2(int index) const
 
 void WallpaperProcessor::stackBlur(QImage &image, int radius)
 {
-    if (radius < 1) return;
-    int kr = qMax(1, (int)(radius * 0.7));
-    int passes = 3;
-    for (int i = 0; i < passes; ++i) {
-        boxBlurPass(image, kr);
-    }
-}
+    if (radius < 1 || image.isNull()) return;
 
-void WallpaperProcessor::boxBlurPass(QImage &image, int radius)
-{
-    if (radius < 1) return;
     int w = image.width(), h = image.height();
-    int div = 2 * radius + 1;
+    int bpl = image.bytesPerLine();
+
+    // 1D Gaussian kernel: sigma = radius/3 covers 99.7% of the curve
+    double sigma = qMax(1.0, radius / 3.0);
+    double sigma2 = 2.0 * sigma * sigma;
+    int kernelSize = 2 * radius + 1;
+
+    std::vector<double> kernel(kernelSize);
+    double sum = 0.0;
+    for (int i = 0; i < kernelSize; ++i) {
+        int x = i - radius;
+        kernel[i] = std::exp(-(x * x) / sigma2);
+        sum += kernel[i];
+    }
+    double invSum = 1.0 / sum;
+    for (int i = 0; i < kernelSize; ++i)
+        kernel[i] *= invSum;
 
     QImage temp(w, h, image.format());
-    const uchar *src = image.constBits();
-    uchar *dst = temp.bits();
-    int bpl = image.bytesPerLine();
-    int tbpl = temp.bytesPerLine();
 
-    // ── Horizontal pass (image → temp) ──
+    // ── Horizontal pass: image → temp ──
     for (int y = 0; y < h; ++y) {
-        const uchar *row = src + y * bpl;
-        uchar *drow = dst + y * tbpl;
+        const uchar *srcRow = image.constBits() + y * bpl;
+        uchar *dstRow = temp.bits() + y * bpl;
         for (int x = 0; x < w; ++x) {
-            int b = 0, g = 0, r = 0, a = 0;
-            for (int dx = -radius; dx <= radius; ++dx) {
-                const uchar *p = row + std::clamp(x + dx, 0, w - 1) * 4;
-                b += p[0]; g += p[1]; r += p[2]; a += p[3];
+            double b = 0.0, g = 0.0, r = 0.0, a = 0.0;
+            for (int k = 0; k < kernelSize; ++k) {
+                int sx = std::clamp(x - radius + k, 0, w - 1);
+                const uchar *p = srcRow + sx * 4;
+                double kw = kernel[k];
+                b += p[0] * kw; g += p[1] * kw;
+                r += p[2] * kw; a += p[3] * kw;
             }
-            drow[x * 4 + 0] = b / div;
-            drow[x * 4 + 1] = g / div;
-            drow[x * 4 + 2] = r / div;
-            drow[x * 4 + 3] = a / div;
+            uchar *d = dstRow + x * 4;
+            d[0] = (uchar)qBound(0, (int)(b + 0.5), 255);
+            d[1] = (uchar)qBound(0, (int)(g + 0.5), 255);
+            d[2] = (uchar)qBound(0, (int)(r + 0.5), 255);
+            d[3] = (uchar)qBound(0, (int)(a + 0.5), 255);
         }
     }
 
-    // ── Vertical pass (temp → image) ──
+    // ── Vertical pass: temp → image ──
     uchar *imgData = image.bits();
     const uchar *tmpData = temp.constBits();
-
     for (int x = 0; x < w; ++x) {
         for (int y = 0; y < h; ++y) {
-            int b = 0, g = 0, r = 0, a = 0;
-            for (int dy = -radius; dy <= radius; ++dy) {
-                const uchar *p = tmpData + std::clamp(y + dy, 0, h - 1) * tbpl + x * 4;
-                b += p[0]; g += p[1]; r += p[2]; a += p[3];
+            double b = 0.0, g = 0.0, r = 0.0, a = 0.0;
+            for (int k = 0; k < kernelSize; ++k) {
+                int sy = std::clamp(y - radius + k, 0, h - 1);
+                const uchar *p = tmpData + sy * bpl + x * 4;
+                double kw = kernel[k];
+                b += p[0] * kw; g += p[1] * kw;
+                r += p[2] * kw; a += p[3] * kw;
             }
-            uchar *p = imgData + y * bpl + x * 4;
-            p[0] = b / div; p[1] = g / div; p[2] = r / div; p[3] = a / div;
+            uchar *d = imgData + y * bpl + x * 4;
+            d[0] = (uchar)qBound(0, (int)(b + 0.5), 255);
+            d[1] = (uchar)qBound(0, (int)(g + 0.5), 255);
+            d[2] = (uchar)qBound(0, (int)(r + 0.5), 255);
+            d[3] = (uchar)qBound(0, (int)(a + 0.5), 255);
         }
     }
 }
