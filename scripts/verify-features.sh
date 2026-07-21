@@ -74,11 +74,11 @@ grep -q 'Kirigami.Icon' "$ROOT/src/Main.qml" \
   && fail "Bare Kirigami.Icon still present" \
   || ok "All slider icons converted to ToolButtons"
 # Exactly 1 Switch allowed (CA row). Vignette/grain have none.
-SWITCH_COUNT=$(grep -c 'Controls.Switch' "$ROOT/src/Main.qml")
-if [ "$SWITCH_COUNT" -eq 1 ]; then
-  ok "Only CA has a Switch (vignette/grain clean)"
+SWITCH_COUNT=$(grep -c 'Controls.Switch' "$ROOT/src/Main.qml" || true)
+if [ "$SWITCH_COUNT" -eq 0 ]; then
+  ok "No Switches remain (CA, vignette, grain all slider-only)"
 else
-  fail "Expected exactly 1 Controls.Switch, found $SWITCH_COUNT"
+  fail "Expected 0 Controls.Switch, found $SWITCH_COUNT"
 fi
 for icon in contrast noise blur color-management zoom-original transform-rotate channelmixer; do
   grep -q "icon.name: \"$icon\"" "$ROOT/src/Main.qml" \
@@ -118,9 +118,9 @@ grep -q 'm_caStrength' "$ROOT/src/WallpaperProcessor.h" \
 grep -q 'setCaStrength' "$ROOT/src/WallpaperProcessor.cpp" \
   && ok "caStrength setter defined" \
   || fail "caStrength setter missing"
-grep -q 'dx \* shift' "$ROOT/src/WallpaperProcessor.cpp" \
-  && ok "CA uses radial displacement" \
-  || fail "CA rendering missing radial shift"
+grep -qF 'maxShift = m_caStrength * 40.0' "$ROOT/src/WallpaperProcessor.cpp" \
+  && ok "CA maxShift = 40 (visible)" \
+  || fail "CA maxShift not 40"
 grep -q 'channelmixer' "$ROOT/src/Main.qml" \
   && ok "CA icon channelmixer in QML" \
   || fail "CA icon missing in QML"

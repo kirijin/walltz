@@ -729,13 +729,6 @@ Kirigami.ApplicationWindow {
                             previewDebounce.restart()
                         }
                     }
-                    Controls.Switch {
-                        checked: processor.caStrength > 0
-                        onToggled: {
-                            processor.caStrength = checked ? 0.5 : 0.0
-                            previewDebounce.restart()
-                        }
-                    }
                     Controls.Slider {
                         Layout.preferredWidth: Kirigami.Units.gridUnit * 10
                         from: 0; to: 1.0; stepSize: 0.05

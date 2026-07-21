@@ -676,7 +676,7 @@ QImage WallpaperProcessor::renderWallpaper(const QImage &src, int W, int H)
 
     // ── Chromatic aberration (post-processing on full render) ──
     if (m_caStrength > 0.001) {
-        double maxShift = m_caStrength * 12.0;
+        double maxShift = m_caStrength * 40.0;
         double cx = W / 2.0, cy = H / 2.0;
         double maxDist = std::sqrt(cx * cx + cy * cy);
 
