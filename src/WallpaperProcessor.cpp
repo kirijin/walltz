@@ -618,11 +618,13 @@ QImage WallpaperProcessor::renderWallpaper(const QImage &src, int W, int H)
 
     // ── Effects (post-processing, applies on all background styles) ──
     if (m_vignetteStrength > 0.001) {
-        double radius = qMax(W, H) * 0.7;
+        double radius = qMax(W, H) * 0.8;
+        double s = m_vignetteStrength;
         QRadialGradient vg(W / 2.0, H / 2.0, radius);
         vg.setColorAt(0.0, QColor(0, 0, 0, 0));
-        vg.setColorAt(0.7, QColor(0, 0, 0, 0));
-        int alpha = qMin(255, (int)(120 * m_vignetteStrength));
+        double fadeStart = 1.0 - 0.4 * s;
+        vg.setColorAt(fadeStart, QColor(0, 0, 0, 0));
+        int alpha = qMin(255, (int)(200 * s));
         vg.setColorAt(1.0, QColor(0, 0, 0, alpha));
         p.fillRect(0, 0, W, H, vg);
     }

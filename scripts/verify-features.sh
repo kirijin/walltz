@@ -69,6 +69,38 @@ grep -q 'std::exp' "$ROOT/src/WallpaperProcessor.cpp" \
   && ok "Gaussian kernel uses exp()" \
   || fail "No exp() in blur code"
 
+# 6) Slider icons reset on click — no bare Kirigami.Icon or Switches remain
+echo "--- Feature 6: Icon reset buttons ---"
+grep -q 'Kirigami.Icon' "$ROOT/src/Main.qml" \
+  && fail "Bare Kirigami.Icon still present" \
+  || ok "All slider icons converted to ToolButtons"
+grep -q 'Controls.Switch' "$ROOT/src/Main.qml" \
+  && fail "Controls.Switch still present in sliders" \
+  || ok "All slider Switches removed"
+for icon in contrast noise blur color-management zoom-original transform-rotate; do
+  grep -q "icon.name: \"$icon\"" "$ROOT/src/Main.qml" \
+    && ok "ToolButton icon $icon found" \
+    || fail "ToolButton icon $icon missing"
+done
+
+# 7) Reset effects button
+echo "--- Feature 7: Reset effects button ---"
+grep -q 'Reset effects' "$ROOT/src/Main.qml" \
+  && ok "Reset effects button found" \
+  || fail "Reset effects button missing"
+grep -q 'vignetteStrength = 0.0' "$ROOT/src/Main.qml" \
+  && ok "Reset effects resets vignette" \
+  || fail "Reset effects doesn't reset vignette"
+
+# 8) Improved vignette rendering
+echo "--- Feature 8: Stronger vignette ---"
+grep -q 'fadeStart' "$ROOT/src/WallpaperProcessor.cpp" \
+  && ok "Vignette uses dynamic fadeStart" \
+  || fail "Vignette missing fadeStart"
+grep -q '200 \* s' "$ROOT/src/WallpaperProcessor.cpp" \
+  && ok "Vignette uses stronger alpha (200)" \
+  || fail "Vignette alpha still 120 or lower"
+
 echo
 echo "Result: $PASS passed, $FAIL failed"
 [ "$FAIL" -eq 0 ] && echo "All checks OK" || exit 1

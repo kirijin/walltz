@@ -645,16 +645,17 @@ Kirigami.ApplicationWindow {
                     spacing: Kirigami.Units.smallSpacing
 
                     Item { Layout.fillWidth: true }
-                    Kirigami.Icon {
-                        source: "contrast"
+                    Controls.ToolButton {
+                        icon.name: "contrast"
+                        display: Controls.AbstractButton.IconOnly
                         implicitWidth: Kirigami.Units.iconSizes.smallMedium
                         implicitHeight: Kirigami.Units.iconSizes.smallMedium
-                        Layout.alignment: Qt.AlignVCenter
-                    }
-                    Controls.Switch {
-                        checked: processor.vignetteStrength > 0
-                        onToggled: {
-                            processor.vignetteStrength = checked ? 0.5 : 0.0
+                        hoverEnabled: true
+                        Controls.ToolTip.text: i18n("Reset vignette")
+                        Controls.ToolTip.visible: hovered
+                        Controls.ToolTip.delay: 400
+                        onClicked: {
+                            processor.vignetteStrength = 0.0
                             previewDebounce.restart()
                         }
                     }
@@ -662,7 +663,6 @@ Kirigami.ApplicationWindow {
                         Layout.preferredWidth: Kirigami.Units.gridUnit * 10
                         from: 0; to: 1.0; stepSize: 0.05
                         value: processor.vignetteStrength
-                        enabled: processor.vignetteStrength > 0
                         Controls.ToolTip.text: i18n("%1%").arg(Math.round(processor.vignetteStrength * 100))
                         Controls.ToolTip.visible: hovered
                         Controls.ToolTip.delay: 400
@@ -680,16 +680,17 @@ Kirigami.ApplicationWindow {
                     spacing: Kirigami.Units.smallSpacing
 
                     Item { Layout.fillWidth: true }
-                    Kirigami.Icon {
-                        source: "noise"
+                    Controls.ToolButton {
+                        icon.name: "noise"
+                        display: Controls.AbstractButton.IconOnly
                         implicitWidth: Kirigami.Units.iconSizes.smallMedium
                         implicitHeight: Kirigami.Units.iconSizes.smallMedium
-                        Layout.alignment: Qt.AlignVCenter
-                    }
-                    Controls.Switch {
-                        checked: processor.grainStrength > 0
-                        onToggled: {
-                            processor.grainStrength = checked ? 0.5 : 0.0
+                        hoverEnabled: true
+                        Controls.ToolTip.text: i18n("Reset grain")
+                        Controls.ToolTip.visible: hovered
+                        Controls.ToolTip.delay: 400
+                        onClicked: {
+                            processor.grainStrength = 0.0
                             previewDebounce.restart()
                         }
                     }
@@ -697,7 +698,6 @@ Kirigami.ApplicationWindow {
                         Layout.preferredWidth: Kirigami.Units.gridUnit * 10
                         from: 0; to: 1.0; stepSize: 0.05
                         value: processor.grainStrength
-                        enabled: processor.grainStrength > 0
                         Controls.ToolTip.text: i18n("%1%").arg(Math.round(processor.grainStrength * 100))
                         Controls.ToolTip.visible: hovered
                         Controls.ToolTip.delay: 400
@@ -716,11 +716,19 @@ Kirigami.ApplicationWindow {
                     spacing: Kirigami.Units.smallSpacing
 
                     Item { Layout.fillWidth: true }
-                    Kirigami.Icon {
-                        source: "blur"
+                    Controls.ToolButton {
+                        icon.name: "blur"
+                        display: Controls.AbstractButton.IconOnly
                         implicitWidth: Kirigami.Units.iconSizes.smallMedium
                         implicitHeight: Kirigami.Units.iconSizes.smallMedium
-                        Layout.alignment: Qt.AlignVCenter
+                        hoverEnabled: true
+                        Controls.ToolTip.text: i18n("Reset blur")
+                        Controls.ToolTip.visible: hovered
+                        Controls.ToolTip.delay: 400
+                        onClicked: {
+                            processor.blurRadius = 0
+                            previewDebounce.restart()
+                        }
                     }
                     Controls.Slider {
                         id: blurSlider
@@ -757,11 +765,19 @@ Kirigami.ApplicationWindow {
                     spacing: Kirigami.Units.smallSpacing
 
                     Item { Layout.fillWidth: true }
-                    Kirigami.Icon {
-                        source: "color-management"
+                    Controls.ToolButton {
+                        icon.name: "color-management"
+                        display: Controls.AbstractButton.IconOnly
                         implicitWidth: Kirigami.Units.iconSizes.smallMedium
                         implicitHeight: Kirigami.Units.iconSizes.smallMedium
-                        Layout.alignment: Qt.AlignVCenter
+                        hoverEnabled: true
+                        Controls.ToolTip.text: i18n("Reset saturation")
+                        Controls.ToolTip.visible: hovered
+                        Controls.ToolTip.delay: 400
+                        onClicked: {
+                            processor.saturationFactor = 1.8
+                            previewDebounce.restart()
+                        }
                     }
                     Controls.Slider {
                         id: satSlider
@@ -796,11 +812,19 @@ Kirigami.ApplicationWindow {
                     spacing: Kirigami.Units.smallSpacing
 
                     Item { Layout.fillWidth: true }
-                    Kirigami.Icon {
-                        source: "zoom-original"
+                    Controls.ToolButton {
+                        icon.name: "zoom-original"
+                        display: Controls.AbstractButton.IconOnly
                         implicitWidth: Kirigami.Units.iconSizes.smallMedium
                         implicitHeight: Kirigami.Units.iconSizes.smallMedium
-                        Layout.alignment: Qt.AlignVCenter
+                        hoverEnabled: true
+                        Controls.ToolTip.text: i18n("Reset zoom")
+                        Controls.ToolTip.visible: hovered
+                        Controls.ToolTip.delay: 400
+                        onClicked: {
+                            processor.bgZoom = 1.0
+                            previewDebounce.restart()
+                        }
                     }
                     Controls.Slider {
                         id: zoomSlider
@@ -835,11 +859,19 @@ Kirigami.ApplicationWindow {
                     spacing: Kirigami.Units.smallSpacing
 
                     Item { Layout.fillWidth: true }
-                    Kirigami.Icon {
-                        source: "transform-rotate"
+                    Controls.ToolButton {
+                        icon.name: "transform-rotate"
+                        display: Controls.AbstractButton.IconOnly
                         implicitWidth: Kirigami.Units.iconSizes.smallMedium
                         implicitHeight: Kirigami.Units.iconSizes.smallMedium
-                        Layout.alignment: Qt.AlignVCenter
+                        hoverEnabled: true
+                        Controls.ToolTip.text: i18n("Reset rotation")
+                        Controls.ToolTip.visible: hovered
+                        Controls.ToolTip.delay: 400
+                        onClicked: {
+                            processor.bgBlurAngle = 0.0
+                            previewDebounce.restart()
+                        }
                     }
                     Controls.Slider {
                         id: bgRotSlider
@@ -867,11 +899,19 @@ Kirigami.ApplicationWindow {
                     spacing: Kirigami.Units.smallSpacing
 
                     Item { Layout.fillWidth: true }
-                    Kirigami.Icon {
-                        source: "transform-rotate"
+                    Controls.ToolButton {
+                        icon.name: "transform-rotate"
+                        display: Controls.AbstractButton.IconOnly
                         implicitWidth: Kirigami.Units.iconSizes.smallMedium
                         implicitHeight: Kirigami.Units.iconSizes.smallMedium
-                        Layout.alignment: Qt.AlignVCenter
+                        hoverEnabled: true
+                        Controls.ToolTip.text: i18n("Reset gradient angle")
+                        Controls.ToolTip.visible: hovered
+                        Controls.ToolTip.delay: 400
+                        onClicked: {
+                            processor.gradientAngle = 0.0
+                            previewDebounce.restart()
+                        }
                     }
                     Controls.Slider {
                         id: angleSlider
@@ -890,6 +930,22 @@ Kirigami.ApplicationWindow {
                         onValueModified: processor.gradientAngle = value
                     }
                     Item { Layout.fillWidth: true }
+                }
+
+                Controls.Button {
+                    Layout.alignment: Qt.AlignHCenter
+                    text: i18n("Reset effects")
+                    icon.name: "edit-undo"
+                    onClicked: {
+                        processor.vignetteStrength = 0.0
+                        processor.grainStrength = 0.0
+                        processor.blurRadius = 0
+                        processor.saturationFactor = 1.8
+                        processor.bgZoom = 1.0
+                        processor.bgBlurAngle = 0.0
+                        processor.gradientAngle = 0.0
+                        previewDebounce.restart()
+                    }
                 }
 
             }
