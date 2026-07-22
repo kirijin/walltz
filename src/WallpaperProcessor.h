@@ -9,6 +9,7 @@
 #include <QStringList>
 #include <QVariantList>
 #include <QPair>
+#include <QtConcurrent>
 
 class QWindow;
 
@@ -218,6 +219,8 @@ private:
     QColor m_moodColorsV2B[6];      // V2 mood gradient color B
     bool m_moodsComputed = false;   // true after computeAllMoods()
 
+    QImage m_blurBuf;               // pre-allocated temp buffer for blur passes
+
     bool processSingleImage(const QString &sourcePath, QString &outPath);
     QImage renderWallpaper(const QImage &src, int W, int H);
     QColor extractAverageColor(const QImage &image);
@@ -233,8 +236,16 @@ private:
         int count;
     };
 
-    static void stackBlur(QImage &image, int radius);
+    /// Gaussian blur via 3-pass box blur approximation (O(n), radius-independent)
+    static void stackBlur(QImage &image, double sigma);
+    /// Multi-threaded horizontal box blur pass
+    static void boxBlurH(QImage &dst, const QImage &src, int radius);
+    /// Multi-threaded vertical box blur pass
+    static void boxBlurV(QImage &dst, const QImage &src, int radius);
     static void boostSaturation(QImage &image, double factor);
+    /// Ensure noise texture is allocated (lazy init)
+    static void ensureNoiseTexture(int w, int h);
+    static QImage s_noiseTexture;       // shared pre-generated noise
 
     /// Gradient preset data
     struct GradientPreset {

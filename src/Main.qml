@@ -241,6 +241,29 @@ Kirigami.ApplicationWindow {
 
                 Item { Layout.fillWidth: true }
 
+                // Braille processing indicator
+                Controls.Label {
+                    id: processingIndicator
+                    visible: processor.busy
+                    text: "\u28BE"
+                    font.pixelSize: Kirigami.Theme.defaultFont.pixelSize
+                    Layout.alignment: Qt.AlignVCenter
+                    Timer {
+                        interval: 150
+                        running: processor.busy
+                        repeat: true
+                        property int frame: 0
+                        readonly property var frames: [
+                            "\u28B8", "\u28B9", "\u28BA", "\u28BB",
+                            "\u28BC", "\u28BD", "\u28BE", "\u28BF"
+                        ]
+                        onTriggered: {
+                            frame = (frame + 1) % frames.length;
+                            parent.text = frames[frame];
+                        }
+                    }
+                }
+
                 Controls.TextField {
                     id: widthInput
                     Layout.preferredWidth: 80

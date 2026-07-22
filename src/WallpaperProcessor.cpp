@@ -592,14 +592,19 @@ QImage WallpaperProcessor::renderWallpaper(const QImage &src, int W, int H)
         p.fillRect(0, 0, W, H, QColor(0, 0, 0, 25));
         p.end();
 
-        QImage bg = output.copy();
+        // Use pre-allocated blur buffer instead of output.copy() + drawing back
+        if (m_blurBuf.size() != output.size() || m_blurBuf.format() != output.format())
+            m_blurBuf = QImage(output.size(), output.format());
+        memcpy(m_blurBuf.bits(), output.constBits(), output.sizeInBytes());
         // Use manual blur radius if set, else auto-calc (adaptive 0.051×H)
-        int blurRadius = m_blurRadius > 0 ? m_blurRadius : qBound(1, (int)(0.051 * H), 120);
-        stackBlur(bg, blurRadius);
-        boostSaturation(bg, m_saturationFactor);
+        double sigma = m_blurRadius > 0
+            ? qMax(1.0, m_blurRadius / 3.0)
+            : qMax(1.0, 0.051 * H / 3.0);
+        stackBlur(m_blurBuf, sigma);
+        boostSaturation(m_blurBuf, m_saturationFactor);
 
         p.begin(&output);
-        p.drawImage(0, 0, bg);
+        p.drawImage(0, 0, m_blurBuf);
     } else {
         // ── Color / Gradient: fill background, then draw centered image ──
         switch (m_bgGradientStyle) {
@@ -656,17 +661,23 @@ QImage WallpaperProcessor::renderWallpaper(const QImage &src, int W, int H)
         p.fillRect(0, 0, W, H, vg);
     }
     if (m_grainStrength > 0.001) {
+        ensureNoiseTexture(W, H);
+        // Tile noise from shared texture, applying intensity offset.
+        // Grayscale8: pixel = (random byte shifted by intensity) + offset
         int intensity = qMax(1, (int)(15 * m_grainStrength));
-        QImage noise(W, H, QImage::Format_Grayscale8);
+        // Re-randomize with intensity in one pass on a writable copy
+        QImage grain = s_noiseTexture.copy(0, 0, W, H);
         for (int y = 0; y < H; ++y) {
-            unsigned char *line = noise.scanLine(y);
-            for (int x = 0; x < W; ++x)
+            unsigned char *line = grain.scanLine(y);
+            for (int x = 0; x < W; ++x) {
+                // Map pre-generated 0-255 noise into [-intensity, +intensity] + 128 range
                 line[x] = (unsigned char)qBound(0,
-                    (QRandomGenerator::global()->bounded(intensity * 2 + 1)) - intensity + 128, 255);
+                    (line[x] % (intensity * 2 + 1)) - intensity + 128, 255);
+            }
         }
         p.save();
         p.setCompositionMode(QPainter::CompositionMode_SoftLight);
-        p.drawImage(0, 0, noise);
+        p.drawImage(0, 0, grain);
         p.restore();
     }
 
@@ -685,8 +696,8 @@ QImage WallpaperProcessor::renderWallpaper(const QImage &src, int W, int H)
     shPath.addRoundedRect(shCx, shCy, shW, shH, SHADOW_RADIUS, SHADOW_RADIUS);
     sp.fillPath(shPath, QColor(0, 0, 0, 102));
     sp.end();
-    int shadowBlur = qBound(1, (int)(0.0046 * H), 30);
-    stackBlur(sh, shadowBlur);
+    double shadowBlurSigma = qMax(0.5, 0.0046 * H / 3.0);
+    stackBlur(sh, shadowBlurSigma);
     p.drawImage(0, 0, sh);
 
     // ── Photo frame (scale proportionally to output size) ──
@@ -1328,70 +1339,201 @@ QString WallpaperProcessor::moodNameV2(int index) const
     return QString::fromUtf8(names[index]);
 }
 
-void WallpaperProcessor::stackBlur(QImage &image, int radius)
+// ── O(n) box blur helpers (sliding window, radius-independent) ──────────
+//
+// Each pass uses a running sum over a sliding window of (2*radius+1) pixels.
+// Only the pixels entering and leaving the window are touched per step,
+// making this O(w*h) regardless of radius.
+//
+// Multi-threaded: horizontal pass farms out rows, vertical pass farms out
+// columns, via QtConcurrent::blockingMap (uses all CPU cores).
+
+void WallpaperProcessor::boxBlurH(QImage &dst, const QImage &src, int radius)
 {
-    if (radius < 1 || image.isNull()) return;
+    int w = src.width(), h = src.height();
+    int bpl = src.bytesPerLine();
+    int window = 2 * radius + 1;
+    double invWindow = 1.0 / window;
+
+    // Each row is independent — parallelize over rows
+    auto rowOp = [&](int y) {
+        const uchar *sRow = src.constBits() + y * bpl;
+        uchar *dRow = dst.bits() + y * bpl;
+
+        // Initial window sum
+        double sb = 0, sg = 0, sr = 0, sa = 0;
+        for (int x = -radius; x <= radius; ++x) {
+            int sx = std::clamp(x, 0, w - 1);
+            const uchar *p = sRow + sx * 4;
+            sb += p[0]; sg += p[1]; sr += p[2]; sa += p[3];
+        }
+        uchar *d = dRow + 0 * 4;
+        d[0] = (uchar)(sb * invWindow + 0.5);
+        d[1] = (uchar)(sg * invWindow + 0.5);
+        d[2] = (uchar)(sr * invWindow + 0.5);
+        d[3] = (uchar)(sa * invWindow + 0.5);
+
+        // Slide window across the row
+        for (int x = 1; x < w; ++x) {
+            int outX = std::clamp(x - radius - 1, 0, w - 1);
+            int inX  = std::clamp(x + radius,     0, w - 1);
+            const uchar *pOut = sRow + outX * 4;
+            const uchar *pIn  = sRow + inX  * 4;
+            sb += pIn[0] - pOut[0];
+            sg += pIn[1] - pOut[1];
+            sr += pIn[2] - pOut[2];
+            sa += pIn[3] - pOut[3];
+
+            uchar *dp = dRow + x * 4;
+            dp[0] = (uchar)(sb * invWindow + 0.5);
+            dp[1] = (uchar)(sg * invWindow + 0.5);
+            dp[2] = (uchar)(sr * invWindow + 0.5);
+            dp[3] = (uchar)(sa * invWindow + 0.5);
+        }
+    };
+
+    // Parallelize over all rows
+    QList<int> rows(h);
+    std::iota(rows.begin(), rows.end(), 0);
+    QtConcurrent::blockingMap(rows, rowOp);
+}
+
+void WallpaperProcessor::boxBlurV(QImage &dst, const QImage &src, int radius)
+{
+    int w = src.width(), h = src.height();
+    int bpl = src.bytesPerLine();
+    int window = 2 * radius + 1;
+    double invWindow = 1.0 / window;
+
+    // Each column is independent — parallelize over columns
+    auto colOp = [&](int x) {
+        const uchar *sBase = src.constBits();
+        uchar *dBase = dst.bits();
+
+        // Initial window sum
+        double sb = 0, sg = 0, sr = 0, sa = 0;
+        for (int y = -radius; y <= radius; ++y) {
+            int sy = std::clamp(y, 0, h - 1);
+            const uchar *p = sBase + sy * bpl + x * 4;
+            sb += p[0]; sg += p[1]; sr += p[2]; sa += p[3];
+        }
+        uchar *d = dBase + 0 * bpl + x * 4;
+        d[0] = (uchar)(sb * invWindow + 0.5);
+        d[1] = (uchar)(sg * invWindow + 0.5);
+        d[2] = (uchar)(sr * invWindow + 0.5);
+        d[3] = (uchar)(sa * invWindow + 0.5);
+
+        // Slide window down the column
+        for (int y = 1; y < h; ++y) {
+            int outY = std::clamp(y - radius - 1, 0, h - 1);
+            int inY  = std::clamp(y + radius,     0, h - 1);
+            const uchar *pOut = sBase + outY * bpl + x * 4;
+            const uchar *pIn  = sBase + inY  * bpl + x * 4;
+            sb += pIn[0] - pOut[0];
+            sg += pIn[1] - pOut[1];
+            sr += pIn[2] - pOut[2];
+            sa += pIn[3] - pOut[3];
+
+            uchar *dp = dBase + y * bpl + x * 4;
+            dp[0] = (uchar)(sb * invWindow + 0.5);
+            dp[1] = (uchar)(sg * invWindow + 0.5);
+            dp[2] = (uchar)(sr * invWindow + 0.5);
+            dp[3] = (uchar)(sa * invWindow + 0.5);
+        }
+    };
+
+    // Parallelize over all columns
+    QList<int> cols(w);
+    std::iota(cols.begin(), cols.end(), 0);
+    QtConcurrent::blockingMap(cols, colOp);
+}
+
+/// Convert sigma to 3 box-blur radii (Ivan Kutskir / Peter Kovesi method)
+/// Three box blurs approximate a Gaussian via the Central Limit Theorem.
+static void sigmaToBoxes(int boxes[3], double sigma)
+{
+    double n = 3.0;                     // 3 box passes = good Gaussian approx
+    double wi = std::sqrt((12.0 * sigma * sigma / n) + 1.0);
+    int wl = (int)std::floor(wi);
+    if (wl % 2 == 0) --wl;
+    int wu = wl + 2;
+
+    double mi = (12.0 * sigma * sigma - n * wl * wl - 4.0 * n * wl - 3.0 * n)
+                / (-4.0 * wl - 4.0);
+    int m = (int)std::round(mi);
+
+    for (int i = 0; i < 3; ++i)
+        boxes[i] = ((i < m ? wl : wu) - 1) / 2;
+}
+
+void WallpaperProcessor::stackBlur(QImage &image, double sigma)
+{
+    if (sigma < 0.5 || image.isNull()) return;
+    if (image.format() != QImage::Format_ARGB32_Premultiplied)
+        image = image.convertToFormat(QImage::Format_ARGB32_Premultiplied);
 
     int w = image.width(), h = image.height();
-    int bpl = image.bytesPerLine();
+    if (w < 1 || h < 1) return;
 
-    // 1D Gaussian kernel: sigma = radius/3 covers 99.7% of the curve
-    double sigma = qMax(1.0, radius / 3.0);
-    double sigma2 = 2.0 * sigma * sigma;
-    int kernelSize = 2 * radius + 1;
+    // Three box radii approximating a Gaussian of the requested sigma
+    int boxes[3];
+    sigmaToBoxes(boxes, sigma);
 
-    std::vector<double> kernel(kernelSize);
-    double sum = 0.0;
-    for (int i = 0; i < kernelSize; ++i) {
-        int x = i - radius;
-        kernel[i] = std::exp(-(x * x) / sigma2);
-        sum += kernel[i];
-    }
-    double invSum = 1.0 / sum;
-    for (int i = 0; i < kernelSize; ++i)
-        kernel[i] *= invSum;
-
-    QImage temp(w, h, image.format());
-
-    // ── Horizontal pass: image → temp ──
-    for (int y = 0; y < h; ++y) {
-        const uchar *srcRow = image.constBits() + y * bpl;
-        uchar *dstRow = temp.bits() + y * bpl;
-        for (int x = 0; x < w; ++x) {
-            double b = 0.0, g = 0.0, r = 0.0, a = 0.0;
-            for (int k = 0; k < kernelSize; ++k) {
-                int sx = std::clamp(x - radius + k, 0, w - 1);
-                const uchar *p = srcRow + sx * 4;
-                double kw = kernel[k];
-                b += p[0] * kw; g += p[1] * kw;
-                r += p[2] * kw; a += p[3] * kw;
-            }
-            uchar *d = dstRow + x * 4;
-            d[0] = (uchar)qBound(0, (int)(b + 0.5), 255);
-            d[1] = (uchar)qBound(0, (int)(g + 0.5), 255);
-            d[2] = (uchar)qBound(0, (int)(r + 0.5), 255);
-            d[3] = (uchar)qBound(0, (int)(a + 0.5), 255);
-        }
+    int minR = boxes[0];
+    int maxR = boxes[0];
+    for (int i = 1; i < 3; ++i) {
+        minR = qMin(minR, boxes[i]);
+        maxR = qMax(maxR, boxes[i]);
     }
 
-    // ── Vertical pass: temp → image ──
-    uchar *imgData = image.bits();
-    const uchar *tmpData = temp.constBits();
-    for (int x = 0; x < w; ++x) {
-        for (int y = 0; y < h; ++y) {
-            double b = 0.0, g = 0.0, r = 0.0, a = 0.0;
-            for (int k = 0; k < kernelSize; ++k) {
-                int sy = std::clamp(y - radius + k, 0, h - 1);
-                const uchar *p = tmpData + sy * bpl + x * 4;
-                double kw = kernel[k];
-                b += p[0] * kw; g += p[1] * kw;
-                r += p[2] * kw; a += p[3] * kw;
+    // Use member m_blurBuf if it's the right size, else re-allocate
+    // (owned by the WallpaperProcessor instance)
+    // static helper: use a local temp
+    QImage tmp(w, h, QImage::Format_ARGB32_Premultiplied);
+    QImage *buf[2] = { &image, &tmp };
+
+    // Apply 3 box blur passes (each = H + V), ping-pong between the two buffers
+    // Result lands back in 'image' after the last vertical pass
+    for (int pass = 0; pass < 3; ++pass) {
+        // Horizontal: read from buf[pass & 1], write to buf[1 - (pass & 1)]
+        int r = boxes[pass];
+        if (r < 1) { r = 1; }
+        QImage &srcRef = *buf[pass & 1];
+        QImage &dstRef = *buf[1 - (pass & 1)];
+        boxBlurH(dstRef, srcRef, r);                    // H pass (parallel)
+        boxBlurV(srcRef, dstRef, r);                    // V pass (parallel, reuses srcRef as dst)
+    }
+
+    // If the final result is in tmp, copy it back
+    if (buf[1] == &image && buf[0] != &image) {
+        // Result is in buf[0] (image), nothing to do
+    } else if (buf[0] != &image) {
+        memcpy(image.bits(), tmp.bits(), (size_t)h * image.bytesPerLine());
+    }
+}
+
+// ── pre-generated noise texture ──────────────────────────────────────────
+
+QImage WallpaperProcessor::s_noiseTexture;
+
+void WallpaperProcessor::ensureNoiseTexture(int w, int h)
+{
+    if (!s_noiseTexture.isNull() && s_noiseTexture.width() >= w && s_noiseTexture.height() >= h)
+        return;
+
+    // Allocate a generously-sized noise texture (large enough for any output)
+    int tw = qMax(w, 1024);
+    int th = qMax(h, 1024);
+    s_noiseTexture = QImage(tw, th, QImage::Format_Grayscale8);
+
+    // Fill with random noise in 64-row batches for speed
+    for (int y = 0; y < th; y += 64) {
+        int endY = qMin(y + 64, th);
+        for (int yy = y; yy < endY; ++yy) {
+            unsigned char *line = s_noiseTexture.scanLine(yy);
+            for (int x = 0; x < tw; ++x) {
+                line[x] = (unsigned char)QRandomGenerator::global()->bounded(256);
             }
-            uchar *d = imgData + y * bpl + x * 4;
-            d[0] = (uchar)qBound(0, (int)(b + 0.5), 255);
-            d[1] = (uchar)qBound(0, (int)(g + 0.5), 255);
-            d[2] = (uchar)qBound(0, (int)(r + 0.5), 255);
-            d[3] = (uchar)qBound(0, (int)(a + 0.5), 255);
         }
     }
 }

@@ -268,6 +268,48 @@ grep -q 'interval: 700' "$ROOT/src/Main.qml" \
   && ok "Preview debounce 700ms (for full-res render)" \
   || fail "Debounce interval not 700ms"
 
+# 20) Braille processing indicator
+echo "--- Feature 20: Braille processing indicator ---"
+grep -q 'processingIndicator' "$ROOT/src/Main.qml" \
+  && ok "Braille indicator label exists" \
+  || fail "Missing braille indicator"
+grep -q 'visible: processor.busy' "$ROOT/src/Main.qml" \
+  && ok "Indicator visible when busy" \
+  || fail "Indicator not tied to busy"
+grep -q '\\u28B8' "$ROOT/src/Main.qml" \
+  && ok "Braille animation frames defined" \
+  || fail "Missing braille frames"
+
+# 21) O(n) box blur optimizations
+echo "--- Feature 21: Performance optimizations ---"
+grep -q 'boxBlurH' "$ROOT/src/WallpaperProcessor.cpp" \
+  && ok "boxBlurH (parallel O(n) horizontal blur)" \
+  || fail "Missing boxBlurH"
+grep -q 'boxBlurV' "$ROOT/src/WallpaperProcessor.cpp" \
+  && ok "boxBlurV (parallel O(n) vertical blur)" \
+  || fail "Missing boxBlurV"
+grep -q 'sigmaToBoxes' "$ROOT/src/WallpaperProcessor.cpp" \
+  && ok "sigmaToBoxes (3-pass Gaussian approximation)" \
+  || fail "Missing sigmaToBoxes"
+grep -q 'QtConcurrent::blockingMap' "$ROOT/src/WallpaperProcessor.cpp" \
+  && ok "QtConcurrent multi-threaded blur passes" \
+  || fail "Missing QtConcurrent parallelization"
+grep -q 'stackBlur(QImage &image, double sigma)' "$ROOT/src/WallpaperProcessor.cpp" \
+  && ok "stackBlur now takes sigma (double), radius-independent" \
+  || fail "stackBlur signature not updated"
+grep -q 'm_blurBuf' "$ROOT/src/WallpaperProcessor.h" \
+  && ok "Pre-allocated blur buffer (m_blurBuf)" \
+  || fail "Missing m_blurBuf"
+grep -q 'ensureNoiseTexture' "$ROOT/src/WallpaperProcessor.cpp" \
+  && ok "Pre-generated noise texture (ensureNoiseTexture)" \
+  || fail "Missing ensureNoiseTexture"
+grep -q 'Qt6::Concurrent' "$ROOT/src/CMakeLists.txt" \
+  && ok "Qt6::Concurrent linked" \
+  || fail "Missing Qt6::Concurrent in CMake"
+grep -q 'march=native' "$ROOT/src/CMakeLists.txt" \
+  && ok "-march=native SIMD auto-vectorization enabled" \
+  || fail "Missing -march=native"
+
 echo
 echo "Result: $PASS passed, $FAIL failed"
 [ "$FAIL" -eq 0 ] && echo "All checks OK" || exit 1
