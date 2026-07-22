@@ -85,9 +85,9 @@ Kirigami.ApplicationWindow {
 
                     radius: Kirigami.Units.cornerRadius
                     color: dropArea.containsDrag ? Kirigami.Theme.highlightColor
-                                                 : previewBox._canvasColor
-                    border.color: Qt.darker(previewBox._canvasColor, 1.2)
-                    border.width: 1
+                          : (dropArea.fileCount === 0 ? "transparent" : previewBox._canvasColor)
+                    border.color: dropArea.fileCount === 0 ? Kirigami.Theme.disabledTextColor : "transparent"
+                    border.width: dropArea.fileCount === 0 ? 1 : 0
                     Behavior on color { ColorAnimation { duration: 150 } }
 
                     DropArea {
@@ -317,6 +317,7 @@ Kirigami.ApplicationWindow {
                         flat: true
                         checkable: true
                         implicitWidth: Kirigami.Units.gridUnit * 4
+                        highlighted: checked
                         Controls.ButtonGroup.group: ratioGroup
                         checked: processor.aspectMode === 0
                         onClicked: processor.aspectMode = 0
@@ -326,6 +327,7 @@ Kirigami.ApplicationWindow {
                         flat: true
                         checkable: true
                         implicitWidth: Kirigami.Units.gridUnit * 4
+                        highlighted: checked
                         Controls.ButtonGroup.group: ratioGroup
                         checked: processor.aspectMode === 1
                         onClicked: processor.aspectMode = 1
@@ -335,6 +337,7 @@ Kirigami.ApplicationWindow {
                         flat: true
                         checkable: true
                         implicitWidth: Kirigami.Units.gridUnit * 4
+                        highlighted: checked
                         Controls.ButtonGroup.group: ratioGroup
                         checked: processor.aspectMode === 2
                         onClicked: processor.aspectMode = 2
@@ -344,6 +347,7 @@ Kirigami.ApplicationWindow {
                         flat: true
                         checkable: true
                         implicitWidth: Kirigami.Units.gridUnit * 4
+                        highlighted: checked
                         Controls.ButtonGroup.group: ratioGroup
                         checked: processor.aspectMode === 4
                         onClicked: processor.aspectMode = 4
@@ -363,6 +367,7 @@ Kirigami.ApplicationWindow {
                         flat: true
                         checkable: true
                         implicitWidth: Kirigami.Units.gridUnit * 4
+                        highlighted: checked
                         Controls.ButtonGroup.group: ratioGroup
                         checked: processor.aspectMode === 3
                         onClicked: processor.aspectMode = 3
@@ -372,6 +377,7 @@ Kirigami.ApplicationWindow {
                         flat: true
                         checkable: true
                         implicitWidth: Kirigami.Units.gridUnit * 4
+                        highlighted: checked
                         Controls.ButtonGroup.group: ratioGroup
                         checked: processor.aspectMode === 5
                         onClicked: processor.aspectMode = 5
@@ -381,6 +387,7 @@ Kirigami.ApplicationWindow {
                         flat: true
                         checkable: true
                         implicitWidth: Kirigami.Units.gridUnit * 4
+                        highlighted: checked
                         Controls.ButtonGroup.group: ratioGroup
                         checked: processor.aspectMode === 6
                         onClicked: processor.aspectMode = 6
@@ -407,6 +414,7 @@ Kirigami.ApplicationWindow {
                         text: i18n("Blur")
                         checkable: true
                         implicitWidth: Kirigami.Units.gridUnit * 7
+                        highlighted: checked
                         checked: processor.blurMode
                         onClicked: processor.blurMode = true
                         Controls.ButtonGroup.group: modeGroup
@@ -415,12 +423,19 @@ Kirigami.ApplicationWindow {
                         text: i18n("Colour")
                         checkable: true
                         implicitWidth: Kirigami.Units.gridUnit * 7
+                        highlighted: checked
                         checked: !processor.blurMode
                         onClicked: processor.blurMode = false
                         Controls.ButtonGroup.group: modeGroup
                     }
 
                     Item { Layout.fillWidth: true }
+                }
+
+                Kirigami.Separator {
+                    Layout.fillWidth: true
+                    Layout.topMargin: Kirigami.Units.smallSpacing
+                    Layout.bottomMargin: Kirigami.Units.smallSpacing
                 }
 
                 // Sub-style: Solid / Gradient / Auto (when Colour)
@@ -437,6 +452,7 @@ Kirigami.ApplicationWindow {
                         text: i18n("Colour")
                         checkable: true
                         implicitWidth: Kirigami.Units.gridUnit * 5
+                        highlighted: checked
                         checked: processor.bgGradientStyle === 0
                         onClicked: processor.bgGradientStyle = 0
                         Controls.ButtonGroup.group: fillGroup
@@ -445,6 +461,7 @@ Kirigami.ApplicationWindow {
                         text: i18n("Gradient")
                         checkable: true
                         implicitWidth: Kirigami.Units.gridUnit * 5
+                        highlighted: checked
                         checked: processor.bgGradientStyle === 1
                         onClicked: processor.bgGradientStyle = 1
                         Controls.ButtonGroup.group: fillGroup
@@ -453,12 +470,19 @@ Kirigami.ApplicationWindow {
                         text: i18n("Auto")
                         checkable: true
                         implicitWidth: Kirigami.Units.gridUnit * 5
+                        highlighted: checked
                         checked: processor.bgGradientStyle === 2
                         onClicked: processor.bgGradientStyle = 2
                         Controls.ButtonGroup.group: fillGroup
                     }
 
                     Item { Layout.fillWidth: true }
+                }
+
+                Kirigami.Separator {
+                    Layout.fillWidth: true
+                    Layout.topMargin: Kirigami.Units.smallSpacing
+                    Layout.bottomMargin: Kirigami.Units.smallSpacing
                 }
 
                 // Mood palette buttons — only when Fill=Auto
@@ -488,6 +512,7 @@ Kirigami.ApplicationWindow {
                         delegate: Controls.Button {
                             text: processor.moodName(index)
                             checkable: true
+                            highlighted: checked
                             checked: !processor.useV2 && processor.autoMood === index
                             onClicked: {
                                 processor.autoMood = index
@@ -514,6 +539,7 @@ Kirigami.ApplicationWindow {
                         delegate: Controls.Button {
                             text: processor.moodNameV2(index)
                             checkable: true
+                            highlighted: checked
                             checked: processor.useV2 && processor.autoMood === index
                             onClicked: {
                                 processor.autoMood = index
@@ -682,15 +708,9 @@ Kirigami.ApplicationWindow {
                     spacing: Kirigami.Units.smallSpacing
 
                     Item { Layout.fillWidth: true }
-                    Controls.ToolButton {
-                        icon.name: "contrast"
-                        display: Controls.AbstractButton.IconOnly
-                        implicitWidth: Kirigami.Units.iconSizes.smallMedium
-                        implicitHeight: Kirigami.Units.iconSizes.smallMedium
-                        hoverEnabled: true
-                        Controls.ToolTip.text: i18n("Reset vignette")
-                        Controls.ToolTip.visible: hovered
-                        Controls.ToolTip.delay: 400
+                    Controls.Button {
+                        text: i18n("V")
+                        implicitWidth: Kirigami.Units.gridUnit * 3
                         onClicked: {
                             processor.vignetteStrength = 0.0
                             previewDebounce.restart()
@@ -717,15 +737,9 @@ Kirigami.ApplicationWindow {
                     spacing: Kirigami.Units.smallSpacing
 
                     Item { Layout.fillWidth: true }
-                    Controls.ToolButton {
-                        icon.name: "noise"
-                        display: Controls.AbstractButton.IconOnly
-                        implicitWidth: Kirigami.Units.iconSizes.smallMedium
-                        implicitHeight: Kirigami.Units.iconSizes.smallMedium
-                        hoverEnabled: true
-                        Controls.ToolTip.text: i18n("Reset grain")
-                        Controls.ToolTip.visible: hovered
-                        Controls.ToolTip.delay: 400
+                    Controls.Button {
+                        text: i18n("G")
+                        implicitWidth: Kirigami.Units.gridUnit * 3
                         onClicked: {
                             processor.grainStrength = 0.0
                             previewDebounce.restart()
@@ -752,15 +766,9 @@ Kirigami.ApplicationWindow {
                     spacing: Kirigami.Units.smallSpacing
 
                     Item { Layout.fillWidth: true }
-                    Controls.ToolButton {
-                        icon.name: "channelmixer"
-                        display: Controls.AbstractButton.IconOnly
-                        implicitWidth: Kirigami.Units.iconSizes.smallMedium
-                        implicitHeight: Kirigami.Units.iconSizes.smallMedium
-                        hoverEnabled: true
-                        Controls.ToolTip.text: i18n("Reset chromatic aberration")
-                        Controls.ToolTip.visible: hovered
-                        Controls.ToolTip.delay: 400
+                    Controls.Button {
+                        text: i18n("CA")
+                        implicitWidth: Kirigami.Units.gridUnit * 3
                         onClicked: {
                             processor.caStrength = 0.0
                             previewDebounce.restart()
@@ -788,15 +796,9 @@ Kirigami.ApplicationWindow {
                     spacing: Kirigami.Units.smallSpacing
 
                     Item { Layout.fillWidth: true }
-                    Controls.ToolButton {
-                        icon.name: "blur"
-                        display: Controls.AbstractButton.IconOnly
-                        implicitWidth: Kirigami.Units.iconSizes.smallMedium
-                        implicitHeight: Kirigami.Units.iconSizes.smallMedium
-                        hoverEnabled: true
-                        Controls.ToolTip.text: i18n("Reset blur")
-                        Controls.ToolTip.visible: hovered
-                        Controls.ToolTip.delay: 400
+                    Controls.Button {
+                        text: i18n("Blur")
+                        implicitWidth: Kirigami.Units.gridUnit * 3
                         onClicked: {
                             processor.blurRadius = 0
                             previewDebounce.restart()
@@ -824,15 +826,9 @@ Kirigami.ApplicationWindow {
                     spacing: Kirigami.Units.smallSpacing
 
                     Item { Layout.fillWidth: true }
-                    Controls.ToolButton {
-                        icon.name: "color-management"
-                        display: Controls.AbstractButton.IconOnly
-                        implicitWidth: Kirigami.Units.iconSizes.smallMedium
-                        implicitHeight: Kirigami.Units.iconSizes.smallMedium
-                        hoverEnabled: true
-                        Controls.ToolTip.text: i18n("Reset saturation")
-                        Controls.ToolTip.visible: hovered
-                        Controls.ToolTip.delay: 400
+                    Controls.Button {
+                        text: i18n("Sat")
+                        implicitWidth: Kirigami.Units.gridUnit * 3
                         onClicked: {
                             processor.saturationFactor = 1.8
                             previewDebounce.restart()
@@ -858,15 +854,9 @@ Kirigami.ApplicationWindow {
                     spacing: Kirigami.Units.smallSpacing
 
                     Item { Layout.fillWidth: true }
-                    Controls.ToolButton {
-                        icon.name: "zoom-original"
-                        display: Controls.AbstractButton.IconOnly
-                        implicitWidth: Kirigami.Units.iconSizes.smallMedium
-                        implicitHeight: Kirigami.Units.iconSizes.smallMedium
-                        hoverEnabled: true
-                        Controls.ToolTip.text: i18n("Reset zoom")
-                        Controls.ToolTip.visible: hovered
-                        Controls.ToolTip.delay: 400
+                    Controls.Button {
+                        text: i18n("Zoom")
+                        implicitWidth: Kirigami.Units.gridUnit * 3
                         onClicked: {
                             processor.bgZoom = 1.0
                             previewDebounce.restart()
@@ -892,15 +882,9 @@ Kirigami.ApplicationWindow {
                     spacing: Kirigami.Units.smallSpacing
 
                     Item { Layout.fillWidth: true }
-                    Controls.ToolButton {
-                        icon.name: "transform-rotate"
-                        display: Controls.AbstractButton.IconOnly
-                        implicitWidth: Kirigami.Units.iconSizes.smallMedium
-                        implicitHeight: Kirigami.Units.iconSizes.smallMedium
-                        hoverEnabled: true
-                        Controls.ToolTip.text: i18n("Reset rotation")
-                        Controls.ToolTip.visible: hovered
-                        Controls.ToolTip.delay: 400
+                    Controls.Button {
+                        text: i18n("Rot")
+                        implicitWidth: Kirigami.Units.gridUnit * 3
                         onClicked: {
                             processor.bgBlurAngle = 0.0
                             previewDebounce.restart()
@@ -925,15 +909,9 @@ Kirigami.ApplicationWindow {
                     spacing: Kirigami.Units.smallSpacing
 
                     Item { Layout.fillWidth: true }
-                    Controls.ToolButton {
-                        icon.name: "transform-rotate"
-                        display: Controls.AbstractButton.IconOnly
-                        implicitWidth: Kirigami.Units.iconSizes.smallMedium
-                        implicitHeight: Kirigami.Units.iconSizes.smallMedium
-                        hoverEnabled: true
-                        Controls.ToolTip.text: i18n("Reset gradient angle")
-                        Controls.ToolTip.visible: hovered
-                        Controls.ToolTip.delay: 400
+                    Controls.Button {
+                        text: i18n("Angle")
+                        implicitWidth: Kirigami.Units.gridUnit * 3
                         onClicked: {
                             processor.gradientAngle = 0.0
                             previewDebounce.restart()
@@ -948,6 +926,54 @@ Kirigami.ApplicationWindow {
                         Controls.ToolTip.visible: hovered
                         onMoved: processor.gradientAngle = value
                     }
+                    Item { Layout.fillWidth: true }
+                }
+
+                // Photo frame toggle
+                RowLayout {
+                    Layout.fillWidth: true
+                    spacing: Kirigami.Units.smallSpacing
+
+                    Item { Layout.fillWidth: true }
+
+                    Controls.Label {
+                        text: i18n("Photo frame")
+                    }
+                    Controls.Switch {
+                        checked: processor.photoFrame
+                        onToggled: {
+                            processor.photoFrame = checked
+                            previewDebounce.restart()
+                        }
+                    }
+
+                    Item { Layout.fillWidth: true }
+                }
+
+                RowLayout {
+                    Layout.fillWidth: true
+                    visible: processor.photoFrame
+                    spacing: Kirigami.Units.smallSpacing
+
+                    Item { Layout.fillWidth: true }
+
+                    Controls.Label {
+                        text: i18n("Frame width")
+                        color: Kirigami.Theme.disabledTextColor
+                    }
+                    Controls.Slider {
+                        id: frameWidthSlider
+                        Layout.preferredWidth: Kirigami.Units.gridUnit * 10
+                        from: 5; to: 60; stepSize: 5
+                        value: processor.photoFrameWidth
+                        Controls.ToolTip.text: i18n("%1 px").arg(processor.photoFrameWidth)
+                        Controls.ToolTip.visible: hovered
+                        onMoved: {
+                            processor.photoFrameWidth = value
+                            previewDebounce.restart()
+                        }
+                    }
+
                     Item { Layout.fillWidth: true }
                 }
 
@@ -1150,6 +1176,8 @@ Kirigami.ApplicationWindow {
         function onVignetteStrengthChanged() { previewDebounce.restart(); }
         function onGrainStrengthChanged() { previewDebounce.restart(); }
         function onCaStrengthChanged() { previewDebounce.restart(); }
+        function onPhotoFrameChanged() { previewDebounce.restart(); }
+        function onPhotoFrameWidthChanged() { previewDebounce.restart(); }
     }
 
     Connections {

@@ -258,6 +258,23 @@ void WallpaperProcessor::setCaStrength(double s)
     }
 }
 
+void WallpaperProcessor::setPhotoFrame(bool on)
+{
+    if (m_photoFrame != on) {
+        m_photoFrame = on;
+        Q_EMIT photoFrameChanged();
+    }
+}
+
+void WallpaperProcessor::setPhotoFrameWidth(int w)
+{
+    w = qBound(0, w, 60);
+    if (m_photoFrameWidth != w) {
+        m_photoFrameWidth = w;
+        Q_EMIT photoFrameWidthChanged();
+    }
+}
+
 int WallpaperProcessor::gradientPresetCount() const { return 25; }
 
 QString WallpaperProcessor::gradientPresetName(int index) const
@@ -652,18 +669,38 @@ QImage WallpaperProcessor::renderWallpaper(const QImage &src, int W, int H)
         p.restore();
     }
 
-    // ── Shadow ──
+    // ── Shadow (expands to include photo frame when enabled) ──
+    int shCx = cx, shCy = cy + 2, shW = imgW, shH = imgH;
+    if (m_photoFrame) {
+        int fw = m_photoFrameWidth;
+        shCx = cx - fw; shCy = cy - fw + 2;
+        shW = imgW + 2*fw; shH = imgH + 2*fw;
+    }
     QImage sh(W, H, QImage::Format_ARGB32_Premultiplied);
     sh.fill(Qt::transparent);
     QPainter sp(&sh);
     sp.setRenderHint(QPainter::Antialiasing);
     QPainterPath shPath;
-    shPath.addRoundedRect(cx, cy + 2, imgW, imgH, SHADOW_RADIUS, SHADOW_RADIUS);
+    shPath.addRoundedRect(shCx, shCy, shW, shH, SHADOW_RADIUS, SHADOW_RADIUS);
     sp.fillPath(shPath, QColor(0, 0, 0, 102));
     sp.end();
     int shadowBlur = qBound(1, (int)(0.0046 * H), 30);
     stackBlur(sh, shadowBlur);
     p.drawImage(0, 0, sh);
+
+    // ── Photo frame (white border around foreground image) ──
+    if (m_photoFrame) {
+        int fw = m_photoFrameWidth;
+        p.setPen(Qt::NoPen);
+        p.setBrush(Qt::white);
+        p.drawRoundedRect(cx - fw, cy - fw, imgW + 2*fw, imgH + 2*fw,
+                          SHADOW_RADIUS + 2, SHADOW_RADIUS + 2);
+        // Thin outer border on the frame
+        p.setPen(QPen(QColor(200, 200, 200), 1));
+        p.setBrush(Qt::NoBrush);
+        p.drawRoundedRect(cx - fw, cy - fw, imgW + 2*fw, imgH + 2*fw,
+                          SHADOW_RADIUS + 2, SHADOW_RADIUS + 2);
+    }
 
     // ── Foreground image with rounded clip ──
     p.save();

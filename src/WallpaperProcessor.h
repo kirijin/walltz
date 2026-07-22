@@ -43,6 +43,8 @@ class WallpaperProcessor : public QObject
     Q_PROPERTY(double vignetteStrength READ vignetteStrength WRITE setVignetteStrength NOTIFY vignetteStrengthChanged)
     Q_PROPERTY(double grainStrength READ grainStrength WRITE setGrainStrength NOTIFY grainStrengthChanged)
     Q_PROPERTY(double caStrength READ caStrength WRITE setCaStrength NOTIFY caStrengthChanged)
+    Q_PROPERTY(bool photoFrame READ photoFrame WRITE setPhotoFrame NOTIFY photoFrameChanged)
+    Q_PROPERTY(int photoFrameWidth READ photoFrameWidth WRITE setPhotoFrameWidth NOTIFY photoFrameWidthChanged)
 
 public:
     explicit WallpaperProcessor(QObject *parent = nullptr);
@@ -76,6 +78,8 @@ public:
     double vignetteStrength() const { return m_vignetteStrength; }
     double grainStrength() const { return m_grainStrength; }
     double caStrength() const { return m_caStrength; }
+    bool photoFrame() const { return m_photoFrame; }
+    int photoFrameWidth() const { return m_photoFrameWidth; }
 
     // ── Existing setters ──
     void setTargetWidth(int w);
@@ -96,6 +100,8 @@ public:
     void setVignetteStrength(double s);
     void setGrainStrength(double s);
     void setCaStrength(double s);
+    void setPhotoFrame(bool on);
+    void setPhotoFrameWidth(int w);
 
     /// Generate a small processed preview (400px max) — returns file:// URL
     Q_INVOKABLE QString generatePreview(const QString &sourcePath);
@@ -165,6 +171,8 @@ Q_SIGNALS:
     void vignetteStrengthChanged();
     void grainStrengthChanged();
     void caStrengthChanged();
+    void photoFrameChanged();
+    void photoFrameWidthChanged();
 
 private:
     int m_targetWidth = 1920;
@@ -202,6 +210,8 @@ private:
     double m_vignetteStrength = 0.0; // vignette: 0 = off, 1 = max
     double m_grainStrength = 0.0;    // grain: 0 = off, 1 = max
     double m_caStrength = 0.0;       // chromatic aberration: 0 = off, 1 = max
+    bool m_photoFrame = false;
+    int m_photoFrameWidth = 20;
     QColor m_moodColorsA[6];        // cached mood gradient color A (index = mood)
     QColor m_moodColorsB[6];        // cached mood gradient color B
     QColor m_moodColorsV2A[6];      // V2 mood gradient color A (second row)

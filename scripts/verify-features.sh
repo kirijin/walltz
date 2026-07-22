@@ -66,25 +66,25 @@ grep -q 'boxBlurPass' "$ROOT/src/WallpaperProcessor.h" \
   || ok "boxBlurPass declaration removed from header"
 grep -q 'std::exp' "$ROOT/src/WallpaperProcessor.cpp" \
   && ok "Gaussian kernel uses exp()" \
-  || fail "No exp() in blur code"
-
-# 6) Slider icons reset on click
-echo "--- Feature 6: Icon reset buttons ---"
-grep -q 'Kirigami.Icon' "$ROOT/src/Main.qml" \
-  && fail "Bare Kirigami.Icon still present" \
-  || ok "All slider icons converted to ToolButtons"
-# Exactly 1 Switch allowed (CA row). Vignette/grain have none.
-SWITCH_COUNT=$(grep -c 'Controls.Switch' "$ROOT/src/Main.qml" || true)
-if [ "$SWITCH_COUNT" -eq 0 ]; then
-  ok "No Switches remain (CA, vignette, grain all slider-only)"
-else
-  fail "Expected 0 Controls.Switch, found $SWITCH_COUNT"
-fi
-for icon in contrast noise blur color-management zoom-original transform-rotate channelmixer; do
-  grep -q "icon.name: \"$icon\"" "$ROOT/src/Main.qml" \
-    && ok "ToolButton icon $icon found" \
-    || fail "ToolButton icon $icon missing"
-done
+  # 6) Text reset buttons instead of icon-only ToolButtons
+  echo "--- Feature 6: Text reset buttons ---"
+  # 8 text buttons exactly (V, G, CA, Blur, Sat, Zoom, Rot, Angle)
+  BTN_COUNT=$(grep -c 'text: i18n' "$ROOT/src/Main.qml" | head -1 || true)
+  for btn in '"V"' '"G"' '"CA"' '"Blur"' '"Sat"' '"Zoom"' '"Rot"' '"Angle"'; do
+    grep -q "text: i18n($btn)" "$ROOT/src/Main.qml" \
+      && ok "Text button $btn found" \
+      || fail "Text button $btn missing"
+  done
+  # 1 Switch allowed (photo frame toggle) — no other switches
+  SWITCH_COUNT=$(grep -c 'Controls.Switch' "$ROOT/src/Main.qml" || true)
+  if [ "$SWITCH_COUNT" -eq 1 ]; then
+    ok "One Controls.Switch (photo frame) — correct"
+  else
+    fail "Expected 1 Controls.Switch, found $SWITCH_COUNT"
+  fi
+  # No icon-only ToolButtons for effects remain (2 allowed: swap + detect screen)
+  ICON_BTNS=$(grep -c "display: Controls.AbstractButton.IconOnly" "$ROOT/src/Main.qml" || true)
+  [ "$ICON_BTNS" -eq 2 ] && ok "Only 2 icon ToolButtons (swap + detect) — correct" || fail "Expected 2 icon ToolButtons, found $ICON_BTNS"
 
 # 7) Reset effects button
 echo "--- Feature 7: Reset effects button ---"
@@ -121,9 +121,9 @@ grep -q 'setCaStrength' "$ROOT/src/WallpaperProcessor.cpp" \
 grep -qF 'maxShift = m_caStrength * 40.0' "$ROOT/src/WallpaperProcessor.cpp" \
   && ok "CA maxShift = 40 (visible)" \
   || fail "CA maxShift not 40"
-grep -q 'channelmixer' "$ROOT/src/Main.qml" \
-  && ok "CA icon channelmixer in QML" \
-  || fail "CA icon missing in QML"
+grep -q 'text: i18n("CA")' "$ROOT/src/Main.qml" \
+  && ok "CA text button in QML" \
+  || fail "CA text button missing in QML"
 grep -q 'onCaStrengthChanged' "$ROOT/src/Main.qml" \
   && ok "CA debounce wired" \
   || fail "CA debounce not wired"
@@ -196,6 +196,53 @@ if [ "$IM" -eq 0 ]; then
 else
   fail "Found $IM imagePreview references (should be 0)"
 fi
+
+# 15) Ghost outline (transparent fill + border only when empty)
+echo "--- Feature 15: Ghost outline ---"
+grep -q '"transparent"' "$ROOT/src/Main.qml" \
+  && ok "dropZone uses transparent fill when empty" \
+  || fail "Missing transparent fill"
+grep -q 'border.color: dropArea.fileCount === 0 ?' "$ROOT/src/Main.qml" \
+  && ok "Border conditionally hidden when image loaded" \
+  || fail "Border not conditional on fileCount"
+
+# 16) Text buttons (no more icon-only ToolButtons for effects)
+echo "--- Feature 16: Text reset buttons ---"
+for btn in '"V"' '"G"' '"CA"' '"Blur"' '"Sat"' '"Zoom"' '"Rot"' '"Angle"'; do
+  grep -q "text: i18n($btn)" "$ROOT/src/Main.qml" \
+    && ok "Reset button $btn" \
+    || fail "Missing text button $btn"
+done
+
+# 17) Highlighted selection (accent color)
+echo "--- Feature 17: Highlighted selection ---"
+H_COUNT=$(grep -c 'highlighted: checked' "$ROOT/src/Main.qml" || true)
+if [ "$H_COUNT" -ge 2 ]; then
+  ok "Buttons use highlighted: checked for accent color ($H_COUNT occurrences)"
+else
+  fail "Expected >= 2 highlighted: checked, found $H_COUNT"
+fi
+
+# 18) Separators
+echo "--- Feature 18: Separators ---"
+grep -q 'Kirigami.Separator' "$ROOT/src/Main.qml" \
+  && ok "Separators inserted between sections" \
+  || fail "Missing Kirigami.Separator"
+
+# 19) Photo frame properties
+echo "--- Feature 19: Photo frame ---"
+grep -q 'Q_PROPERTY(bool photoFrame' "$ROOT/src/WallpaperProcessor.h" \
+  && ok "photoFrame Q_PROPERTY declared" \
+  || fail "Missing photoFrame property"
+grep -q 'Q_PROPERTY(int photoFrameWidth' "$ROOT/src/WallpaperProcessor.h" \
+  && ok "photoFrameWidth Q_PROPERTY declared" \
+  || fail "Missing photoFrameWidth property"
+grep -q 'm_photoFrame = false;' "$ROOT/src/WallpaperProcessor.h" \
+  && ok "photoFrame defaults to false" \
+  || fail "Missing photoFrame default"
+grep -q 'Photo frame' "$ROOT/src/Main.qml" \
+  && ok "Photo frame toggle in QML" \
+  || fail "Missing photo frame QML toggle"
 
 echo
 echo "Result: $PASS passed, $FAIL failed"
