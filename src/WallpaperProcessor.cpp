@@ -22,37 +22,23 @@ static const int FRAME_RADIUS = 2;  // photo frame corner radius (small, paper-l
 
 // ── gradient presets (color-theory-based) ─────────────────────────────────
 
-const WallpaperProcessor::GradientPreset WallpaperProcessor::s_presets[25] = {
+const WallpaperProcessor::GradientPreset WallpaperProcessor::s_presets[12] = {
     // name             color1        color2
     // ── Warm tones ──
     { "Sunset Warmth",  0xffff6b6b, 0xfffeca57 },
-    { "Amber Glow",     0xfff0932b, 0xfffeca57 },
     { "Coral Reef",     0xffff6b6b, 0xff48dbfb },
     { "Lemonade",       0xfffdcb6e, 0xff00cec9 },
-    { "Dusk",           0xff6c5ce7, 0xfffd79a8 },
     // ── Cool tones ──
     { "Ocean Depths",   0xff0abde3, 0xff48dbfb },
     { "Tokyo Night",    0xff1a1b26, 0xff7aa2f7 },
     { "Arctic",         0xff2e3440, 0xff88c0d0 },
-    { "Nordic Blues",   0xff2c3e50, 0xff3498db },
-    { "One Dark",       0xff282c34, 0xff61afef },
-    // ── Greens & nature ──
-    { "Forest Calm",    0xff6ab04c, 0xff22a6b3 },
-    { "Teal Mint",      0xff00b894, 0xff00cec9 },
-    { "Everforest",     0xff2b3339, 0xffa7c080 },
-    { "Aurora",         0xff00b894, 0xff6c5ce7 },
-    { "Monokai",        0xff272822, 0xffa6e22e },
-    // ── Purples & pinks ──
-    { "Lavender Sky",   0xff4834d4, 0xff9b59b6 },
-    { "Rose Blush",     0xffbe2edd, 0xfff368e0 },
+    // ── Dev themes ──
     { "Catppuccin",     0xff1e1e2e, 0xffcba6f7 },
-    { "Dracula",        0xff282a36, 0xffbd93f9 },
-    { "Rose Pine",      0xff191724, 0xffebbcba },
-    // ── Neutrals & dark ──
-    { "Midnight",       0xff1a1a2e, 0xff16213e },
     { "Gruvbox",        0xff282828, 0xff8f3f1a },
     { "Solarized",      0xff073642, 0xff268bd2 },
-    { "Mountain",       0xff636e72, 0xffb2bec3 },
+    // ── Purple/Pink / Nature / Neutral ──
+    { "Dusk",           0xff6c5ce7, 0xfffd79a8 },
+    { "Everforest",     0xff2b3339, 0xffa7c080 },
     { "Grayscale",      0xff444444, 0xffcccccc },
 };
 
@@ -179,7 +165,7 @@ void WallpaperProcessor::setAspectMode(int mode)
 
 void WallpaperProcessor::setBgGradientPreset(int p)
 {
-    p = qBound(0, p, 24);
+    p = qBound(0, p, 11);
     if (m_bgGradientPreset != p) {
         m_bgGradientPreset = p;
         Q_EMIT bgGradientPresetChanged();
@@ -276,23 +262,23 @@ void WallpaperProcessor::setPhotoFrameWidth(int w)
     }
 }
 
-int WallpaperProcessor::gradientPresetCount() const { return 25; }
+int WallpaperProcessor::gradientPresetCount() const { return 12; }
 
 QString WallpaperProcessor::gradientPresetName(int index) const
 {
-    if (index < 0 || index >= 25) return {};
+    if (index < 0 || index >= 12) return {};
     return i18n(s_presets[index].name);
 }
 
 QString WallpaperProcessor::gradientPresetColor1(int index) const
 {
-    if (index < 0 || index >= 25) return {};
+    if (index < 0 || index >= 12) return {};
     return QColor(s_presets[index].color1).name();
 }
 
 QString WallpaperProcessor::gradientPresetColor2(int index) const
 {
-    if (index < 0 || index >= 25) return {};
+    if (index < 0 || index >= 12) return {};
     return QColor(s_presets[index].color2).name();
 }
 
@@ -610,7 +596,7 @@ QImage WallpaperProcessor::renderWallpaper(const QImage &src, int W, int H)
         switch (m_bgGradientStyle) {
         case 1: {
             // Gradient preset
-            const auto &preset = s_presets[qBound(0, m_bgGradientPreset, 24)];
+            const auto &preset = s_presets[qBound(0, m_bgGradientPreset, 11)];
             double rad = m_gradientAngle * M_PI / 180.0;
             double t = W * 0.5 * qAbs(qCos(rad)) + H * 0.5 * qAbs(qSin(rad));
             double dx = t * qCos(rad);
