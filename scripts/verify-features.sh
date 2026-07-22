@@ -258,9 +258,9 @@ grep -q 'FRAME_RADIUS' "$ROOT/src/WallpaperProcessor.cpp" \
 grep -q 'Antialiasing' "$ROOT/src/WallpaperProcessor.cpp" \
   && ok "Antialiasing enabled for smooth corners" \
   || fail "Antialiasing missing"
-grep -q "qBound(5, w, 25)" "$ROOT/src/WallpaperProcessor.cpp" \
-  && ok "setter bounds at 25px" \
-  || fail "Setter doesn't cap at 25"
+grep -q "qBound(0, w, 25)" "$ROOT/src/WallpaperProcessor.cpp" \
+  && ok "setter allows 0 (off) and caps at 25px" \
+  || fail "Setter bounds not 0-25"
 grep -q '400.0' "$ROOT/src/WallpaperProcessor.cpp" \
   && fail "generatePreview still uses 400px limit" \
   || ok "generatePreview no longer uses 400px limit"
@@ -268,17 +268,22 @@ grep -q 'interval: 700' "$ROOT/src/Main.qml" \
   && ok "Preview debounce 700ms (for full-res render)" \
   || fail "Debounce interval not 700ms"
 
-# 22) Photo frame as text button (no more Switch)
+# 22) Photo frame as text button (plain reset button like V/G/CA, no toggle)
 echo "--- Feature 22: Photo frame text button ---"
 grep -q 'text: i18n(\"Frame\")' "$ROOT/src/Main.qml" \
   && ok "Frame text button exists" \
   || fail "Missing Frame button"
-grep -q 'checkable: true' "$ROOT/src/Main.qml" \
-  && ok "Frame button is checkable" \
-  || fail "Frame button not checkable"
-grep -qF 'highlighted: checked' "$ROOT/src/Main.qml" \
-  && ok "Frame button uses highlighted:checked" \
-  || fail "Frame button missing highlighted:checked"
+# Frame button is plain (no checkable on same or adjacent lines)
+! sed -n '/text: i18n("Frame")/,/onClicked/p' "$ROOT/src/Main.qml" | grep -q 'checkable' \
+  && ok "Frame button is NOT checkable (plain reset like V)" \
+  || fail "Frame button should not be checkable"
+# Slider at 0 means off
+grep -q 'from: 0; to: 25' "$ROOT/src/Main.qml" \
+  && ok "Frame slider range 0-25 (0 = off)" \
+  || fail "Frame slider not 0-25"
+grep -q 'photoFrameWidth = 0' "$ROOT/src/Main.qml" \
+  && ok "Frame button resets width to 0" \
+  || fail "Frame button doesn't reset to 0"
 
 # 23) Blur sigma range widened
 echo "--- Feature 23: Blur sigma range ---"

@@ -939,7 +939,7 @@ Kirigami.ApplicationWindow {
                     Item { Layout.fillWidth: true }
                 }
 
-                // Photo frame toggle (text button, like other effects)
+                // Photo frame (text button, like vignette/grain — slider at 0 = off)
                 RowLayout {
                     Layout.fillWidth: true
                     spacing: Kirigami.Units.smallSpacing
@@ -948,26 +948,25 @@ Kirigami.ApplicationWindow {
                     Controls.Button {
                         text: i18n("Frame")
                         implicitWidth: Kirigami.Units.gridUnit * 3
-                        checkable: true
-                        checked: processor.photoFrame
-                        flat: true
-                        highlighted: checked
                         onClicked: {
-                            processor.photoFrame = !processor.photoFrame
+                            processor.photoFrameWidth = 0
+                            processor.photoFrame = false
                             previewDebounce.restart()
                         }
                     }
                     Controls.Slider {
                         id: frameWidthSlider
                         Layout.preferredWidth: Kirigami.Units.gridUnit * 10
-                        enabled: processor.photoFrame
-                        from: 5; to: 25; stepSize: 1
+                        from: 0; to: 25; stepSize: 1
                         value: processor.photoFrameWidth
-                        Controls.ToolTip.text: i18n("%1 px").arg(processor.photoFrameWidth)
+                        Controls.ToolTip.text: processor.photoFrameWidth === 0
+                                      ? i18n("Off")
+                                      : i18n("%1 px").arg(processor.photoFrameWidth)
                         Controls.ToolTip.visible: hovered
                         Controls.ToolTip.delay: 400
                         onMoved: {
                             processor.photoFrameWidth = value
+                            if (value > 0) processor.photoFrame = true
                             previewDebounce.restart()
                         }
                     }
@@ -987,6 +986,8 @@ Kirigami.ApplicationWindow {
                         processor.bgBlurAngle = 0.0
                         processor.gradientAngle = 0.0
                         processor.caStrength = 0.0
+                        processor.photoFrameWidth = 0
+                        processor.photoFrame = false
                         previewDebounce.restart()
                     }
                 }

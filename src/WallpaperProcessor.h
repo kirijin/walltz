@@ -212,7 +212,7 @@ private:
     double m_grainStrength = 0.0;    // grain: 0 = off, 1 = max
     double m_caStrength = 0.0;       // chromatic aberration: 0 = off, 1 = max
     bool m_photoFrame = false;
-    int m_photoFrameWidth = 20;
+    int m_photoFrameWidth = 0;
     QColor m_moodColorsA[6];        // cached mood gradient color A (index = mood)
     QColor m_moodColorsB[6];        // cached mood gradient color B
     QColor m_moodColorsV2A[6];      // V2 mood gradient color A (second row)

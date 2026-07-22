@@ -269,7 +269,7 @@ void WallpaperProcessor::setPhotoFrame(bool on)
 
 void WallpaperProcessor::setPhotoFrameWidth(int w)
 {
-    w = qBound(5, w, 25);
+    w = qBound(0, w, 25);
     if (m_photoFrameWidth != w) {
         m_photoFrameWidth = w;
         Q_EMIT photoFrameWidthChanged();
