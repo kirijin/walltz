@@ -1129,9 +1129,11 @@ Kirigami.ApplicationWindow {
     function crossfadePreview(newUrl) {
         if (!previewA.source.toString() || previewA.source.toString() === "") {
             previewA.source = newUrl;
+            previewA.opacity = 1.0;
             return;
         }
-        if (previewA.source.toString() === newUrl && previewB.source.toString() !== newUrl) {
+        // Already showing this image in the visible layer
+        if (previewA.source.toString() === newUrl) {
             return;
         }
         fadeAnim.stop();
@@ -1156,18 +1158,18 @@ Kirigami.ApplicationWindow {
         function onBackgroundColorChanged() { previewDebounce.restart(); }
         function onAspectModeChanged() { previewDebounce.restart(); }
         function onAutoMoodChanged() { previewDebounce.restart(); }
-        function onTargetWidthChanged() { previewDebounce.restart(); }
-        function onTargetHeightChanged() { previewDebounce.restart(); }
         function onVignetteStrengthChanged() { previewDebounce.restart(); }
         function onGrainStrengthChanged() { previewDebounce.restart(); }
         function onCaStrengthChanged() { previewDebounce.restart(); }
         function onPhotoFrameChanged() { previewDebounce.restart(); }
         function onPhotoFrameWidthChanged() { previewDebounce.restart(); }
-    }
-
-    Connections {
-        target: processor
-        function onTargetWidthChanged() { widthInput.text = processor.targetWidth; }
-        function onTargetHeightChanged() { heightInput.text = processor.targetHeight; }
+        function onTargetWidthChanged() {
+            previewDebounce.restart();
+            widthInput.text = processor.targetWidth;
+        }
+        function onTargetHeightChanged() {
+            previewDebounce.restart();
+            heightInput.text = processor.targetHeight;
+        }
     }
 }

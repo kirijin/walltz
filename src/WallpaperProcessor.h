@@ -236,6 +236,9 @@ private:
         int count;
     };
 
+    /// Scale source image down if both dimensions exceed the target (2/5 iteration)
+    static QImage limitImageSize(const QImage &src, int maxW, int maxH);
+
     /// Gaussian blur via 3-pass box blur approximation (O(n), radius-independent)
     static void stackBlur(QImage &image, double sigma);
     /// Multi-threaded horizontal box blur pass
@@ -246,6 +249,9 @@ private:
     /// Ensure noise texture is allocated (lazy init)
     static void ensureNoiseTexture(int w, int h);
     static QImage s_noiseTexture;       // shared pre-generated noise
+
+    /// Aspect ratios indexed by mode. 0=Free (0.0), 1=1:1, 2=4:3, 3=16:9, 4=16:10, 5=21:9, 6=32:9
+    static constexpr double s_aspectRatios[7] = {0.0, 1.0, 4.0/3.0, 16.0/9.0, 16.0/10.0, 21.0/9.0, 32.0/9.0};
 
     /// Gradient preset data
     struct GradientPreset {

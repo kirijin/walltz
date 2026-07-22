@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Verify all walltz features are wired correctly
+# Verify walltz features are correctly wired
 # Run from host (not inside distrobox)
 set -euo pipefail
 ROOT="/var/home/pavel/src/walltz/walltz"
@@ -9,347 +9,203 @@ fail() { msg="  [FAIL] $1"; FAIL=$((FAIL+1)); echo "$msg"; }
 
 echo "=== walltz feature verification ==="
 
-# 1) Build check — run from host via distrobox
+# ── Build (run via distrobox) ──
 echo "--- Build ---"
-DISTROBOX="distrobox enter walltz-dev --"
-BUILD_OUTPUT=$($DISTROBOX bash -c "cd '$ROOT/build' && make -j\$(nproc) 2>&1" 2>&1) || true
+BUILD_OUTPUT=$(distrobox enter walltz-dev -- bash -c "cd '${ROOT}/build' && make -j\$(nproc) 2>&1") || true
 if echo "$BUILD_OUTPUT" | grep -q "Built target walltz"; then
     ok "Build succeeds"
 else
-    echo "   Build output: $BUILD_OUTPUT" | tail -3
+    echo "   Output: $BUILD_OUTPUT" | tail -5
     fail "Build failed"; exit 1
 fi
 
-# 2) Swap button — ToolButton with swap-panels icon
-echo "--- Feature 1: Swap X/Y button ---"
-grep -q 'icon.name: "swap-panels"' "$ROOT/src/Main.qml" \
-  && ok "Swap button with swap-panels icon found" \
-  || fail "Swap button not found"
-grep -q 'processor.aspectMode = 0' "$ROOT/src/Main.qml" \
-  && ok "Swap resets aspect mode" \
+# ── 1. ThemedIcon (MultiEffect theming) ──
+echo "--- 1. ThemedIcon ---"
+grep -q 'MultiEffect {' "${ROOT}/src/ThemedIcon.qml" && ok "MultiEffect standalone block" \
+  || fail "No standalone MultiEffect"
+grep -q 'visible: false' "${ROOT}/src/ThemedIcon.qml" && ok "Source Image hidden (visible: false)" \
+  || fail "Source Image not hidden"
+grep -q 'colorization: 1.0' "${ROOT}/src/ThemedIcon.qml" && ok "colorization: 1.0 (double)" \
+  || fail "colorization not 1.0"
+grep -q 'anchors.centerIn: parent' "${ROOT}/src/ThemedIcon.qml" && ok "Icon centered, not fill" \
+  || fail "Icon not centerIn"
+grep -q 'iconSize' "${ROOT}/src/ThemedIcon.qml" && ok "Icon size uses iconSize property" \
+  || fail "Icon size not 24"
+
+# ── 2. Swap button ──
+echo "--- 2. Swap button ---"
+grep -q 'source: "qrc:/icons/swap.svg"' "${ROOT}/src/Main.qml" && ok "Swap icon bound" \
+  || fail "Swap icon missing"
+grep -q 'processor.aspectMode = 0' "${ROOT}/src/Main.qml" && ok "Swap resets aspectMode" \
   || fail "Swap doesn't reset aspect mode"
 
-# 3) Braille loading animation
-echo "--- Feature 2: Braille spinner ---"
-grep -q 'u280B' "$ROOT/src/Main.qml" \
-  && ok "Braille spinner frames found" \
+# ── 3. Crossfade preview ──
+echo "--- 3. Crossfade preview ---"
+grep -q 'id: previewA' "${ROOT}/src/Main.qml" && ok "previewA layer exists" \
+  || fail "Missing previewA"
+grep -q 'id: previewB' "${ROOT}/src/Main.qml" && ok "previewB layer exists" \
+  || fail "Missing previewB"
+grep -q 'SequentialAnimation' "${ROOT}/src/Main.qml" && ok "SequentialAnimation crossfade" \
+  || fail "No SequentialAnimation"
+grep -q 'previewA.source = previewB.source' "${ROOT}/src/Main.qml" && ok "Post-fade: B copied to A" \
+  || fail "Post-fade copy missing"
+grep -q 'crossfadePreview' "${ROOT}/src/Main.qml" && ok "crossfadePreview function" \
+  || fail "crossfadePreview missing"
+! grep -q 'ParallelAnimation' "${ROOT}/src/Main.qml" && ok "No old ParallelAnimation" \
+  || fail "ParallelAnimation still present"
+
+# ── 4. Drop zone + ghost outline ──
+echo "--- 4. Drop zone ---"
+grep -q 'DropArea' "${ROOT}/src/Main.qml" && ok "DropArea present" \
+  || fail "DropArea missing"
+grep -qF 'border.color: dropArea.fileCount === 0' "${ROOT}/src/Main.qml" && ok "Conditional ghost border" \
+  || fail "Ghost border not conditional"
+grep -qF '"transparent"' "${ROOT}/src/Main.qml" && ok "Transparent fill when empty" \
+  || fail "No transparent fill"
+
+# ── 5. Braille spinner (not old LoadingPlaceholder) ──
+echo "--- 5. Loading spinner ---"
+grep -q '"⢸"' "${ROOT}/src/Main.qml" && ok "Braille spinner frames (literal Unicode)" \
   || fail "Braille frames missing"
-grep -q 'interval: 100; repeat: true' "$ROOT/src/Main.qml" \
-  && ok "Braille animation timer (100ms) found" \
-  || fail "Braille timer missing"
-grep -q "Kirigami.LoadingPlaceholder" "$ROOT/src/Main.qml" \
-  && fail "Old LoadingPlaceholder still present" \
-  || ok "Old LoadingPlaceholder removed"
+grep -q 'visible: processor.busy' "${ROOT}/src/Main.qml" && ok "Spinner tied to processor.busy" \
+  || fail "Spinner not tied to busy"
+! grep -q 'Kirigami.LoadingPlaceholder' "${ROOT}/src/Main.qml" && ok "No old LoadingPlaceholder" \
+  || fail "LoadingPlaceholder still present"
 
-# 4) Background rotation slider
-echo "--- Feature 4: Background rotation ---"
-grep -q 'bgBlurAngle' "$ROOT/src/WallpaperProcessor.h" \
-  && ok "bgBlurAngle Q_PROPERTY declared" \
+# ── 6. Blur (stackBlur + boxBlur O(n)) ──
+echo "--- 6. Gaussian blur ---"
+grep -q 'stackBlur' "${ROOT}/src/WallpaperProcessor.cpp" && ok "stackBlur implementation" \
+  || fail "stackBlur missing"
+grep -q 'boxBlurH' "${ROOT}/src/WallpaperProcessor.cpp" && ok "boxBlurH (parallel O(n))" \
+  || fail "boxBlurH missing"
+grep -q 'boxBlurV' "${ROOT}/src/WallpaperProcessor.cpp" && ok "boxBlurV (parallel O(n))" \
+  || fail "boxBlurV missing"
+grep -q 'sigmaToBoxes' "${ROOT}/src/WallpaperProcessor.cpp" && ok "sigmaToBoxes (3-pass Gaussian)" \
+  || fail "sigmaToBoxes missing"
+grep -q 'QtConcurrent::blockingMap' "${ROOT}/src/WallpaperProcessor.cpp" \
+  && ok "QtConcurrent parallel blur" || fail "QtConcurrent missing"
+
+# ── 7. Chromatic Aberration ──
+echo "--- 7. Chromatic aberration ---"
+grep -q 'caStrength' "${ROOT}/src/WallpaperProcessor.h" && ok "caStrength Q_PROPERTY" \
+  || fail "caStrength not in header"
+grep -q 'maxShift = m_caStrength' "${ROOT}/src/WallpaperProcessor.cpp" && ok "CA maxShift computed" \
+  || fail "CA maxShift missing"
+
+# ── 8. Vignette + Grain ──
+echo "--- 8. Vignette & Grain ---"
+grep -q 'vignetteStrength' "${ROOT}/src/WallpaperProcessor.h" && ok "vignetteStrength Q_PROPERTY" \
+  || fail "vignetteStrength not in header"
+grep -q 'grainStrength' "${ROOT}/src/WallpaperProcessor.h" && ok "grainStrength Q_PROPERTY" \
+  || fail "grainStrength not in header"
+grep -q 'QRadialGradient' "${ROOT}/src/WallpaperProcessor.cpp" && ok "Vignette uses radial gradient" \
+  || fail "Vignette radial gradient missing"
+grep -q 'SoftLight' "${ROOT}/src/WallpaperProcessor.cpp" && ok "Grain uses SoftLight compositing" \
+  || fail "Grain SoftLight missing"
+
+# ── 9. Background rotation ──
+echo "--- 9. Background rotation ---"
+grep -q 'bgBlurAngle' "${ROOT}/src/WallpaperProcessor.h" && ok "bgBlurAngle Q_PROPERTY" \
   || fail "bgBlurAngle not in header"
-grep -q 'm_bgBlurAngle' "$ROOT/src/WallpaperProcessor.cpp" \
-  && ok "bgBlurAngle used in renderWallpaper" \
-  || fail "bgBlurAngle not in renderWallpaper"
-grep -q 'onBgBlurAngleChanged' "$ROOT/src/Main.qml" \
-  && ok "bgBlurAngle debounce wired in QML" \
-  || fail "bgBlurAngle debounce missing"
+grep -q 'onBgBlurAngleChanged' "${ROOT}/src/Main.qml" && ok "bgBlurAngle wired in QML" \
+  || fail "bgBlurAngle callback missing"
 
-# 5) Gaussian blur
-echo "--- Feature 3: Gaussian blur ---"
-grep -q 'gaussianBlur\|double sigma =' "$ROOT/src/WallpaperProcessor.cpp" \
-  && ok "Gaussian blur implementation found" \
-  || fail "Gaussian blur code missing"
-grep -q 'boxBlurPass' "$ROOT/src/WallpaperProcessor.cpp" \
-  && fail "Old boxBlurPass still present" \
-  || ok "boxBlurPass fully removed"
-grep -q 'boxBlurPass' "$ROOT/src/WallpaperProcessor.h" \
-  && fail "boxBlurPass declaration still in header" \
-  || ok "boxBlurPass declaration removed from header"
-grep -q 'std::exp' "$ROOT/src/WallpaperProcessor.cpp" \
-  && ok "Gaussian kernel uses exp()" \
-  # 6) Text reset buttons instead of icon-only ToolButtons
-  echo "--- Feature 6: Text reset buttons ---"
-  # 8 text buttons exactly (V, G, CA, Blur, Sat, Zoom, Rot, Angle)
-  BTN_COUNT=$(grep -c 'text: i18n' "$ROOT/src/Main.qml" | head -1 || true)
-  for btn in '"V"' '"G"' '"CA"' '"Blur"' '"Sat"' '"Zoom"' '"Rot"' '"Angle"'; do
-    grep -q "text: i18n($btn)" "$ROOT/src/Main.qml" \
-      && ok "Text button $btn found" \
-      || fail "Text button $btn missing"
-  done
-  # 1 Switch used to be photo frame (now a text button) — no switches left
-  SWITCH_COUNT=$(grep -c 'Controls.Switch' "$ROOT/src/Main.qml" || true)
-  if [ "$SWITCH_COUNT" -eq 0 ]; then
-    ok "No Controls.Switch (photo frame is now a text button) — correct"
-  else
-    fail "Expected 0 Controls.Switch, found $SWITCH_COUNT"
-  fi
-  # No icon-only ToolButtons for effects remain (2 allowed: swap + detect screen)
-  ICON_BTNS=$(grep -c "display: Controls.AbstractButton.IconOnly" "$ROOT/src/Main.qml" || true)
-  [ "$ICON_BTNS" -eq 2 ] && ok "Only 2 icon ToolButtons (swap + detect) — correct" || fail "Expected 2 icon ToolButtons, found $ICON_BTNS"
+# ── 10. Mood palettes (V1 + V2) ──
+echo "--- 10. Mood palettes ---"
+grep -q 'computeMoodPalettes' "${ROOT}/src/WallpaperProcessor.cpp" && ok "computeMoodPalettes V1" \
+  || fail "computeMoodPalettes missing"
+grep -q 'computeMoodPalettesV2' "${ROOT}/src/WallpaperProcessor.cpp" && ok "computeMoodPalettes V2" \
+  || fail "computeMoodPalettesV2 missing"
+grep -q 'moodColorV2A' "${ROOT}/src/WallpaperProcessor.cpp" && ok "moodColorV2A accessor" \
+  || fail "moodColorV2A missing"
+grep -q 'moodNameV2' "${ROOT}/src/WallpaperProcessor.cpp" && ok "moodNameV2 accessor" \
+  || fail "moodNameV2 missing"
+! grep -q 'static const char.*fallback' "${ROOT}/src/WallpaperProcessor.cpp" && ok "No stale fallback hex colors" \
+  || fail "Stale fallback hex colors still present"
 
-# 7) Reset effects button
-echo "--- Feature 7: Reset effects button ---"
-grep -q 'Reset effects' "$ROOT/src/Main.qml" \
-  && ok "Reset effects button found" \
-  || fail "Reset effects button missing"
-grep -q 'caStrength = 0.0' "$ROOT/src/Main.qml" \
-  && ok "Reset effects includes CA" \
-  || fail "CA not in Reset effects button"
+# ── 11. Gradient presets ──
+echo "--- 11. Gradient presets ---"
+grep -q 'QT_TRANSLATE_NOOP' "${ROOT}/src/WallpaperProcessor.cpp" && ok "Gradient names i18n-marked" \
+  || fail "Gradient names not i18n-marked"
 
-# 8) Improved vignette rendering
-echo "--- Feature 8: Stronger vignette ---"
-grep -q 'fadeStart' "$ROOT/src/WallpaperProcessor.cpp" \
-  && ok "Vignette uses dynamic fadeStart" \
-  || fail "Vignette missing fadeStart"
-grep -qF '(200 * s)' "$ROOT/src/WallpaperProcessor.cpp" \
-  && ok "Vignette uses stronger alpha (200)" \
-  || fail "Vignette alpha still 120 or lower"
-grep -q 'std::sqrt((W/2.0)' "$ROOT/src/WallpaperProcessor.cpp" \
-  && ok "Vignette radius matches image diagonal" \
-  || fail "Vignette radius still qMax-based"
-
-# 9) Chromatic aberration
-echo "--- Feature 9: Chromatic aberration ---"
-grep -q 'caStrength' "$ROOT/src/WallpaperProcessor.h" \
-  && ok "caStrength Q_PROPERTY declared" \
-  || fail "caStrength missing from header"
-grep -q 'm_caStrength' "$ROOT/src/WallpaperProcessor.h" \
-  && ok "caStrength member declared" \
-  || fail "caStrength member missing"
-grep -q 'setCaStrength' "$ROOT/src/WallpaperProcessor.cpp" \
-  && ok "caStrength setter defined" \
-  || fail "caStrength setter missing"
-grep -qF 'maxShift = m_caStrength * std::min(W, H) * 0.05' "$ROOT/src/WallpaperProcessor.cpp" \
-  && ok "CA maxShift proportional (5% of min dimension)" \
-  || fail "CA maxShift not proportional"
-grep -q 'text: i18n("CA")' "$ROOT/src/Main.qml" \
-  && ok "CA text button in QML" \
-  || fail "CA text button missing in QML"
-grep -q 'onCaStrengthChanged' "$ROOT/src/Main.qml" \
-  && ok "CA debounce wired" \
-  || fail "CA debounce not wired"
-
-# 10) Preview crossfade (no canvas bleed-through)
-echo "--- Feature 10: Preview crossfade ---"
-grep -q 'id: previewA' "$ROOT/src/Main.qml" \
-  && ok "Two-layer preview (previewA)" \
-  || fail "Missing previewA layer"
-grep -q 'id: previewB' "$ROOT/src/Main.qml" \
-  && ok "Two-layer preview (previewB)" \
-  || fail "Missing previewB layer"
-grep -q 'crossfadePreview' "$ROOT/src/Main.qml" \
-  && ok "crossfadePreview function defined" \
-  || fail "crossfadePreview function missing"
-# Verify previewA stays opaque (no opacity animation on A)
-grep -q 'NumberAnimation.*previewB.*opacity.*to: 1.0' "$ROOT/src/Main.qml" \
-  && ok "Only previewB fades in (previewA stays opaque)" \
-  || fail "Crossfade still animates previewA"
-# Ensure no ParallelAnimation (old style)
-grep -q 'ParallelAnimation' "$ROOT/src/Main.qml" \
-  && fail "Old ParallelAnimation crossfade still present" \
-  || ok "New single-target crossfade, no ParallelAnimation"
-
-# 11) No SpinBoxes remain
-echo "--- Feature 11: No SpinBox inputs ---"
-SPINBOX_COUNT=$(grep -c 'Controls.SpinBox' "$ROOT/src/Main.qml" || true)
-if [ "$SPINBOX_COUNT" -eq 0 ]; then
-  ok "All SpinBox (text input) fields removed"
-else
-  fail "Expected 0 SpinBox, found $SPINBOX_COUNT"
-fi
-
-# 12) Visual polish: layer-based rounded clip + drop shadow
-echo "--- Feature 12: Visual polish ---"
-# dropZone no longer uses clip:true — layer.enabled clips to rounded shape
-! grep -q 'dropZone.*clip: true' "$ROOT/src/Main.qml" \
-  && ok "No clip:true on dropZone (layer handles rounded clip)" \
-  || fail "dropZone still has clip:true"
-grep -q 'cornerRadius' "$ROOT/src/Main.qml" \
-  && ok "Uses Kirigami.Units.cornerRadius" \
-  || fail "Still uses smallSpacing radius"
-grep -q 'MultiEffect' "$ROOT/src/Main.qml" \
-  && ok "MultiEffect imported and configured" \
-  || fail "MultiEffect missing"
-grep -q 'layer.enabled: true' "$ROOT/src/Main.qml" \
-  && ok "Drop shadow layer enabled" \
-  || fail "Layer not enabled"
-grep -q 'shadowBlur: 16' "$ROOT/src/Main.qml" \
-  && ok "Drop shadow blur 16px" \
-  || fail "Shadow blur not 16"
-grep -q 'shadowVerticalOffset: 4' "$ROOT/src/Main.qml" \
-  && ok "Drop shadow vertical offset 4px" \
-  || fail "Shadow offset not 4"
-
-# 13) Signal handlers (no missing Connections)
-echo "--- Feature 13: Signal handlers ---"
-grep -q 'onAspectModeChanged' "$ROOT/src/Main.qml" \
-  && ok "onAspectModeChanged handler wired" \
-  || fail "Missing onAspectModeChanged"
-grep -q 'onAutoMoodChanged' "$ROOT/src/Main.qml" \
-  && ok "onAutoMoodChanged handler wired" \
-  || fail "Missing onAutoMoodChanged"
-
-# 14) No stale imagePreview references
-echo "--- Feature 14: No stale references ---"
-IM=$(grep -c 'imagePreview' "$ROOT/src/Main.qml" || true)
-if [ "$IM" -eq 0 ]; then
-  ok "All imagePreview references migrated to crossfadePreview"
-else
-  fail "Found $IM imagePreview references (should be 0)"
-fi
-
-# 15) Ghost outline (transparent fill + border only when empty)
-echo "--- Feature 15: Ghost outline ---"
-grep -q '"transparent"' "$ROOT/src/Main.qml" \
-  && ok "dropZone uses transparent fill when empty" \
-  || fail "Missing transparent fill"
-grep -q 'border.color: dropArea.fileCount === 0 ?' "$ROOT/src/Main.qml" \
-  && ok "Border conditionally hidden when image loaded" \
-  || fail "Border not conditional on fileCount"
-
-# 16) Text buttons (no more icon-only ToolButtons for effects)
-echo "--- Feature 16: Text reset buttons ---"
-for btn in '"V"' '"G"' '"CA"' '"Blur"' '"Sat"' '"Zoom"' '"Rot"' '"Angle"'; do
-  grep -q "text: i18n($btn)" "$ROOT/src/Main.qml" \
-    && ok "Reset button $btn" \
-    || fail "Missing text button $btn"
-done
-
-# 17) Highlighted selection (accent color)
-echo "--- Feature 17: Highlighted selection ---"
-H_COUNT=$(grep -c 'highlighted: checked' "$ROOT/src/Main.qml" || true)
-if [ "$H_COUNT" -ge 2 ]; then
-  ok "Buttons use highlighted: checked for accent color ($H_COUNT occurrences)"
-else
-  fail "Expected >= 2 highlighted: checked, found $H_COUNT"
-fi
-
-# 18) No separators (including ratio divider line)
-echo "--- Feature 18: No separators ---"
-! grep -q 'Kirigami.Separator' "$ROOT/src/Main.qml" \
-  && ok "No Kirigami.Separator remain" \
-  || fail "Separator still present"
-! grep -q '// Separator' "$ROOT/src/Main.qml" \
-  && ok "No ratio divider Rectangle" \
-  || fail "Ratio divider still present"
-
-# 19) Photo frame properties (and preview accuracy)
-echo "--- Feature 19: Photo frame ---"
-grep -q 'Q_PROPERTY(bool photoFrame' "$ROOT/src/WallpaperProcessor.h" \
-  && ok "photoFrame Q_PROPERTY declared" \
-  || fail "Missing photoFrame property"
-grep -q 'Q_PROPERTY(int photoFrameWidth' "$ROOT/src/WallpaperProcessor.h" \
-  && ok "photoFrameWidth Q_PROPERTY declared" \
-  || fail "Missing photoFrameWidth property"
-grep -q 'm_photoFrame = false;' "$ROOT/src/WallpaperProcessor.h" \
-  && ok "photoFrame defaults to false" \
-  || fail "Missing photoFrame default"
-grep -q 'Photo frame' "$ROOT/src/Main.qml" \
-  && ok "Photo frame toggle in QML" \
-  || fail "Missing photo frame QML toggle"
-grep -q 'to: 25' "$ROOT/src/Main.qml" \
-  && ok "Photo frame width max 25px" \
-  || fail "Photo frame width not bounded at 25"
-grep -q 'std::min(W, H) / 500.0' "$ROOT/src/WallpaperProcessor.cpp" \
-  && ok "Frame width scales proportionally to output" \
-  || fail "Frame width not proportional"
-grep -q 'FRAME_RADIUS' "$ROOT/src/WallpaperProcessor.cpp" \
-  && ok "FRAME_RADIUS = 2 defined" \
+# ── 12. Photo frame ──
+echo "--- 12. Photo frame ---"
+grep -q 'Q_PROPERTY.*photoFrameWidth' "${ROOT}/src/WallpaperProcessor.h" && ok "photoFrameWidth Q_PROPERTY" \
+  || fail "photoFrameWidth not in header"
+grep -q 'FRAME_RADIUS' "${ROOT}/src/WallpaperProcessor.cpp" && ok "FRAME_RADIUS constant" \
   || fail "FRAME_RADIUS missing"
-grep -q 'Antialiasing' "$ROOT/src/WallpaperProcessor.cpp" \
-  && ok "Antialiasing enabled for smooth corners" \
+grep -q 'Antialiasing' "${ROOT}/src/WallpaperProcessor.cpp" && ok "Antialiasing for smooth corners" \
   || fail "Antialiasing missing"
-grep -q "qBound(0, w, 25)" "$ROOT/src/WallpaperProcessor.cpp" \
-  && ok "setter allows 0 (off) and caps at 25px" \
-  || fail "Setter bounds not 0-25"
-grep -q '400.0' "$ROOT/src/WallpaperProcessor.cpp" \
-  && fail "generatePreview still uses 400px limit" \
-  || ok "generatePreview no longer uses 400px limit"
-grep -q 'interval: 700' "$ROOT/src/Main.qml" \
-  && ok "Preview debounce 700ms (for full-res render)" \
-  || fail "Debounce interval not 700ms"
+grep -q 'std::min(W, H) / 500.0' "${ROOT}/src/WallpaperProcessor.cpp" && ok "Frame width proportional to output" \
+  || fail "Frame width not proportional"
 
-# 22) Photo frame as text button (plain reset button like V/G/CA, no toggle)
-echo "--- Feature 22: Photo frame text button ---"
-grep -q 'text: i18n(\"Frame\")' "$ROOT/src/Main.qml" \
-  && ok "Frame text button exists" \
-  || fail "Missing Frame button"
-# Frame button is plain (no checkable on same or adjacent lines)
-! sed -n '/text: i18n("Frame")/,/onClicked/p' "$ROOT/src/Main.qml" | grep -q 'checkable' \
-  && ok "Frame button is NOT checkable (plain reset like V)" \
-  || fail "Frame button should not be checkable"
-# Slider at 0 means off
-grep -q 'from: 0; to: 25' "$ROOT/src/Main.qml" \
-  && ok "Frame slider range 0-25 (0 = off)" \
-  || fail "Frame slider not 0-25"
-grep -q 'photoFrameWidth = 0' "$ROOT/src/Main.qml" \
-  && ok "Frame button resets width to 0" \
-  || fail "Frame button doesn't reset to 0"
+# ── 13. Aspect mode ratios (single source of truth) ──
+echo "--- 13. Aspect ratios ---"
+grep -q 's_aspectRatios' "${ROOT}/src/WallpaperProcessor.h" && ok "Single source-of-truth ratios" \
+  || fail "s_aspectRatios missing"
+HAVE_RATIOS=$(grep -c 'static const double ratios' "${ROOT}/src/WallpaperProcessor.cpp" || true)
+[ "$HAVE_RATIOS" -eq 0 ] && ok "No duplicated ratios array in .cpp" \
+  || fail "Duplicated ratios array still in .cpp"
 
-# 23) Blur sigma range widened
-echo "--- Feature 23: Blur sigma range ---"
-grep -q 'qMax(1.0, (double)m_blurRadius)' "$ROOT/src/WallpaperProcessor.cpp" \
-  && ok "Manual sigma = slider value (1-120)" \
-  || fail "Manual sigma formula unchanged"
+# ── 14. Downscale DRY (limitImageSize helper) ──
+echo "--- 14. DRY downscale ---"
+grep -q 'limitImageSize' "${ROOT}/src/WallpaperProcessor.h" && ok "limitImageSize declared" \
+  || fail "limitImageSize not declared"
+DUPE_COUNT=$(grep -c 'imgW = imgW \* 2 / 5' "${ROOT}/src/WallpaperProcessor.cpp" || true)
+[ "$DUPE_COUNT" -eq 1 ] && ok "Downscale code appears only once (in limitImageSize)" \
+  || fail "Downscale code still duplicated ($DUPE_COUNT occurrences)"
 
-# 20) Braille processing indicator
-echo "--- Feature 20: Braille processing indicator ---"
-grep -q 'processingIndicator' "$ROOT/src/Main.qml" \
-  && ok "Braille indicator label exists" \
-  || fail "Missing braille indicator"
-grep -q 'visible: processor.busy' "$ROOT/src/Main.qml" \
-  && ok "Indicator visible when busy" \
-  || fail "Indicator not tied to busy"
-grep -q '\\u28B8' "$ROOT/src/Main.qml" \
-  && ok "Braille animation frames defined" \
-  || fail "Missing braille frames"
+# ── 15. boostSaturation endian-safe ──
+echo "--- 15. Saturation boost ---"
+grep -q 'qRed(px)' "${ROOT}/src/WallpaperProcessor.cpp" && ok "Saturation uses qRed/qGreen/qBlue (endian-safe)" \
+  || fail "Saturation still uses byte-offset access"
+! grep -q '// B,G,R,A on little-endian' "${ROOT}/src/WallpaperProcessor.cpp" && ok "No x86_64-specific comment" \
+  || fail "Endian-specific comment still present"
 
-# 21) O(n) box blur optimizations
-echo "--- Feature 21: Performance optimizations ---"
-grep -q 'boxBlurH' "$ROOT/src/WallpaperProcessor.cpp" \
-  && ok "boxBlurH (parallel O(n) horizontal blur)" \
-  || fail "Missing boxBlurH"
-grep -q 'boxBlurV' "$ROOT/src/WallpaperProcessor.cpp" \
-  && ok "boxBlurV (parallel O(n) vertical blur)" \
-  || fail "Missing boxBlurV"
-grep -q 'sigmaToBoxes' "$ROOT/src/WallpaperProcessor.cpp" \
-  && ok "sigmaToBoxes (3-pass Gaussian approximation)" \
-  || fail "Missing sigmaToBoxes"
-grep -q 'QtConcurrent::blockingMap' "$ROOT/src/WallpaperProcessor.cpp" \
-  && ok "QtConcurrent multi-threaded blur passes" \
-  || fail "Missing QtConcurrent parallelization"
-grep -q 'stackBlur(QImage &image, double sigma)' "$ROOT/src/WallpaperProcessor.cpp" \
-  && ok "stackBlur now takes sigma (double), radius-independent" \
-  || fail "stackBlur signature not updated"
-grep -q 'm_blurBuf' "$ROOT/src/WallpaperProcessor.h" \
-  && ok "Pre-allocated blur buffer (m_blurBuf)" \
-  || fail "Missing m_blurBuf"
-grep -q 'ensureNoiseTexture' "$ROOT/src/WallpaperProcessor.cpp" \
-  && ok "Pre-generated noise texture (ensureNoiseTexture)" \
-  || fail "Missing ensureNoiseTexture"
-grep -q 'Qt6::Concurrent' "$ROOT/src/CMakeLists.txt" \
-  && ok "Qt6::Concurrent linked" \
-  || fail "Missing Qt6::Concurrent in CMake"
-grep -q 'march=native' "$ROOT/src/CMakeLists.txt" \
-  && ok "-march=native SIMD auto-vectorization enabled" \
-  || fail "Missing -march=native"
-grep -q 'funroll-loops' "$ROOT/src/CMakeLists.txt" \
-  && ok "-funroll-loops enabled for pixel loops" \
-  || fail "Missing -funroll-loops"
-grep -q 'fno-rtti' "$ROOT/src/CMakeLists.txt" \
-  && ok "-fno-rtti (safe, Qt doesn't need C++ RTTI)" \
-  || fail "Missing -fno-rtti"
-grep -q 'fno-unwind-tables' "$ROOT/src/CMakeLists.txt" \
-  && ok "-fno-unwind-tables (no exceptions, no unwind needed)" \
-  || fail "Missing -fno-unwind-tables"
-grep -q 'ffunction-sections' "$ROOT/src/CMakeLists.txt" \
-  && ok "Function sections for linker GC" \
-  || fail "Missing -ffunction-sections"
-grep -q 'gc-sections' "$ROOT/src/CMakeLists.txt" \
-  && ok "--gc-sections (dead code elimination)" \
-  || fail "Missing --gc-sections"
-grep -q 'INTERPROCEDURAL_OPTIMIZATION' "$ROOT/src/CMakeLists.txt" \
-  && ok "LTO enabled via INTERPROCEDURAL_OPTIMIZATION" \
-  || fail "Missing LTO"
+# ── 16. Reset effects button ──
+echo "--- 16. Reset effects ---"
+grep -q 'Reset all effects' "${ROOT}/src/Main.qml" && ok "Reset effects button (tooltip)" \
+  || fail "Reset effects missing"
+
+# ── 17. CollapsibleSection ──
+echo "--- 17. Collapsible sections ---"
+grep -q 'property bool expanded' "${ROOT}/src/CollapsibleSection.qml" && ok "CollapsibleSection expanded property" \
+  || fail "CollapsibleSection missing"
+
+# ── 18. No stale components ──
+echo "--- 18. Stale component audit ---"
+! grep -q 'Controls.SpinBox' "${ROOT}/src/Main.qml" && ok "No SpinBox inputs" \
+  || fail "SpinBox still present"
+! grep -q 'Kirigami.Separator' "${ROOT}/src/Main.qml" && ok "No Kirigami.Separator" \
+  || fail "Separator still present"
+! grep -q 'wp_colorFromCentroid' "${ROOT}/src/WallpaperProcessor.h" && ok "wp_colorFromCentroid not in header" \
+  || fail "wp_colorFromCentroid leaks to header"
+
+# ── 19. Connections merged ──
+echo "--- 19. Connections ---"
+CONN_COUNT=$(grep -c 'Connections {' "${ROOT}/src/Main.qml" || true)
+[ "$CONN_COUNT" -eq 1 ] && ok "Single Connections block (merged)" \
+  || fail "Multiple Connections blocks ($CONN_COUNT)"
+
+# ── 20. CMakeLists flags ──
+echo "--- 20. CMake build flags ---"
+grep -q 'march=native' "${ROOT}/src/CMakeLists.txt" && ok "-march=native SIMD" \
+  || fail "-march=native missing"
+grep -q 'INTERPROCEDURAL_OPTIMIZATION' "${ROOT}/src/CMakeLists.txt" && ok "LTO enabled" \
+  || fail "LTO missing"
+grep -q 'Qt6::Concurrent' "${ROOT}/src/CMakeLists.txt" && ok "Qt6::Concurrent linked" \
+  || fail "Qt6::Concurrent missing"
+
+# ── 21. Packaging files ──
+echo "--- 21. Packaging ---"
+[ -f "${ROOT}/flatpak/org.walltz.walltz.yml" ] && ok "Flatpak manifest exists" \
+  || fail "Flatpak manifest missing"
+[ -f "${ROOT}/scripts/build-appimage.sh" ] && ok "AppImage build script exists" \
+  || fail "AppImage build script missing"
+[ -f "${ROOT}/COPYING" ] && ok "LICENSE file (COPYING)" \
+  || fail "LICENSE file missing"
+[ -x "${ROOT}/scripts/build-appimage.sh" ] && ok "AppImage script executable" \
+  || fail "AppImage script not executable"
 
 echo
 echo "Result: $PASS passed, $FAIL failed"

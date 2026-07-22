@@ -25,21 +25,21 @@ static const int FRAME_RADIUS = 2;  // photo frame corner radius (small, paper-l
 const WallpaperProcessor::GradientPreset WallpaperProcessor::s_presets[12] = {
     // name             color1        color2
     // ── Warm tones ──
-    { "Sunset Warmth",  0xffff6b6b, 0xfffeca57 },
-    { "Coral Reef",     0xffff6b6b, 0xff48dbfb },
-    { "Lemonade",       0xfffdcb6e, 0xff00cec9 },
+    { QT_TRANSLATE_NOOP("WP", "Sunset Warmth"),  0xffff6b6b, 0xfffeca57 },
+    { QT_TRANSLATE_NOOP("WP", "Coral Reef"),     0xffff6b6b, 0xff48dbfb },
+    { QT_TRANSLATE_NOOP("WP", "Lemonade"),       0xfffdcb6e, 0xff00cec9 },
     // ── Cool tones ──
-    { "Ocean Depths",   0xff0abde3, 0xff48dbfb },
-    { "Tokyo Night",    0xff1a1b26, 0xff7aa2f7 },
-    { "Arctic",         0xff2e3440, 0xff88c0d0 },
+    { QT_TRANSLATE_NOOP("WP", "Ocean Depths"),   0xff0abde3, 0xff48dbfb },
+    { QT_TRANSLATE_NOOP("WP", "Tokyo Night"),    0xff1a1b26, 0xff7aa2f7 },
+    { QT_TRANSLATE_NOOP("WP", "Arctic"),         0xff2e3440, 0xff88c0d0 },
     // ── Dev themes ──
-    { "Catppuccin",     0xff1e1e2e, 0xffcba6f7 },
-    { "Gruvbox",        0xff282828, 0xff8f3f1a },
-    { "Solarized",      0xff073642, 0xff268bd2 },
+    { QT_TRANSLATE_NOOP("WP", "Catppuccin"),     0xff1e1e2e, 0xffcba6f7 },
+    { QT_TRANSLATE_NOOP("WP", "Gruvbox"),        0xff282828, 0xff8f3f1a },
+    { QT_TRANSLATE_NOOP("WP", "Solarized"),      0xff073642, 0xff268bd2 },
     // ── Purple/Pink / Nature / Neutral ──
-    { "Dusk",           0xff6c5ce7, 0xfffd79a8 },
-    { "Everforest",     0xff2b3339, 0xffa7c080 },
-    { "Grayscale",      0xff444444, 0xffcccccc },
+    { QT_TRANSLATE_NOOP("WP", "Dusk"),           0xff6c5ce7, 0xfffd79a8 },
+    { QT_TRANSLATE_NOOP("WP", "Everforest"),     0xff2b3339, 0xffa7c080 },
+    { QT_TRANSLATE_NOOP("WP", "Grayscale"),      0xff444444, 0xffcccccc },
 };
 
 // ── constructor ──────────────────────────────────────────────────────────
@@ -143,8 +143,7 @@ void WallpaperProcessor::setAspectMode(int mode)
     if (mode == 0) {
         m_aspectRatio = 0.0;
     } else {
-        static const double ratios[] = {0.0, 1.0, 4.0/3.0, 16.0/9.0, 16.0/10.0, 21.0/9.0, 32.0/9.0};
-        m_aspectRatio = ratios[mode];
+        m_aspectRatio = s_aspectRatios[mode];
         // Keep the longer dimension, recalc the shorter
         if (m_targetWidth >= m_targetHeight) {
             int newH = qRound(m_targetWidth / m_aspectRatio);
@@ -284,9 +283,8 @@ QString WallpaperProcessor::gradientPresetColor2(int index) const
 
 double WallpaperProcessor::aspectRatioForMode(int mode) const
 {
-    static const double ratios[] = {0.0, 1.0, 4.0/3.0, 16.0/9.0, 16.0/10.0, 21.0/9.0, 32.0/9.0};
     if (mode < 0 || mode > 6) return 0.0;
-    return ratios[mode];
+    return s_aspectRatios[mode];
 }
 
 // ── window binding ──────────────────────────────────────────────────────
@@ -502,6 +500,23 @@ void WallpaperProcessor::processNext()
     QTimer::singleShot(10, this, &WallpaperProcessor::processNext);
 }
 
+// ── Image downscale helper ───────────────────────────────────────────────
+// When loading a source image much larger than the output, scale it down
+// incrementally (×0.4 per pass) to reduce memory. Aspect ratio preserved
+// because both dimensions are scaled equally.
+
+QImage WallpaperProcessor::limitImageSize(const QImage &src, int maxW, int maxH)
+{
+    int imgW = src.width(), imgH = src.height();
+    if (imgW <= maxW && imgH <= maxH)
+        return src;
+    while (imgW > maxW || imgH > maxH) {
+        imgW = imgW * 2 / 5;
+        imgH = imgH * 2 / 5;
+    }
+    return src.scaled(imgW, imgH, Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
+}
+
 // ── core image processing ────────────────────────────────────────────────
 
 bool WallpaperProcessor::processSingleImage(const QString &sourcePath, QString &outPath)
@@ -516,15 +531,7 @@ bool WallpaperProcessor::processSingleImage(const QString &sourcePath, QString &
     int H = m_targetHeight;
 
     // Scale source down if oversized (matching original 2/5 iteration)
-    int imgW = srcImage.width();
-    int imgH = srcImage.height();
-    if (imgW > W || imgH > H) {
-        while (imgW > W || imgH > H) {
-            imgW = imgW * 2 / 5;
-            imgH = imgH * 2 / 5;
-        }
-        srcImage = srcImage.scaled(imgW, imgH, Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
-    }
+    srcImage = WallpaperProcessor::limitImageSize(srcImage, W, H);
 
     QImage output = renderWallpaper(srcImage, W, H);
 
@@ -772,14 +779,7 @@ QString WallpaperProcessor::generatePreview(const QString &sourcePath)
     int H = m_targetHeight;
 
     // Scale source down if oversized (same logic as processSingleImage)
-    int imgW = srcImage.width(), imgH = srcImage.height();
-    if (imgW > W || imgH > H) {
-        while (imgW > W || imgH > H) {
-            imgW = imgW * 2 / 5;
-            imgH = imgH * 2 / 5;
-        }
-        srcImage = srcImage.scaled(imgW, imgH, Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
-    }
+    srcImage = WallpaperProcessor::limitImageSize(srcImage, W, H);
 
     // Pre-compute mood palettes from the source image for QML display
     m_moodsComputed = false;
@@ -1084,16 +1084,19 @@ void WallpaperProcessor::computeMoodPalettes(const QImage &image)
     computeMoodPalettesV2(image);
 }
 
+// ── Anonymous namespace: file-local helpers ──────────────────────────────
+namespace {
 
-
-QColor WP_colorFromCentroid(double r, double g, double b)
+QColor wp_colorFromCentroid(double r, double g, double b)
 {
     return QColor(qBound(0, (int)qRound(r), 255),
                   qBound(0, (int)qRound(g), 255),
                   qBound(0, (int)qRound(b), 255));
 }
 
-// ── V2: 3D RGB histogram (future use, not wired up) ────────────────────────
+} // anonymous namespace
+
+// ── V2: 3D RGB histogram ────────────────────────────────────────────────
 //
 // 8×8×8 RGB cube. Bins scored by population × chroma² × (1 − |0.5 − lightness|).
 // Top-3 well-separated centroids feed all 6 moods.  Called from
@@ -1173,9 +1176,9 @@ void WallpaperProcessor::computeMoodPalettesV2(const QImage &image)
 
     // Raw centroid colors (seed values)
     QColor colors[3] = {
-        WP_colorFromCentroid(picks[0]->r, picks[0]->g, picks[0]->b),
-        picks.size() > 1 ? WP_colorFromCentroid(picks[1]->r, picks[1]->g, picks[1]->b) : WP_colorFromCentroid(picks[0]->r, picks[0]->g, picks[0]->b),
-        picks.size() > 2 ? WP_colorFromCentroid(picks[2]->r, picks[2]->g, picks[2]->b) : WP_colorFromCentroid(picks[0]->r, picks[0]->g, picks[0]->b)
+        wp_colorFromCentroid(picks[0]->r, picks[0]->g, picks[0]->b),
+        picks.size() > 1 ? wp_colorFromCentroid(picks[1]->r, picks[1]->g, picks[1]->b) : wp_colorFromCentroid(picks[0]->r, picks[0]->g, picks[0]->b),
+        picks.size() > 2 ? wp_colorFromCentroid(picks[2]->r, picks[2]->g, picks[2]->b) : wp_colorFromCentroid(picks[0]->r, picks[0]->g, picks[0]->b)
     };
 
     // ── Artistically soften centroids for wallpaper-friendly gradients ──
@@ -1294,20 +1297,14 @@ QString WallpaperProcessor::moodColorB(int index) const
 QString WallpaperProcessor::moodColorV2A(int index) const
 {
     if (index < 0 || index >= 6) return {};
-    if (!m_moodsComputed) {
-        static const char *fallback[] = {"#e57373","#a5d6a7","#90caf9","#ffcc80","#80cbc4","#ce93d8"};
-        return QString::fromUtf8(fallback[qBound(0, index, 5)]);
-    }
+    if (!m_moodsComputed) return {};
     return m_moodColorsV2A[index].name();
 }
 
 QString WallpaperProcessor::moodColorV2B(int index) const
 {
     if (index < 0 || index >= 6) return {};
-    if (!m_moodsComputed) {
-        static const char *fallback[] = {"#ff8a80","#81c784","#64b5f6","#ffb74d","#4db6ac","#ba68c8"};
-        return QString::fromUtf8(fallback[qBound(0, index, 5)]);
-    }
+    if (!m_moodsComputed) return {};
     return m_moodColorsV2B[index].name();
 }
 
@@ -1514,7 +1511,7 @@ void WallpaperProcessor::ensureNoiseTexture(int w, int h)
 //   channel = gray + (channel - gray) * factor
 //
 // This avoids full HSL conversion while producing a nearly identical result.
-// Works on ARGB32_Premultiplied (B,G,R,A on little-endian x86_64).
+// Uses qRed/qGreen/qBlue for endian-safe pixel access.
 
 void WallpaperProcessor::boostSaturation(QImage &image, double factor)
 {
@@ -1524,13 +1521,15 @@ void WallpaperProcessor::boostSaturation(QImage &image, double factor)
     uchar *data = image.bits();
 
     for (int y = 0; y < h; ++y) {
-        uchar *row = data + y * bpl;
+        QRgb *row = reinterpret_cast<QRgb*>(data + y * bpl);
         for (int x = 0; x < w; ++x) {
-            uchar *p = row + x * 4;   // B,G,R,A on little-endian x86_64
-            int gray = (p[2] + p[1] + p[0]) / 3;   // (R+G+B)/3
-            p[0] = (uchar)std::clamp((int)(gray + (p[0] - gray) * factor), 0, 255);
-            p[1] = (uchar)std::clamp((int)(gray + (p[1] - gray) * factor), 0, 255);
-            p[2] = (uchar)std::clamp((int)(gray + (p[2] - gray) * factor), 0, 255);
+            QRgb px = row[x];
+            int r = qRed(px), g = qGreen(px), b = qBlue(px);
+            int gray = (r + g + b) / 3;
+            int nr = std::clamp((int)(gray + (r - gray) * factor), 0, 255);
+            int ng = std::clamp((int)(gray + (g - gray) * factor), 0, 255);
+            int nb = std::clamp((int)(gray + (b - gray) * factor), 0, 255);
+            row[x] = qRgba(nr, ng, nb, qAlpha(px));
         }
     }
 }
