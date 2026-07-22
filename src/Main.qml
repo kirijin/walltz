@@ -697,10 +697,9 @@ Kirigami.ApplicationWindow {
 
                 Controls.Button {
                     icon.name: "object-rotate-left"
-                    icon.width: Kirigami.Units.iconSizes.smallMedium
-                    icon.height: Kirigami.Units.iconSizes.smallMedium
-                    implicitWidth: Kirigami.Units.gridUnit * 4
-                    implicitHeight: Kirigami.Units.gridUnit * 3
+                    icon.width: Kirigami.Units.iconSizes.small
+                    icon.height: Kirigami.Units.iconSizes.small
+                    implicitWidth: 28; implicitHeight: 28
                     Controls.ToolTip.text: i18n("Reset Angle")
                     Controls.ToolTip.visible: hovered
                     Controls.ToolTip.delay: 400
@@ -744,10 +743,9 @@ Kirigami.ApplicationWindow {
 
                         Controls.Button {
                             icon.name: "draw-circle"
-                            icon.width: Kirigami.Units.iconSizes.smallMedium
-                            icon.height: Kirigami.Units.iconSizes.smallMedium
-                            implicitWidth: Kirigami.Units.gridUnit * 4
-                            implicitHeight: Kirigami.Units.gridUnit * 3
+                            icon.width: Kirigami.Units.iconSizes.small
+                            icon.height: Kirigami.Units.iconSizes.small
+                            implicitWidth: 28; implicitHeight: 28
                             Controls.ToolTip.text: i18n("Reset Vignette")
                             Controls.ToolTip.visible: hovered
                             Controls.ToolTip.delay: 400
@@ -771,10 +769,9 @@ Kirigami.ApplicationWindow {
 
                         Controls.Button {
                             icon.name: "dialog-filters"
-                            icon.width: Kirigami.Units.iconSizes.smallMedium
-                            icon.height: Kirigami.Units.iconSizes.smallMedium
-                            implicitWidth: Kirigami.Units.gridUnit * 4
-                            implicitHeight: Kirigami.Units.gridUnit * 3
+                            icon.width: Kirigami.Units.iconSizes.small
+                            icon.height: Kirigami.Units.iconSizes.small
+                            implicitWidth: 28; implicitHeight: 28
                             Controls.ToolTip.text: i18n("Reset Grain")
                             Controls.ToolTip.visible: hovered
                             Controls.ToolTip.delay: 400
@@ -798,10 +795,9 @@ Kirigami.ApplicationWindow {
 
                         Controls.Button {
                             icon.name: "colors-chromablue"
-                            icon.width: Kirigami.Units.iconSizes.smallMedium
-                            icon.height: Kirigami.Units.iconSizes.smallMedium
-                            implicitWidth: Kirigami.Units.gridUnit * 4
-                            implicitHeight: Kirigami.Units.gridUnit * 3
+                            icon.width: Kirigami.Units.iconSizes.small
+                            icon.height: Kirigami.Units.iconSizes.small
+                            implicitWidth: 28; implicitHeight: 28
                             Controls.ToolTip.text: i18n("Reset Chromatic Aberration")
                             Controls.ToolTip.visible: hovered
                             Controls.ToolTip.delay: 400
@@ -825,10 +821,9 @@ Kirigami.ApplicationWindow {
 
                         Controls.Button {
                             icon.name: "photo"
-                            icon.width: Kirigami.Units.iconSizes.smallMedium
-                            icon.height: Kirigami.Units.iconSizes.smallMedium
-                            implicitWidth: Kirigami.Units.gridUnit * 4
-                            implicitHeight: Kirigami.Units.gridUnit * 3
+                            icon.width: Kirigami.Units.iconSizes.small
+                            icon.height: Kirigami.Units.iconSizes.small
+                            implicitWidth: 28; implicitHeight: 28
                             Controls.ToolTip.text: i18n("Reset Photo Frame")
                             Controls.ToolTip.visible: hovered
                             Controls.ToolTip.delay: 400
@@ -874,10 +869,9 @@ Kirigami.ApplicationWindow {
 
                         Controls.Button {
                             icon.name: "blur"
-                            icon.width: Kirigami.Units.iconSizes.smallMedium
-                            icon.height: Kirigami.Units.iconSizes.smallMedium
-                            implicitWidth: Kirigami.Units.gridUnit * 4
-                            implicitHeight: Kirigami.Units.gridUnit * 3
+                            icon.width: Kirigami.Units.iconSizes.small
+                            icon.height: Kirigami.Units.iconSizes.small
+                            implicitWidth: 28; implicitHeight: 28
                             Controls.ToolTip.text: i18n("Reset Blur")
                             Controls.ToolTip.visible: hovered
                             Controls.ToolTip.delay: 400
@@ -901,10 +895,9 @@ Kirigami.ApplicationWindow {
 
                         Controls.Button {
                             icon.name: "color-management"
-                            icon.width: Kirigami.Units.iconSizes.smallMedium
-                            icon.height: Kirigami.Units.iconSizes.smallMedium
-                            implicitWidth: Kirigami.Units.gridUnit * 4
-                            implicitHeight: Kirigami.Units.gridUnit * 3
+                            icon.width: Kirigami.Units.iconSizes.small
+                            icon.height: Kirigami.Units.iconSizes.small
+                            implicitWidth: 28; implicitHeight: 28
                             Controls.ToolTip.text: i18n("Reset Saturation")
                             Controls.ToolTip.visible: hovered
                             Controls.ToolTip.delay: 400
@@ -926,10 +919,9 @@ Kirigami.ApplicationWindow {
 
                         Controls.Button {
                             icon.name: "view-zoom-original"
-                            icon.width: Kirigami.Units.iconSizes.smallMedium
-                            icon.height: Kirigami.Units.iconSizes.smallMedium
-                            implicitWidth: Kirigami.Units.gridUnit * 4
-                            implicitHeight: Kirigami.Units.gridUnit * 3
+                            icon.width: Kirigami.Units.iconSizes.small
+                            icon.height: Kirigami.Units.iconSizes.small
+                            implicitWidth: 28; implicitHeight: 28
                             Controls.ToolTip.text: i18n("Reset Zoom")
                             Controls.ToolTip.visible: hovered
                             Controls.ToolTip.delay: 400
@@ -951,10 +943,9 @@ Kirigami.ApplicationWindow {
 
                         Controls.Button {
                             icon.name: "transform-rotate"
-                            icon.width: Kirigami.Units.iconSizes.smallMedium
-                            icon.height: Kirigami.Units.iconSizes.smallMedium
-                            implicitWidth: Kirigami.Units.gridUnit * 4
-                            implicitHeight: Kirigami.Units.gridUnit * 3
+                            icon.width: Kirigami.Units.iconSizes.small
+                            icon.height: Kirigami.Units.iconSizes.small
+                            implicitWidth: 28; implicitHeight: 28
                             Controls.ToolTip.text: i18n("Reset Rotation")
                             Controls.ToolTip.visible: hovered
                             Controls.ToolTip.delay: 400
