@@ -18,9 +18,8 @@ Item {
         fillMode: Image.PreserveAspectFit
         layer.enabled: true
         layer.effect: MultiEffect {
-            colorizationEnabled: true
+            colorization: 1.0
             colorizationColor: icon.parent.colorType
-            colorizationAmount: 1.0
         }
     }
 }
