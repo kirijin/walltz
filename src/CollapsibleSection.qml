@@ -32,9 +32,7 @@ ColumnLayout {
         }
 
         RowLayout {
-            anchors.fill: parent
-            anchors.leftMargin: Kirigami.Units.smallSpacing
-            anchors.rightMargin: Kirigami.Units.smallSpacing
+            anchors.centerIn: parent
             spacing: Kirigami.Units.smallSpacing
 
             Controls.Label {
@@ -49,7 +47,6 @@ ColumnLayout {
                 text: root.title
                 font.weight: Font.DemiBold
                 color: Kirigami.Theme.textColor
-                Layout.fillWidth: true
             }
         }
 

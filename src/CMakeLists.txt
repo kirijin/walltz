@@ -13,6 +13,7 @@ target_sources(walltz PRIVATE
 
 ecm_target_qml_sources(walltz SOURCES
     Main.qml
+    ThemedIcon.qml
     CollapsibleSection.qml
 )
 
