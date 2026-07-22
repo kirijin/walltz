@@ -768,27 +768,16 @@ QString WallpaperProcessor::generatePreview(const QString &sourcePath)
     QImage srcImage(sourcePath);
     if (srcImage.isNull()) return {};
 
-    // Scale output dimensions to ~400px on the longest edge
-    int pw = m_targetWidth, ph = m_targetHeight;
-    double ps = qMin(400.0 / qMax(pw, ph), 1.0);
-    pw = qMax((int)(pw * ps), 200);
-    ph = qMax((int)(ph * ps), 150);
+    // Use full target resolution so the preview matches the final output exactly.
+    // The QML Image element downscales both the live preview and the post-process
+    // .wp.png identically via PreserveAspectFit.
+    int W = m_targetWidth;
+    int H = m_targetHeight;
 
-    // Preserve target aspect ratio after min-clamp
-    if (pw > 0 && ph > 0) {
-        if (pw >= ph) {
-            // Landscape/wide: width is authoritative
-            ph = qMax(qRound(pw * m_targetHeight / (double)m_targetWidth), 1);
-        } else {
-            // Portrait: height is authoritative
-            pw = qMax(qRound(ph * m_targetWidth / (double)m_targetHeight), 1);
-        }
-    }
-
-    // Scale source for preview output
+    // Scale source down if oversized (same logic as processSingleImage)
     int imgW = srcImage.width(), imgH = srcImage.height();
-    if (imgW > pw || imgH > ph) {
-        while (imgW > pw || imgH > ph) {
+    if (imgW > W || imgH > H) {
+        while (imgW > W || imgH > H) {
             imgW = imgW * 2 / 5;
             imgH = imgH * 2 / 5;
         }
@@ -799,7 +788,7 @@ QString WallpaperProcessor::generatePreview(const QString &sourcePath)
     m_moodsComputed = false;
     computeMoodPalettes(srcImage);
 
-    QImage preview = renderWallpaper(srcImage, pw, ph);
+    QImage preview = renderWallpaper(srcImage, W, H);
 
     // Save to temp (deterministic filename — old preview overwritten on re-gen)
     QString tmpDir = QDir::tempPath() + QStringLiteral("/walltz");

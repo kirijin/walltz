@@ -232,7 +232,7 @@ echo "--- Feature 18: No separators ---"
   && ok "No ratio divider Rectangle" \
   || fail "Ratio divider still present"
 
-# 19) Photo frame properties
+# 19) Photo frame properties (and preview accuracy)
 echo "--- Feature 19: Photo frame ---"
 grep -q 'Q_PROPERTY(bool photoFrame' "$ROOT/src/WallpaperProcessor.h" \
   && ok "photoFrame Q_PROPERTY declared" \
@@ -261,6 +261,12 @@ grep -q 'Antialiasing' "$ROOT/src/WallpaperProcessor.cpp" \
 grep -q "qBound(5, w, 25)" "$ROOT/src/WallpaperProcessor.cpp" \
   && ok "setter bounds at 25px" \
   || fail "Setter doesn't cap at 25"
+grep -q '400.0' "$ROOT/src/WallpaperProcessor.cpp" \
+  && fail "generatePreview still uses 400px limit" \
+  || ok "generatePreview no longer uses 400px limit"
+grep -q 'interval: 700' "$ROOT/src/Main.qml" \
+  && ok "Preview debounce 700ms (for full-res render)" \
+  || fail "Debounce interval not 700ms"
 
 echo
 echo "Result: $PASS passed, $FAIL failed"

@@ -1100,7 +1100,7 @@ Kirigami.ApplicationWindow {
 
     Timer {
         id: previewDebounce
-        interval: 300
+        interval: 700
         repeat: false
         onTriggered: refreshPreviews()
     }
