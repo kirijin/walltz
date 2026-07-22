@@ -353,14 +353,6 @@ Kirigami.ApplicationWindow {
                         onClicked: processor.aspectMode = 4
                     }
 
-                    // Separator
-                    Rectangle {
-                        width: 1; height: Kirigami.Units.gridUnit * 1.5
-                        color: Kirigami.Theme.disabledTextColor
-                        Layout.leftMargin: Kirigami.Units.smallSpacing
-                        Layout.rightMargin: Kirigami.Units.smallSpacing
-                    }
-
                     // Wide zone
                     Controls.Button {
                         text: "16:9"

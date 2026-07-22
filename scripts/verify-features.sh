@@ -118,9 +118,9 @@ grep -q 'm_caStrength' "$ROOT/src/WallpaperProcessor.h" \
 grep -q 'setCaStrength' "$ROOT/src/WallpaperProcessor.cpp" \
   && ok "caStrength setter defined" \
   || fail "caStrength setter missing"
-grep -qF 'maxShift = m_caStrength * 40.0' "$ROOT/src/WallpaperProcessor.cpp" \
-  && ok "CA maxShift = 40 (visible)" \
-  || fail "CA maxShift not 40"
+grep -qF 'maxShift = m_caStrength * std::min(W, H) * 0.05' "$ROOT/src/WallpaperProcessor.cpp" \
+  && ok "CA maxShift proportional (5% of min dimension)" \
+  || fail "CA maxShift not proportional"
 grep -q 'text: i18n("CA")' "$ROOT/src/Main.qml" \
   && ok "CA text button in QML" \
   || fail "CA text button missing in QML"
@@ -223,11 +223,14 @@ else
   fail "Expected >= 2 highlighted: checked, found $H_COUNT"
 fi
 
-# 18) No separators (removed per request)
+# 18) No separators (including ratio divider line)
 echo "--- Feature 18: No separators ---"
 ! grep -q 'Kirigami.Separator' "$ROOT/src/Main.qml" \
   && ok "No Kirigami.Separator remain" \
   || fail "Separator still present"
+! grep -q '// Separator' "$ROOT/src/Main.qml" \
+  && ok "No ratio divider Rectangle" \
+  || fail "Ratio divider still present"
 
 # 19) Photo frame properties
 echo "--- Feature 19: Photo frame ---"
@@ -246,6 +249,9 @@ grep -q 'Photo frame' "$ROOT/src/Main.qml" \
 grep -q 'to: 25' "$ROOT/src/Main.qml" \
   && ok "Photo frame width max 25px" \
   || fail "Photo frame width not bounded at 25"
+grep -q 'std::min(W, H) / 500.0' "$ROOT/src/WallpaperProcessor.cpp" \
+  && ok "Frame width scales proportionally to output" \
+  || fail "Frame width not proportional"
 grep -q 'FRAME_RADIUS' "$ROOT/src/WallpaperProcessor.cpp" \
   && ok "FRAME_RADIUS = 2 defined" \
   || fail "FRAME_RADIUS missing"

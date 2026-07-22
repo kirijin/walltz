@@ -689,9 +689,9 @@ QImage WallpaperProcessor::renderWallpaper(const QImage &src, int W, int H)
     stackBlur(sh, shadowBlur);
     p.drawImage(0, 0, sh);
 
-    // ── Photo frame (white border around foreground image) ──
+    // ── Photo frame (scale proportionally to output size) ──
     if (m_photoFrame) {
-        int fw = m_photoFrameWidth;
+        int fw = qMax(2, (int)(m_photoFrameWidth * std::min(W, H) / 500.0));
         p.setRenderHint(QPainter::Antialiasing);
         p.setRenderHint(QPainter::SmoothPixmapTransform);
         p.setPen(Qt::NoPen);
@@ -719,7 +719,7 @@ QImage WallpaperProcessor::renderWallpaper(const QImage &src, int W, int H)
 
     // ── Chromatic aberration (post-processing on full render) ──
     if (m_caStrength > 0.001) {
-        double maxShift = m_caStrength * 40.0;
+        double maxShift = m_caStrength * std::min(W, H) * 0.05;
         double cx = W / 2.0, cy = H / 2.0;
         double maxDist = std::sqrt(cx * cx + cy * cy);
 
