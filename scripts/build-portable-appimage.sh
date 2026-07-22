@@ -15,12 +15,13 @@ FROM fedora:44
 RUN dnf install -y \
     cmake ninja-build gcc-c++ \
     qt6-qtbase-devel qt6-qtdeclarative-devel qt6-qtsvg-devel qt6-qtwayland-devel \
-    qt6-qtwebsockets-devel qt6-qthttp2-devel \
+    qt6-qtwebsockets-devel \
     kf6-kirigami-devel kf6-ki18n-devel kf6-kcoreaddons-devel \
     kf6-kiconthemes-devel kf6-kconfigwidgets-devel \
-    kf6-archive-devel kf6-kguiaddons-devel kf6-kcolorscheme-devel \
+    kf6-kguiaddons-devel kf6-kcolorscheme-devel kf6-karchive-devel \
+    extra-cmake-modules \
     kf6-breeze-icons \
-    file fuse3-libs fuse3 which curl \
+    file fuse3-libs fuse3 which \
     && dnf clean all
 DOCKERFILE
 
