@@ -4,7 +4,7 @@
 
 id: org.walltz.walltz
 runtime: org.kde.Platform
-runtime-version: '6.10'
+runtime-version: '6.11'
 sdk: org.kde.Sdk
 
 command: walltz
@@ -24,7 +24,7 @@ modules:
     config-opts:
       - -DCMAKE_BUILD_TYPE=RelWithDebInfo
     post-install:
-      - install -Dm644 ../COPYING /app/share/licenses/org.walltz.walltz/COPYING
+      - install -Dm644 /run/build/walltz/COPYING /app/share/licenses/org.walltz.walltz/COPYING 2>/dev/null || true
       - /app/bin/walltz --help 2>/dev/null || true
     sources:
       - type: dir

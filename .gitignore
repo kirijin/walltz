@@ -20,3 +20,5 @@ Makefile
 .idea/
 *.autogen
 meta_types/
+.flatpak-builder/
+flatpak-build/
