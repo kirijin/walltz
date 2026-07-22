@@ -737,7 +737,7 @@ Kirigami.ApplicationWindow {
                     Layout.preferredWidth: Kirigami.Units.gridUnit * 10
                     from: 0; to: 360; stepSize: 1
                     value: processor.gradientAngle
-                    Controls.ToolTip.text: i18n("%1\u00B0").arg(processor.gradientAngle)
+                    Controls.ToolTip.text: i18n("%1°", processor.gradientAngle)
                     Controls.ToolTip.visible: hovered
                     Controls.ToolTip.delay: 400
                     onMoved: processor.gradientAngle = value
@@ -787,7 +787,7 @@ Kirigami.ApplicationWindow {
                             Layout.fillWidth: true
                             from: 0; to: 1.0; stepSize: 0.05
                             value: processor.vignetteStrength
-                            Controls.ToolTip.text: i18n("%1%").arg(Math.round(processor.vignetteStrength * 100))
+                            Controls.ToolTip.text: i18n("%1%", Math.round(processor.vignetteStrength * 100))
                             Controls.ToolTip.visible: hovered
                             Controls.ToolTip.delay: 400
                             onMoved: {
@@ -811,7 +811,7 @@ Kirigami.ApplicationWindow {
                             Layout.fillWidth: true
                             from: 0; to: 1.0; stepSize: 0.05
                             value: processor.grainStrength
-                            Controls.ToolTip.text: i18n("%1%").arg(Math.round(processor.grainStrength * 100))
+                            Controls.ToolTip.text: i18n("%1%", Math.round(processor.grainStrength * 100))
                             Controls.ToolTip.visible: hovered
                             Controls.ToolTip.delay: 400
                             onMoved: {
@@ -835,7 +835,7 @@ Kirigami.ApplicationWindow {
                             Layout.fillWidth: true
                             from: 0; to: 1.0; stepSize: 0.05
                             value: processor.caStrength
-                            Controls.ToolTip.text: i18n("%1%").arg(Math.round(processor.caStrength * 100))
+                            Controls.ToolTip.text: i18n("%1%", Math.round(processor.caStrength * 100))
                             Controls.ToolTip.visible: hovered
                             Controls.ToolTip.delay: 400
                             onMoved: {
@@ -863,7 +863,7 @@ Kirigami.ApplicationWindow {
                             value: processor.photoFrameWidth
                             Controls.ToolTip.text: processor.photoFrameWidth === 0
                                           ? i18n("Off")
-                                          : i18n("%1 px").arg(processor.photoFrameWidth)
+                                          : i18n("%1 px", processor.photoFrameWidth)
                             Controls.ToolTip.visible: hovered
                             Controls.ToolTip.delay: 400
                             onMoved: {
@@ -912,7 +912,7 @@ Kirigami.ApplicationWindow {
                             value: processor.blurRadius
                             Controls.ToolTip.text: processor.blurRadius === 0
                                           ? i18n("Auto")
-                                          : i18n("%1 px").arg(processor.blurRadius)
+                                          : i18n("%1 px", processor.blurRadius)
                             Controls.ToolTip.visible: hovered
                             Controls.ToolTip.delay: 400
                             onMoved: processor.blurRadius = value
@@ -934,7 +934,7 @@ Kirigami.ApplicationWindow {
                             Layout.fillWidth: true
                             from: 0; to: 30; stepSize: 1
                             value: processor.saturationFactor * 10
-                            Controls.ToolTip.text: i18n("%1\u00D7").arg(processor.saturationFactor.toFixed(1))
+                            Controls.ToolTip.text: i18n("%1×", processor.saturationFactor.toFixed(1))
                             Controls.ToolTip.visible: hovered
                             Controls.ToolTip.delay: 400
                             onMoved: processor.saturationFactor = value / 10.0
@@ -956,7 +956,7 @@ Kirigami.ApplicationWindow {
                             Layout.fillWidth: true
                             from: 5; to: 30; stepSize: 1
                             value: Math.round(processor.bgZoom * 10)
-                            Controls.ToolTip.text: i18n("%1%").arg(Math.round(processor.bgZoom * 100))
+                            Controls.ToolTip.text: i18n("%1%", Math.round(processor.bgZoom * 100))
                             Controls.ToolTip.visible: hovered
                             Controls.ToolTip.delay: 400
                             onMoved: processor.bgZoom = value / 10.0
@@ -978,7 +978,7 @@ Kirigami.ApplicationWindow {
                             Layout.fillWidth: true
                             from: 0; to: 360; stepSize: 1
                             value: processor.bgBlurAngle
-                            Controls.ToolTip.text: i18n("%1\u00B0").arg(processor.bgBlurAngle)
+                            Controls.ToolTip.text: i18n("%1°", processor.bgBlurAngle)
                             Controls.ToolTip.visible: hovered
                             Controls.ToolTip.delay: 400
                             onMoved: processor.bgBlurAngle = value
