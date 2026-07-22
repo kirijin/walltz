@@ -1,33 +1,40 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <component type="desktop-application">
   <id>org.walltz.walltz</id>
+  <launchable type="desktop-id">org.walltz.walltz.desktop</launchable>
   <name>Walltz</name>
   <summary>Create wallpapers from images with blur and color backgrounds</summary>
   <description>
-    <p>Walltz creates wallpapers from your images by producing a zoomed,
-    blurred background with the original image overlaid. It supports both
-    blur and solid color background modes, batch processing, and automatic
-    color extraction from images.</p>
+    <p>Walltz takes one or more images and produces a processed desktop wallpaper:
+      zoomed blurred background, auto-extracted gradient, or solid color, with the
+      original image overlaid and optional post-processing effects.</p>
+    <p>Features include adjustable Gaussian blur, 12 gradient presets, 6 mood
+      palettes, saturation boost, vignette, film grain, chromatic aberration,
+      photo frame, batch processing, and live preview.</p>
   </description>
   <categories>
     <category>Graphics</category>
   </categories>
-  <url type="homepage">https://github.com/pavel/walltz</url>
+  <url type="homepage">https://github.com/kirijin/walltz</url>
   <project_license>GPL-3.0-or-later</project_license>
-  <developer_name>Pavel</developer_name>
+  <developer id="kirijin">
+    <name>Pavel</name>
+  </developer>
   <metadata_license>CC0-1.0</metadata_license>
   <content_rating type="oars-1.1"/>
   <releases>
-    <release version="0.1.0" date="2026-07-19">
+    <release version="0.1.0" date="2026-07-22">
       <description>
         <p>Initial release</p>
         <ul>
-          <li>Drop single or multiple images</li>
-          <li>Blur and color background modes</li>
-          <li>Auto color extraction from image</li>
-          <li>Manual color picker</li>
-          <li>Batch processing with progress</li>
-          <li>Output saved as .wp.png</li>
+          <li>Blur mode with adjustable sigma (1–120), saturation boost, rotation</li>
+          <li>Solid colour, 12 gradient presets, or auto-gradient from source</li>
+          <li>6 mood palettes from two extraction algorithms (V1 + V2)</li>
+          <li>Vignette, film grain, chromatic aberration, photo frame</li>
+          <li>Multi-image batch queue with crossfade preview</li>
+          <li>Aspect ratios: Free, 1:1, 4:3, 16:9, 16:10, 21:9, 32:9</li>
+          <li>DPR-aware automatic screen resolution detection</li>
+          <li>Flatpak and AppImage packaging</li>
         </ul>
       </description>
     </release>

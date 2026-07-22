@@ -90,6 +90,8 @@ flatpak-builder --user --install build-dir flatpak/org.walltz.walltz.yml
 flatpak run org.walltz.walltz
 ```
 
+Flatpak and AppImage artifacts are available on the [releases page](https://github.com/kirijin/walltz/releases).
+
 ### AppImage
 
 ```bash

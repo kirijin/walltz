@@ -28,4 +28,4 @@ modules:
       - /app/bin/walltz --help 2>/dev/null || true
     sources:
       - type: dir
-        path: ../..
+        path: ..
