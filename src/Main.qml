@@ -939,51 +939,38 @@ Kirigami.ApplicationWindow {
                     Item { Layout.fillWidth: true }
                 }
 
-                // Photo frame toggle
+                // Photo frame toggle (text button, like other effects)
                 RowLayout {
                     Layout.fillWidth: true
                     spacing: Kirigami.Units.smallSpacing
 
                     Item { Layout.fillWidth: true }
-
-                    Controls.Label {
-                        text: i18n("Photo frame")
-                    }
-                    Controls.Switch {
+                    Controls.Button {
+                        text: i18n("Frame")
+                        implicitWidth: Kirigami.Units.gridUnit * 3
+                        checkable: true
                         checked: processor.photoFrame
-                        onToggled: {
-                            processor.photoFrame = checked
+                        flat: true
+                        highlighted: checked
+                        onClicked: {
+                            processor.photoFrame = !processor.photoFrame
                             previewDebounce.restart()
                         }
-                    }
-
-                    Item { Layout.fillWidth: true }
-                }
-
-                RowLayout {
-                    Layout.fillWidth: true
-                    visible: processor.photoFrame
-                    spacing: Kirigami.Units.smallSpacing
-
-                    Item { Layout.fillWidth: true }
-
-                    Controls.Label {
-                        text: i18n("Frame width")
-                        color: Kirigami.Theme.disabledTextColor
                     }
                     Controls.Slider {
                         id: frameWidthSlider
                         Layout.preferredWidth: Kirigami.Units.gridUnit * 10
-                        from: 5; to: 25; stepSize: 5
+                        enabled: processor.photoFrame
+                        from: 5; to: 25; stepSize: 1
                         value: processor.photoFrameWidth
                         Controls.ToolTip.text: i18n("%1 px").arg(processor.photoFrameWidth)
                         Controls.ToolTip.visible: hovered
+                        Controls.ToolTip.delay: 400
                         onMoved: {
                             processor.photoFrameWidth = value
                             previewDebounce.restart()
                         }
                     }
-
                     Item { Layout.fillWidth: true }
                 }
 

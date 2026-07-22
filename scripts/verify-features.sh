@@ -75,12 +75,12 @@ grep -q 'std::exp' "$ROOT/src/WallpaperProcessor.cpp" \
       && ok "Text button $btn found" \
       || fail "Text button $btn missing"
   done
-  # 1 Switch allowed (photo frame toggle) — no other switches
+  # 1 Switch used to be photo frame (now a text button) — no switches left
   SWITCH_COUNT=$(grep -c 'Controls.Switch' "$ROOT/src/Main.qml" || true)
-  if [ "$SWITCH_COUNT" -eq 1 ]; then
-    ok "One Controls.Switch (photo frame) — correct"
+  if [ "$SWITCH_COUNT" -eq 0 ]; then
+    ok "No Controls.Switch (photo frame is now a text button) — correct"
   else
-    fail "Expected 1 Controls.Switch, found $SWITCH_COUNT"
+    fail "Expected 0 Controls.Switch, found $SWITCH_COUNT"
   fi
   # No icon-only ToolButtons for effects remain (2 allowed: swap + detect screen)
   ICON_BTNS=$(grep -c "display: Controls.AbstractButton.IconOnly" "$ROOT/src/Main.qml" || true)
@@ -267,6 +267,24 @@ grep -q '400.0' "$ROOT/src/WallpaperProcessor.cpp" \
 grep -q 'interval: 700' "$ROOT/src/Main.qml" \
   && ok "Preview debounce 700ms (for full-res render)" \
   || fail "Debounce interval not 700ms"
+
+# 22) Photo frame as text button (no more Switch)
+echo "--- Feature 22: Photo frame text button ---"
+grep -q 'text: i18n(\"Frame\")' "$ROOT/src/Main.qml" \
+  && ok "Frame text button exists" \
+  || fail "Missing Frame button"
+grep -q 'checkable: true' "$ROOT/src/Main.qml" \
+  && ok "Frame button is checkable" \
+  || fail "Frame button not checkable"
+grep -qF 'highlighted: checked' "$ROOT/src/Main.qml" \
+  && ok "Frame button uses highlighted:checked" \
+  || fail "Frame button missing highlighted:checked"
+
+# 23) Blur sigma range widened
+echo "--- Feature 23: Blur sigma range ---"
+grep -q 'qMax(1.0, (double)m_blurRadius)' "$ROOT/src/WallpaperProcessor.cpp" \
+  && ok "Manual sigma = slider value (1-120)" \
+  || fail "Manual sigma formula unchanged"
 
 # 20) Braille processing indicator
 echo "--- Feature 20: Braille processing indicator ---"

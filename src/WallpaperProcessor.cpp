@@ -598,8 +598,8 @@ QImage WallpaperProcessor::renderWallpaper(const QImage &src, int W, int H)
         memcpy(m_blurBuf.bits(), output.constBits(), output.sizeInBytes());
         // Use manual blur radius if set, else auto-calc (adaptive 0.051×H)
         double sigma = m_blurRadius > 0
-            ? qMax(1.0, m_blurRadius / 3.0)
-            : qMax(1.0, 0.051 * H / 3.0);
+            ? qMax(1.0, (double)m_blurRadius)       // manual: sigma = slider value (1-120)
+            : qMax(0.5, 0.017 * H);                 // auto:  sigma ≈ 18 at 1080p
         stackBlur(m_blurBuf, sigma);
         boostSaturation(m_blurBuf, m_saturationFactor);
 
