@@ -24,7 +24,7 @@ ColumnLayout {
 
         Rectangle {
             anchors.fill: parent
-            radius: Kirigami.Units.smallRadius
+            radius: Kirigami.Units.cornerRadius
             color: headerArea._hovered
                    ? Kirigami.Theme.hoverColor
                    : "transparent"
@@ -38,7 +38,7 @@ ColumnLayout {
             spacing: Kirigami.Units.smallSpacing
 
             Controls.Label {
-                text: root.expanded ? "\\u25BC" : "\\u25B6"
+                text: root.expanded ? "▼" : "▶"
                 font.pixelSize: Kirigami.Theme.smallFont.pixelSize
                 color: Kirigami.Theme.textColor
                 opacity: 0.6

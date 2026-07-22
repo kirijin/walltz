@@ -164,8 +164,8 @@ Kirigami.ApplicationWindow {
                         visible: dropArea.fileCount === 0 && !dropArea.containsDrag
 
                         readonly property var _frames: [
-                            "\\u280B", "\\u2819", "\\u2839", "\\u2838", "\\u283C",
-                            "\\u2834", "\\u2826", "\\u2827", "\\u2807", "\\u280F"
+                            "⠋", "⠙", "⠹", "⠸", "⠼",
+                            "⠴", "⠦", "⠧", "⠇", "⠏"
                         ]
                         property int _frame: 0
 
@@ -218,7 +218,7 @@ Kirigami.ApplicationWindow {
                             spacing: Kirigami.Units.smallSpacing
 
                             Kirigami.Heading {
-                                text: i18n("Processing\\u2026")
+                                text: i18n("Processing\u2026")
                                 color: "white"
                                 Layout.alignment: Qt.AlignHCenter
                             }
@@ -244,7 +244,7 @@ Kirigami.ApplicationWindow {
                 Controls.Label {
                     id: processingIndicator
                     visible: processor.busy
-                    text: "\\u28BE"
+                    text: "\u28BE"
                     font.pixelSize: Kirigami.Theme.defaultFont.pixelSize
                     Layout.alignment: Qt.AlignVCenter
                     Timer {
@@ -253,8 +253,8 @@ Kirigami.ApplicationWindow {
                         repeat: true
                         property int frame: 0
                         readonly property var frames: [
-                            "\\u28B8", "\\u28B9", "\\u28BA", "\\u28BB",
-                            "\\u28BC", "\\u28BD", "\\u28BE", "\\u28BF"
+                            "⢸", "⢹", "⢺", "⢻",
+                            "⢼", "⢽", "⢾", "⢿"
                         ]
                         onTriggered: {
                             frame = (frame + 1) % frames.length;
@@ -309,7 +309,7 @@ Kirigami.ApplicationWindow {
                     text: i18n("Detect")
                     display: Controls.AbstractButton.IconOnly
                     hoverEnabled: true
-                    Controls.ToolTip.text: i18n("Reset to screen resolution (%1\\u00D7%2)",
+                    Controls.ToolTip.text: i18n("Reset to screen resolution (%1\u00D7%2)",
                                        processor.screenWidth, processor.screenHeight)
                     Controls.ToolTip.visible: resetResBtn.hovered
                     onClicked: {
@@ -444,7 +444,296 @@ Kirigami.ApplicationWindow {
                 Item { Layout.fillWidth: true }
             }
 
-            // ── Accordion slider groups ──
+            // ── Colour controls (outside accordion, above sliders) ──
+            Controls.ButtonGroup { id: fillGroup }
+
+            Timer {
+                id: moodPreviewTimer
+                interval: 200
+                onTriggered: {
+                    if (dropArea.fileCount > 0 && dropArea.filePaths.length > 0) {
+                        var url = processor.generatePreview(dropArea.filePaths[0])
+                        if (url.length > 0)
+                            crossfadePreview(url)
+                    }
+                }
+            }
+
+            // Style toggle: Solid / Gradient / Auto
+            RowLayout {
+                Layout.fillWidth: true
+                spacing: Kirigami.Units.smallSpacing
+                visible: !processor.blurMode
+
+                Item { Layout.fillWidth: true }
+
+                Controls.Button {
+                    text: i18n("Solid")
+                    checkable: true
+                    flat: true
+                    implicitWidth: Kirigami.Units.gridUnit * 5
+                    highlighted: checked
+                    checked: processor.bgGradientStyle === 0
+                    onClicked: processor.bgGradientStyle = 0
+                    Controls.ButtonGroup.group: fillGroup
+                }
+                Controls.Button {
+                    text: i18n("Gradient")
+                    checkable: true
+                    flat: true
+                    implicitWidth: Kirigami.Units.gridUnit * 5
+                    highlighted: checked
+                    checked: processor.bgGradientStyle === 1
+                    onClicked: processor.bgGradientStyle = 1
+                    Controls.ButtonGroup.group: fillGroup
+                }
+                Controls.Button {
+                    text: i18n("Auto")
+                    checkable: true
+                    flat: true
+                    implicitWidth: Kirigami.Units.gridUnit * 5
+                    highlighted: checked
+                    checked: processor.bgGradientStyle === 2
+                    onClicked: processor.bgGradientStyle = 2
+                    Controls.ButtonGroup.group: fillGroup
+                }
+
+                Item { Layout.fillWidth: true }
+            }
+
+            // Solid colour picker
+            RowLayout {
+                visible: !processor.blurMode && processor.bgGradientStyle === 0
+                Layout.fillWidth: true
+                spacing: Kirigami.Units.smallSpacing
+
+                Item { Layout.fillWidth: true }
+
+                // Auto — star indicator
+                Rectangle {
+                    id: autoColorRect
+                    implicitWidth: 28; implicitHeight: 28
+                    radius: 4
+                    border.width: processor.autoColor ? 2 : 1
+                    border.color: processor.autoColor
+                                   ? Kirigami.Theme.highlightColor
+                                   : Kirigami.Theme.disabledTextColor
+                    color: processor.autoColor && dropArea.fileCount > 0
+                           ? processor.backgroundColor
+                           : "transparent"
+
+                    Controls.Label {
+                        anchors.centerIn: parent
+                        text: "\u2605"
+                        font.pixelSize: Kirigami.Theme.defaultFont.pixelSize
+                        color: autoColorRect.border.color
+                    }
+
+                    Controls.Button {
+                        anchors.fill: parent
+                        opacity: 0
+                        onClicked: processor.autoColor = true
+                    }
+                }
+
+                // Visual spacer
+                Item {
+                    implicitWidth: Kirigami.Units.smallSpacing
+                    implicitHeight: 1
+                }
+
+                // Preset swatches
+                Repeater {
+                    model: [
+                        "#ff6b6b","#f0932b","#f9ca24","#6ab04c",
+                        "#22a6b3","#4834d4","#be2edd","#666666","#000000"
+                    ]
+
+                    Rectangle {
+                        required property string modelData
+
+                        implicitWidth: 28; implicitHeight: 28
+                        radius: 4
+                        border.width: (!processor.autoColor
+                                       && processor.backgroundColor.toString().toUpperCase() === modelData.toUpperCase())
+                                      ? 2 : 1
+                        border.color: (!processor.autoColor
+                                       && processor.backgroundColor.toString().toUpperCase() === modelData.toUpperCase())
+                                      ? Kirigami.Theme.highlightColor
+                                      : Kirigami.Theme.textColor
+                        color: modelData
+
+                        Controls.Button {
+                            anchors.fill: parent
+                            opacity: 0
+                            onClicked: {
+                                processor.autoColor = false
+                                processor.backgroundColor = modelData
+                            }
+                        }
+                    }
+                }
+
+                // More button
+                Controls.ToolButton {
+                    text: "+"
+                    implicitWidth: 28; implicitHeight: 28
+                    font.bold: true
+                    onClicked: colorDialog.open()
+                    Controls.ToolTip.text: i18n("More colors\u2026")
+                    Controls.ToolTip.visible: hovered
+                    Controls.ToolTip.delay: 400
+                }
+
+                Item { Layout.fillWidth: true }
+            }
+
+            // Gradient preset picker (Gradient mode) — responsive columns
+            RowLayout {
+                visible: !processor.blurMode && processor.bgGradientStyle === 1
+                Layout.fillWidth: true
+                spacing: 0
+
+                Item { Layout.fillWidth: true }
+
+                Flow {
+                    id: gradientFlow
+                    Layout.fillWidth: true
+                    Layout.maximumWidth: 400
+                    spacing: Kirigami.Units.smallSpacing
+
+                    Repeater {
+                        model: processor.gradientPresetCount()
+
+                        Rectangle {
+                            id: presetDelegate
+                            required property int index
+
+                            width: 56; height: 40
+                            radius: Kirigami.Units.cornerRadius
+                            border.width: processor.bgGradientPreset === index ? 2 : 1
+                            border.color: processor.bgGradientPreset === index
+                                           ? Kirigami.Theme.highlightColor
+                                           : Kirigami.Theme.textColor
+
+                            gradient: Gradient {
+                                GradientStop { position: 0.0; color: processor.gradientPresetColor1(presetDelegate.index) }
+                                GradientStop { position: 1.0; color: processor.gradientPresetColor2(presetDelegate.index) }
+                            }
+
+                            Controls.Button {
+                                anchors.fill: parent
+                                opacity: 0
+                                onClicked: processor.bgGradientPreset = index
+                            }
+
+                            Controls.Label {
+                                anchors.bottom: parent.bottom
+                                anchors.horizontalCenter: parent.horizontalCenter
+                                anchors.bottomMargin: 2
+                                text: String(presetDelegate.index + 1)
+                                font.pixelSize: Kirigami.Theme.smallFont.pixelSize
+                                color: Kirigami.Theme.textColor
+                                style: Text.Outline
+                                styleColor: Kirigami.Theme.backgroundColor
+                            }
+                        }
+                    }
+                }
+
+                Item { Layout.fillWidth: true }
+            }
+
+            // Mood palette V1 (Auto mode)
+            Controls.ButtonGroup { id: moodGroup }
+
+            RowLayout {
+                visible: !processor.blurMode && processor.bgGradientStyle === 2
+                Layout.fillWidth: true
+                spacing: Kirigami.Units.smallSpacing
+
+                Item { Layout.fillWidth: true }
+
+                Repeater {
+                    model: 6
+                    delegate: Controls.Button {
+                        text: processor.moodName(index)
+                        checkable: true
+                        flat: true
+                        highlighted: checked
+                        checked: !processor.useV2 && processor.autoMood === index
+                        onClicked: {
+                            processor.autoMood = index
+                            processor.useV2 = false
+                            moodPreviewTimer.restart()
+                        }
+                        implicitWidth: Kirigami.Units.gridUnit * 5
+                        Controls.ButtonGroup.group: moodGroup
+                    }
+                }
+
+                Item { Layout.fillWidth: true }
+            }
+
+            // Mood palette V2 (Auto mode)
+            RowLayout {
+                visible: !processor.blurMode && processor.bgGradientStyle === 2
+                Layout.fillWidth: true
+                spacing: Kirigami.Units.smallSpacing
+
+                Item { Layout.fillWidth: true }
+
+                Repeater {
+                    model: 6
+                    delegate: Controls.Button {
+                        text: processor.moodNameV2(index)
+                        checkable: true
+                        flat: true
+                        highlighted: checked
+                        checked: processor.useV2 && processor.autoMood === index
+                        onClicked: {
+                            processor.autoMood = index
+                            processor.useV2 = true
+                            moodPreviewTimer.restart()
+                        }
+                        implicitWidth: Kirigami.Units.gridUnit * 5
+                    }
+                }
+
+                Item { Layout.fillWidth: true }
+            }
+
+            // Angle slider (when Gradient or Auto)
+            RowLayout {
+                visible: !processor.blurMode && processor.bgGradientStyle > 0
+                Layout.fillWidth: true
+                spacing: Kirigami.Units.smallSpacing
+
+                Item { Layout.fillWidth: true }
+
+                Controls.Button {
+                    text: i18n("Angle")
+                    implicitWidth: Kirigami.Units.gridUnit * 3
+                    onClicked: {
+                        processor.gradientAngle = 0.0
+                        previewDebounce.restart()
+                    }
+                }
+                Controls.Slider {
+                    id: gradSlider
+                    Layout.preferredWidth: Kirigami.Units.gridUnit * 10
+                    from: 0; to: 360; stepSize: 1
+                    value: processor.gradientAngle
+                    Controls.ToolTip.text: i18n("%1\u00B0").arg(processor.gradientAngle)
+                    Controls.ToolTip.visible: hovered
+                    Controls.ToolTip.delay: 400
+                    onMoved: processor.gradientAngle = value
+                }
+
+                Item { Layout.fillWidth: true }
+            }
+
+            // ── Accordion slider groups (below colour controls) ──
             ColumnLayout {
                 Layout.fillWidth: true
                 spacing: 0
@@ -557,26 +846,6 @@ Kirigami.ApplicationWindow {
                             }
                         }
                     }
-
-                    Controls.Button {
-                        Layout.alignment: Qt.AlignHCenter
-                        Layout.topMargin: Kirigami.Units.smallSpacing
-                        text: i18n("Reset effects")
-                        icon.name: "edit-undo"
-                        onClicked: {
-                            processor.vignetteStrength = 0.0
-                            processor.grainStrength = 0.0
-                            processor.blurRadius = 0
-                            processor.saturationFactor = 1.8
-                            processor.bgZoom = 1.0
-                            processor.bgBlurAngle = 0.0
-                            processor.gradientAngle = 0.0
-                            processor.caStrength = 0.0
-                            processor.photoFrameWidth = 0
-                            processor.photoFrame = false
-                            previewDebounce.restart()
-                        }
-                    }
                 }
 
                 // Blur effects — visible when blur mode
@@ -585,7 +854,6 @@ Kirigami.ApplicationWindow {
                     title: i18n("Blur")
                     visible: processor.blurMode
 
-                    // Auto-expand when switching to blur mode
                     readonly property bool _desired: processor.blurMode
                     expanded: _desired
 
@@ -633,7 +901,7 @@ Kirigami.ApplicationWindow {
                             Layout.fillWidth: true
                             from: 0; to: 30; stepSize: 1
                             value: processor.saturationFactor * 10
-                            Controls.ToolTip.text: i18n("%1×").arg(processor.saturationFactor.toFixed(1))
+                            Controls.ToolTip.text: i18n("%1\u00D7").arg(processor.saturationFactor.toFixed(1))
                             Controls.ToolTip.visible: hovered
                             Controls.ToolTip.delay: 400
                             onMoved: processor.saturationFactor = value / 10.0
@@ -673,318 +941,36 @@ Kirigami.ApplicationWindow {
                             Layout.fillWidth: true
                             from: 0; to: 360; stepSize: 1
                             value: processor.bgBlurAngle
-                            Controls.ToolTip.text: i18n("%1°").arg(processor.bgBlurAngle)
+                            Controls.ToolTip.text: i18n("%1\u00B0").arg(processor.bgBlurAngle)
                             Controls.ToolTip.visible: hovered
                             Controls.ToolTip.delay: 400
                             onMoved: processor.bgBlurAngle = value
                         }
                     }
                 }
+            }
 
-                // Colour controls — visible when colour mode
-                CollapsibleSection {
-                    id: colourSection
-                    title: i18n("Colour")
-                    visible: !processor.blurMode
-
-                    // Auto-expand when switching to colour mode
-                    readonly property bool _desired: !processor.blurMode
-                    expanded: _desired
-
-                    ColumnLayout {
-                        Layout.fillWidth: true
-                        Layout.leftMargin: Kirigami.Units.smallSpacing
-                        Layout.rightMargin: Kirigami.Units.smallSpacing
-                        spacing: Kirigami.Units.smallSpacing
-
-                        // Sub-style: Solid / Gradient / Auto
-                        Controls.ButtonGroup { id: fillGroup }
-
-                        RowLayout {
-                            Layout.fillWidth: true
-                            spacing: Kirigami.Units.smallSpacing
-
-                            Item { Layout.fillWidth: true }
-
-                            Controls.Button {
-                                text: i18n("Solid")
-                                checkable: true
-                                flat: true
-                                implicitWidth: Kirigami.Units.gridUnit * 5
-                                highlighted: checked
-                                checked: processor.bgGradientStyle === 0
-                                onClicked: processor.bgGradientStyle = 0
-                                Controls.ButtonGroup.group: fillGroup
-                            }
-                            Controls.Button {
-                                text: i18n("Gradient")
-                                checkable: true
-                                flat: true
-                                implicitWidth: Kirigami.Units.gridUnit * 5
-                                highlighted: checked
-                                checked: processor.bgGradientStyle === 1
-                                onClicked: processor.bgGradientStyle = 1
-                                Controls.ButtonGroup.group: fillGroup
-                            }
-                            Controls.Button {
-                                text: i18n("Auto")
-                                checkable: true
-                                flat: true
-                                implicitWidth: Kirigami.Units.gridUnit * 5
-                                highlighted: checked
-                                checked: processor.bgGradientStyle === 2
-                                onClicked: processor.bgGradientStyle = 2
-                                Controls.ButtonGroup.group: fillGroup
-                            }
-
-                            Item { Layout.fillWidth: true }
-                        }
-
-                        // Solid colour picker (Solid mode)
-                        RowLayout {
-                            visible: processor.bgGradientStyle === 0
-                            Layout.fillWidth: true
-                            spacing: Kirigami.Units.smallSpacing
-
-                            Item { Layout.fillWidth: true }
-
-                            // Auto — star indicator
-                            Rectangle {
-                                id: autoColorRect
-                                implicitWidth: 28; implicitHeight: 28
-                                radius: 4
-                                border.width: processor.autoColor ? 2 : 1
-                                border.color: processor.autoColor
-                                               ? Kirigami.Theme.highlightColor
-                                               : Kirigami.Theme.disabledTextColor
-                                color: processor.autoColor && dropArea.fileCount > 0
-                                       ? processor.backgroundColor
-                                       : "transparent"
-
-                                Controls.Label {
-                                    anchors.centerIn: parent
-                                    text: "\\u2605"
-                                    font.pixelSize: Kirigami.Theme.defaultFont.pixelSize
-                                    color: autoColorRect.border.color
-                                }
-
-                                Controls.Button {
-                                    anchors.fill: parent
-                                    opacity: 0
-                                    onClicked: processor.autoColor = true
-                                }
-                            }
-
-                            // Visual spacer
-                            Item {
-                                implicitWidth: Kirigami.Units.smallSpacing
-                                implicitHeight: 1
-                            }
-
-                            // Preset swatches
-                            Repeater {
-                                model: [
-                                    "#ff6b6b","#f0932b","#f9ca24","#6ab04c",
-                                    "#22a6b3","#4834d4","#be2edd","#666666","#000000"
-                                ]
-
-                                Rectangle {
-                                    required property string modelData
-
-                                    implicitWidth: 28; implicitHeight: 28
-                                    radius: 4
-                                    border.width: (!processor.autoColor
-                                                   && processor.backgroundColor.toString().toUpperCase() === modelData.toUpperCase())
-                                                  ? 2 : 1
-                                    border.color: (!processor.autoColor
-                                                   && processor.backgroundColor.toString().toUpperCase() === modelData.toUpperCase())
-                                                  ? Kirigami.Theme.highlightColor
-                                                  : Kirigami.Theme.textColor
-                                    color: modelData
-
-                                    Controls.Button {
-                                        anchors.fill: parent
-                                        opacity: 0
-                                        onClicked: {
-                                            processor.autoColor = false
-                                            processor.backgroundColor = modelData
-                                        }
-                                    }
-                                }
-                            }
-
-                            // More button
-                            Controls.ToolButton {
-                                text: "+"
-                                implicitWidth: 28; implicitHeight: 28
-                                font.bold: true
-                                onClicked: colorDialog.open()
-                                Controls.ToolTip.text: i18n("More colors\\u2026")
-                                Controls.ToolTip.visible: hovered
-                                Controls.ToolTip.delay: 400
-                            }
-
-                            Item { Layout.fillWidth: true }
-                        }
-
-                        // Gradient preset picker (Gradient mode)
-                        RowLayout {
-                            visible: processor.bgGradientStyle === 1
-                            Layout.fillWidth: true
-                            spacing: 0
-
-                            Item { Layout.fillWidth: true }
-
-                            GridLayout {
-                                columns: 5
-                                columnSpacing: Kirigami.Units.smallSpacing
-                                rowSpacing: Kirigami.Units.smallSpacing
-
-                                Repeater {
-                                    model: processor.gradientPresetCount()
-
-                                    Rectangle {
-                                        id: presetDelegate
-                                        required property int index
-
-                                        width: 56; height: 40
-                                        radius: Kirigami.Units.cornerRadius
-                                        border.width: processor.bgGradientPreset === index ? 2 : 1
-                                        border.color: processor.bgGradientPreset === index
-                                                       ? Kirigami.Theme.highlightColor
-                                                       : Kirigami.Theme.textColor
-
-                                        gradient: Gradient {
-                                            GradientStop { position: 0.0; color: processor.gradientPresetColor1(presetDelegate.index) }
-                                            GradientStop { position: 1.0; color: processor.gradientPresetColor2(presetDelegate.index) }
-                                        }
-
-                                        Controls.Button {
-                                            anchors.fill: parent
-                                            opacity: 0
-                                            onClicked: processor.bgGradientPreset = index
-                                        }
-
-                                        Controls.Label {
-                                            anchors.bottom: parent.bottom
-                                            anchors.horizontalCenter: parent.horizontalCenter
-                                            anchors.bottomMargin: 2
-                                            text: String(presetDelegate.index + 1)
-                                            font.pixelSize: Kirigami.Theme.smallFont.pixelSize
-                                            color: Kirigami.Theme.textColor
-                                            style: Text.Outline
-                                            styleColor: Kirigami.Theme.backgroundColor
-                                        }
-                                    }
-                                }
-                            }
-
-                            Item { Layout.fillWidth: true }
-                        }
-
-                        // Mood palette V1 (Auto mode)
-                        Controls.ButtonGroup { id: moodGroup }
-
-                        Timer {
-                            id: moodPreviewTimer
-                            interval: 200
-                            onTriggered: {
-                                if (dropArea.fileCount > 0 && dropArea.filePaths.length > 0) {
-                                    var url = processor.generatePreview(dropArea.filePaths[0])
-                                    if (url.length > 0)
-                                        crossfadePreview(url)
-                                }
-                            }
-                        }
-
-                        RowLayout {
-                            visible: processor.bgGradientStyle === 2
-                            Layout.fillWidth: true
-                            spacing: Kirigami.Units.smallSpacing
-
-                            Item { Layout.fillWidth: true }
-
-                            Repeater {
-                                model: 6
-                                delegate: Controls.Button {
-                                    text: processor.moodName(index)
-                                    checkable: true
-                                    flat: true
-                                    highlighted: checked
-                                    checked: !processor.useV2 && processor.autoMood === index
-                                    onClicked: {
-                                        processor.autoMood = index
-                                        processor.useV2 = false
-                                        moodPreviewTimer.restart()
-                                    }
-                                    implicitWidth: Kirigami.Units.gridUnit * 5
-                                    Controls.ButtonGroup.group: moodGroup
-                                }
-                            }
-
-                            Item { Layout.fillWidth: true }
-                        }
-
-                        RowLayout {
-                            visible: processor.bgGradientStyle === 2
-                            Layout.fillWidth: true
-                            spacing: Kirigami.Units.smallSpacing
-
-                            Item { Layout.fillWidth: true }
-
-                            Repeater {
-                                model: 6
-                                delegate: Controls.Button {
-                                    text: processor.moodNameV2(index)
-                                    checkable: true
-                                    flat: true
-                                    highlighted: checked
-                                    checked: processor.useV2 && processor.autoMood === index
-                                    onClicked: {
-                                        processor.autoMood = index
-                                        processor.useV2 = true
-                                        moodPreviewTimer.restart()
-                                    }
-                                    implicitWidth: Kirigami.Units.gridUnit * 5
-                                }
-                            }
-
-                            Item { Layout.fillWidth: true }
-                        }
-
-                        // Angle slider (when Gradient or Auto)
-                        RowLayout {
-                            visible: processor.bgGradientStyle > 0
-                            Layout.fillWidth: true
-                            spacing: Kirigami.Units.smallSpacing
-
-                            Item { Layout.fillWidth: true }
-
-                            Controls.Button {
-                                text: i18n("Angle")
-                                implicitWidth: Kirigami.Units.gridUnit * 3
-                                onClicked: {
-                                    processor.gradientAngle = 0.0
-                                    previewDebounce.restart()
-                                }
-                            }
-                            Controls.Slider {
-                                id: gradSlider
-                                Layout.preferredWidth: Kirigami.Units.gridUnit * 10
-                                from: 0; to: 360; stepSize: 1
-                                value: processor.gradientAngle
-                                Controls.ToolTip.text: i18n("%1°").arg(processor.gradientAngle)
-                                Controls.ToolTip.visible: hovered
-                                Controls.ToolTip.delay: 400
-                                onMoved: processor.gradientAngle = value
-                            }
-
-                            Item { Layout.fillWidth: true }
-                        }
-                    }
+            // Reset effects (below accordion, above file list)
+            Controls.Button {
+                Layout.alignment: Qt.AlignHCenter
+                text: i18n("Reset effects")
+                icon.name: "edit-undo"
+                onClicked: {
+                    processor.vignetteStrength = 0.0
+                    processor.grainStrength = 0.0
+                    processor.blurRadius = 0
+                    processor.saturationFactor = 1.8
+                    processor.bgZoom = 1.0
+                    processor.bgBlurAngle = 0.0
+                    processor.gradientAngle = 0.0
+                    processor.caStrength = 0.0
+                    processor.photoFrameWidth = 0
+                    processor.photoFrame = false
+                    previewDebounce.restart()
                 }
             }
 
+            // ── File list ──
             Controls.Label {
                 visible: dropArea.fileCount > 1
                 text: i18n("Files to process:")
