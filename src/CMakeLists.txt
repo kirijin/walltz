@@ -28,9 +28,33 @@ target_link_libraries(walltz PRIVATE
     KF6::IconThemes
 )
 
-# Auto-vectorization flags for pixel processing loops
+# ── Performance flags (GCC/Clang) ───────────────────────────────────────
 if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
-    target_compile_options(walltz PRIVATE -march=native -O3)
+    # -march=native enables AVX2/FMA/BMI for pixel loops
+    # -funroll-loops: unrolls tight pixel-processing loops
+    # -fno-rtti: safe with Qt (qobject_cast ≠ C++ RTTI), smaller vtable, better inlining
+    # -fno-unwind-tables / -fno-asynchronous-unwind-tables: no exceptions → no unwind info needed
+    target_compile_options(walltz PRIVATE
+        -march=native
+        -funroll-loops
+        -fno-rtti
+        -fno-unwind-tables
+        -fno-asynchronous-unwind-tables
+        -ffunction-sections
+        -fdata-sections
+    )
+    # Dead code elimination at link time (smaller binary → better I-cache)
+    target_link_options(walltz PRIVATE -Wl,--gc-sections)
+endif()
+
+# ── Link-Time Optimization (cross-module inlining, devirtualization) ────
+include(CheckIPOSupported)
+check_ipo_supported(RESULT have_ipo OUTPUT ipo_error)
+if(have_ipo)
+    set_property(TARGET walltz PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
+    message(STATUS "LTO enabled for walltz")
+else()
+    message(STATUS "LTO not available: ${ipo_error}")
 endif()
 
 install(TARGETS walltz ${KDE_INSTALL_TARGETS_DEFAULT_ARGS})

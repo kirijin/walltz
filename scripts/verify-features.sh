@@ -309,6 +309,24 @@ grep -q 'Qt6::Concurrent' "$ROOT/src/CMakeLists.txt" \
 grep -q 'march=native' "$ROOT/src/CMakeLists.txt" \
   && ok "-march=native SIMD auto-vectorization enabled" \
   || fail "Missing -march=native"
+grep -q 'funroll-loops' "$ROOT/src/CMakeLists.txt" \
+  && ok "-funroll-loops enabled for pixel loops" \
+  || fail "Missing -funroll-loops"
+grep -q 'fno-rtti' "$ROOT/src/CMakeLists.txt" \
+  && ok "-fno-rtti (safe, Qt doesn't need C++ RTTI)" \
+  || fail "Missing -fno-rtti"
+grep -q 'fno-unwind-tables' "$ROOT/src/CMakeLists.txt" \
+  && ok "-fno-unwind-tables (no exceptions, no unwind needed)" \
+  || fail "Missing -fno-unwind-tables"
+grep -q 'ffunction-sections' "$ROOT/src/CMakeLists.txt" \
+  && ok "Function sections for linker GC" \
+  || fail "Missing -ffunction-sections"
+grep -q 'gc-sections' "$ROOT/src/CMakeLists.txt" \
+  && ok "--gc-sections (dead code elimination)" \
+  || fail "Missing --gc-sections"
+grep -q 'INTERPROCEDURAL_OPTIMIZATION' "$ROOT/src/CMakeLists.txt" \
+  && ok "LTO enabled via INTERPROCEDURAL_OPTIMIZATION" \
+  || fail "Missing LTO"
 
 echo
 echo "Result: $PASS passed, $FAIL failed"
