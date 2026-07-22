@@ -5,6 +5,7 @@ build/
 moc_*
 *.moc
 qrc_*
+build-appimage/
 .rcc/
 .qmlcache/
 CMakeCache.txt

@@ -1,0 +1,31 @@
+# Flatpak manifest for Walltz
+# Build: flatpak-builder --user --install build-dir flatpak/org.walltz.walltz.yml
+# Run:   flatpak run org.walltz.walltz
+
+id: org.walltz.walltz
+runtime: org.kde.Platform
+runtime-version: '6.10'
+sdk: org.kde.Sdk
+
+command: walltz
+rename-icon: org.walltz.walltz
+
+finish-args:
+  - --share=ipc
+  - --socket=fallback-x11
+  - --socket=wayland
+  - --device=dri
+  - --filesystem=host              # needed to load images + save .wp.png
+  - --env=QT_ENABLE_HIGHDPI_SCALING=1
+
+modules:
+  - name: walltz
+    buildsystem: cmake-ninja
+    config-opts:
+      - -DCMAKE_BUILD_TYPE=RelWithDebInfo
+    post-install:
+      # Strip host-specific install paths; flatpak overrides DESTDIR
+      - /app/bin/walltz --help 2>/dev/null || true
+    sources:
+      - type: dir
+        path: ../..
