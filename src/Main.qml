@@ -720,7 +720,7 @@ Kirigami.ApplicationWindow {
                 Item { Layout.fillWidth: true }
 
                 Controls.Button {
-                    icon.name: "object-rotate-left"
+                    icon.source: "qrc:/icons/angle.svg"
                     icon.width: Kirigami.Units.iconSizes.small
                     icon.height: Kirigami.Units.iconSizes.small
                     implicitWidth: 28; implicitHeight: 28
@@ -766,7 +766,7 @@ Kirigami.ApplicationWindow {
                         rowSpacing: Kirigami.Units.smallSpacing
 
                         Controls.Button {
-                            icon.name: "draw-circle"
+                            icon.source: "qrc:/icons/vignette.svg"
                             icon.width: Kirigami.Units.iconSizes.small
                             icon.height: Kirigami.Units.iconSizes.small
                             implicitWidth: 28; implicitHeight: 28
@@ -792,7 +792,7 @@ Kirigami.ApplicationWindow {
                         }
 
                         Controls.Button {
-                            icon.name: "dialog-filters"
+                            icon.source: "qrc:/icons/grain.svg"
                             icon.width: Kirigami.Units.iconSizes.small
                             icon.height: Kirigami.Units.iconSizes.small
                             implicitWidth: 28; implicitHeight: 28
@@ -818,7 +818,7 @@ Kirigami.ApplicationWindow {
                         }
 
                         Controls.Button {
-                            icon.name: "colors-chromablue"
+                            icon.source: "qrc:/icons/chromatic-aberration.svg"
                             icon.width: Kirigami.Units.iconSizes.small
                             icon.height: Kirigami.Units.iconSizes.small
                             implicitWidth: 28; implicitHeight: 28
@@ -844,7 +844,7 @@ Kirigami.ApplicationWindow {
                         }
 
                         Controls.Button {
-                            icon.name: "photo"
+                            icon.source: "qrc:/icons/frame.svg"
                             icon.width: Kirigami.Units.iconSizes.small
                             icon.height: Kirigami.Units.iconSizes.small
                             implicitWidth: 28; implicitHeight: 28
@@ -892,7 +892,7 @@ Kirigami.ApplicationWindow {
                         rowSpacing: Kirigami.Units.smallSpacing
 
                         Controls.Button {
-                            icon.name: "blur"
+                            icon.source: "qrc:/icons/blur.svg"
                             icon.width: Kirigami.Units.iconSizes.small
                             icon.height: Kirigami.Units.iconSizes.small
                             implicitWidth: 28; implicitHeight: 28
@@ -918,7 +918,7 @@ Kirigami.ApplicationWindow {
                         }
 
                         Controls.Button {
-                            icon.name: "color-management"
+                            icon.source: "qrc:/icons/saturation.svg"
                             icon.width: Kirigami.Units.iconSizes.small
                             icon.height: Kirigami.Units.iconSizes.small
                             implicitWidth: 28; implicitHeight: 28
@@ -942,7 +942,7 @@ Kirigami.ApplicationWindow {
                         }
 
                         Controls.Button {
-                            icon.name: "zoom-original"
+                            icon.source: "qrc:/icons/zoom.svg"
                             icon.width: Kirigami.Units.iconSizes.small
                             icon.height: Kirigami.Units.iconSizes.small
                             implicitWidth: 28; implicitHeight: 28
@@ -966,7 +966,7 @@ Kirigami.ApplicationWindow {
                         }
 
                         Controls.Button {
-                            icon.name: "transform-rotate"
+                            icon.source: "qrc:/icons/rotation.svg"
                             icon.width: Kirigami.Units.iconSizes.small
                             icon.height: Kirigami.Units.iconSizes.small
                             implicitWidth: 28; implicitHeight: 28

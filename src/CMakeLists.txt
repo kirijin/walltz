@@ -8,6 +8,7 @@ target_sources(walltz PRIVATE
     main.cpp
     WallpaperProcessor.h
     WallpaperProcessor.cpp
+    icons.qrc
 )
 
 ecm_target_qml_sources(walltz SOURCES

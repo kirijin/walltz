@@ -1,0 +1,13 @@
+<RCC>
+    <qresource prefix="/icons">
+        <file alias="vignette.svg">icons/vignette.svg</file>
+        <file alias="grain.svg">icons/grain.svg</file>
+        <file alias="chromatic-aberration.svg">icons/chromatic-aberration.svg</file>
+        <file alias="frame.svg">icons/frame.svg</file>
+        <file alias="blur.svg">icons/blur.svg</file>
+        <file alias="saturation.svg">icons/saturation.svg</file>
+        <file alias="zoom.svg">icons/zoom.svg</file>
+        <file alias="rotation.svg">icons/rotation.svg</file>
+        <file alias="angle.svg">icons/angle.svg</file>
+    </qresource>
+</RCC>
