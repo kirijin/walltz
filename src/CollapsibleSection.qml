@@ -72,7 +72,9 @@ ColumnLayout {
         implicitHeight: contentColumn.implicitHeight + (contentColumn.implicitHeight > 0 ? Kirigami.Units.smallSpacing : 0)
         height: root.expanded ? implicitHeight : 0
         visible: root.expanded || height > 0
-        enabled: root.expanded
+        // NOTE: no enabled:root.expanded here — toggling enabled instantly while
+        // height animates over 150ms causes disabled/gray styling to flash.
+        // enabled is redundant with visible+height>0.
 
         Behavior on height {
             NumberAnimation {

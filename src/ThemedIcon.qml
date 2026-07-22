@@ -16,7 +16,11 @@ Item {
         width: iconSize
         height: iconSize
         fillMode: Image.PreserveAspectFit
-        visible: false
+        // opacity:0 keeps the texture alive for MultiEffect while invisible.
+        // visible:false causes Qt to skip texture allocation, giving MultiEffect
+        // a stale/empty source during layout animations → glitch.
+        visible: true
+        opacity: 0.0
     }
 
     MultiEffect {
