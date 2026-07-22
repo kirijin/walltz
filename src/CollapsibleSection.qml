@@ -91,12 +91,4 @@ ColumnLayout {
             spacing: Kirigami.Units.smallSpacing
         }
     }
-
-    // ── Separator ──
-    Rectangle {
-        Layout.fillWidth: true
-        implicitHeight: 1
-        color: Kirigami.Theme.disabledTextColor
-        opacity: 0.15
-    }
 }

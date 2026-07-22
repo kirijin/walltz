@@ -577,15 +577,13 @@ Kirigami.ApplicationWindow {
             }
 
             // Gradient preset picker (Gradient mode) — responsive columns
-            GridLayout {
-                id: gradientGrid
+            Flow {
+                id: gradientFlow
                 visible: !processor.blurMode && processor.bgGradientStyle === 1
                 Layout.fillWidth: false
-                Layout.preferredWidth: Math.min(gradientGrid.parent?.width ?? 400, 400)
+                Layout.preferredWidth: Math.max(200, root.width * 0.5)
                 Layout.alignment: Qt.AlignHCenter
-                columns: Math.max(1, Math.floor((gradientGrid.width + columnSpacing) / (56 + columnSpacing)))
-                columnSpacing: Kirigami.Units.smallSpacing
-                rowSpacing: Kirigami.Units.smallSpacing
+                spacing: Kirigami.Units.smallSpacing
 
                 Repeater {
                     model: processor.gradientPresetCount()
@@ -594,8 +592,7 @@ Kirigami.ApplicationWindow {
                         id: presetDelegate
                         required property int index
 
-                        Layout.preferredWidth: 56
-                        Layout.preferredHeight: 40
+                        width: 56; height: 40
                         radius: Kirigami.Units.cornerRadius
                         border.width: processor.bgGradientPreset === index ? 2 : 1
                         border.color: processor.bgGradientPreset === index
@@ -833,9 +830,7 @@ Kirigami.ApplicationWindow {
                     id: blurSection
                     title: i18n("Blur")
                     visible: processor.blurMode
-
-                    readonly property bool _desired: processor.blurMode
-                    expanded: _desired
+                    expanded: false
 
                     GridLayout {
                         Layout.fillWidth: true
