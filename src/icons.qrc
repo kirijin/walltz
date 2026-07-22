@@ -9,5 +9,7 @@
         <file alias="zoom.svg">icons/zoom.svg</file>
         <file alias="rotation.svg">icons/rotation.svg</file>
         <file alias="angle.svg">icons/angle.svg</file>
+        <file alias="reset-resolution.svg">icons/reset-resolution.svg</file>
+        <file alias="reset-effects.svg">icons/reset-effects.svg</file>
     </qresource>
 </RCC>

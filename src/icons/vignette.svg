@@ -1,8 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-  <!-- Darkened corners = vignette effect -->
-  <rect x="2" y="2" width="20" height="20" rx="3" fill="none" stroke="currentColor" stroke-width="1.5"/>
-  <path d="M2 2 L7 2 A5 5 0 0 1 2 7 Z" fill="currentColor"/>
-  <path d="M22 2 L17 2 A5 5 0 0 0 22 7 Z" fill="currentColor"/>
-  <path d="M2 22 L7 22 A5 5 0 0 0 2 17 Z" fill="currentColor"/>
-  <path d="M22 22 L17 22 A5 5 0 0 1 22 17 Z" fill="currentColor"/>
+  <!-- Two concentric rounded rects = darker edges -->
+  <rect x="2.5" y="2.5" width="19" height="19" rx="3" fill="none" stroke="currentColor" stroke-width="1.5"/>
+  <rect x="5" y="5" width="14" height="14" rx="2" fill="none" stroke="currentColor" stroke-width="1.5" opacity="0.35"/>
 </svg>

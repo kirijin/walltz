@@ -305,7 +305,9 @@ Kirigami.ApplicationWindow {
 
                 Controls.ToolButton {
                     id: resetResBtn
-                    icon.name: "video-display-symbolic"
+                    icon.source: "qrc:/icons/reset-resolution.svg"
+                    icon.width: Kirigami.Units.iconSizes.small
+                    icon.height: Kirigami.Units.iconSizes.small
                     text: i18n("Detect")
                     display: Controls.AbstractButton.IconOnly
                     hoverEnabled: true
@@ -320,7 +322,9 @@ Kirigami.ApplicationWindow {
 
                 Controls.ToolButton {
                     id: resetEffectsBtn
-                    icon.name: "edit-undo"
+                    icon.source: "qrc:/icons/reset-effects.svg"
+                    icon.width: Kirigami.Units.iconSizes.small
+                    icon.height: Kirigami.Units.iconSizes.small
                     text: i18n("Effects")
                     display: Controls.AbstractButton.IconOnly
                     hoverEnabled: true
@@ -719,11 +723,9 @@ Kirigami.ApplicationWindow {
 
                 Item { Layout.fillWidth: true }
 
-                Controls.Button {
+                Controls.ToolButton {
                     icon.source: "qrc:/icons/angle.svg"
-                    icon.width: Kirigami.Units.iconSizes.small
-                    icon.height: Kirigami.Units.iconSizes.small
-                    implicitWidth: 28; implicitHeight: 28
+                    display: Controls.AbstractButton.IconOnly
                     Controls.ToolTip.text: i18n("Reset Angle")
                     Controls.ToolTip.visible: hovered
                     Controls.ToolTip.delay: 400
@@ -747,9 +749,15 @@ Kirigami.ApplicationWindow {
             }
 
             // ── Accordion slider groups (below colour controls) ──
-            ColumnLayout {
+            Item {
                 Layout.fillWidth: true
-                spacing: 0
+                implicitHeight: accordionColumn.implicitHeight
+
+                ColumnLayout {
+                    id: accordionColumn
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    width: Math.min(parent.width, previewBox.width)
+                    spacing: 0
 
                 // Essentials — always visible, 4 sliders, always expanded
                 CollapsibleSection {
@@ -765,11 +773,9 @@ Kirigami.ApplicationWindow {
                         columnSpacing: Kirigami.Units.smallSpacing
                         rowSpacing: Kirigami.Units.smallSpacing
 
-                        Controls.Button {
+                        Controls.ToolButton {
                             icon.source: "qrc:/icons/vignette.svg"
-                            icon.width: Kirigami.Units.iconSizes.small
-                            icon.height: Kirigami.Units.iconSizes.small
-                            implicitWidth: 28; implicitHeight: 28
+                            display: Controls.AbstractButton.IconOnly
                             Controls.ToolTip.text: i18n("Reset Vignette")
                             Controls.ToolTip.visible: hovered
                             Controls.ToolTip.delay: 400
@@ -791,11 +797,9 @@ Kirigami.ApplicationWindow {
                             }
                         }
 
-                        Controls.Button {
+                        Controls.ToolButton {
                             icon.source: "qrc:/icons/grain.svg"
-                            icon.width: Kirigami.Units.iconSizes.small
-                            icon.height: Kirigami.Units.iconSizes.small
-                            implicitWidth: 28; implicitHeight: 28
+                            display: Controls.AbstractButton.IconOnly
                             Controls.ToolTip.text: i18n("Reset Grain")
                             Controls.ToolTip.visible: hovered
                             Controls.ToolTip.delay: 400
@@ -817,11 +821,9 @@ Kirigami.ApplicationWindow {
                             }
                         }
 
-                        Controls.Button {
+                        Controls.ToolButton {
                             icon.source: "qrc:/icons/chromatic-aberration.svg"
-                            icon.width: Kirigami.Units.iconSizes.small
-                            icon.height: Kirigami.Units.iconSizes.small
-                            implicitWidth: 28; implicitHeight: 28
+                            display: Controls.AbstractButton.IconOnly
                             Controls.ToolTip.text: i18n("Reset Chromatic Aberration")
                             Controls.ToolTip.visible: hovered
                             Controls.ToolTip.delay: 400
@@ -843,11 +845,9 @@ Kirigami.ApplicationWindow {
                             }
                         }
 
-                        Controls.Button {
+                        Controls.ToolButton {
                             icon.source: "qrc:/icons/frame.svg"
-                            icon.width: Kirigami.Units.iconSizes.small
-                            icon.height: Kirigami.Units.iconSizes.small
-                            implicitWidth: 28; implicitHeight: 28
+                            display: Controls.AbstractButton.IconOnly
                             Controls.ToolTip.text: i18n("Reset Photo Frame")
                             Controls.ToolTip.visible: hovered
                             Controls.ToolTip.delay: 400
@@ -891,11 +891,9 @@ Kirigami.ApplicationWindow {
                         columnSpacing: Kirigami.Units.smallSpacing
                         rowSpacing: Kirigami.Units.smallSpacing
 
-                        Controls.Button {
+                        Controls.ToolButton {
                             icon.source: "qrc:/icons/blur.svg"
-                            icon.width: Kirigami.Units.iconSizes.small
-                            icon.height: Kirigami.Units.iconSizes.small
-                            implicitWidth: 28; implicitHeight: 28
+                            display: Controls.AbstractButton.IconOnly
                             Controls.ToolTip.text: i18n("Reset Blur")
                             Controls.ToolTip.visible: hovered
                             Controls.ToolTip.delay: 400
@@ -917,11 +915,9 @@ Kirigami.ApplicationWindow {
                             onMoved: processor.blurRadius = value
                         }
 
-                        Controls.Button {
+                        Controls.ToolButton {
                             icon.source: "qrc:/icons/saturation.svg"
-                            icon.width: Kirigami.Units.iconSizes.small
-                            icon.height: Kirigami.Units.iconSizes.small
-                            implicitWidth: 28; implicitHeight: 28
+                            display: Controls.AbstractButton.IconOnly
                             Controls.ToolTip.text: i18n("Reset Saturation")
                             Controls.ToolTip.visible: hovered
                             Controls.ToolTip.delay: 400
@@ -941,11 +937,9 @@ Kirigami.ApplicationWindow {
                             onMoved: processor.saturationFactor = value / 10.0
                         }
 
-                        Controls.Button {
+                        Controls.ToolButton {
                             icon.source: "qrc:/icons/zoom.svg"
-                            icon.width: Kirigami.Units.iconSizes.small
-                            icon.height: Kirigami.Units.iconSizes.small
-                            implicitWidth: 28; implicitHeight: 28
+                            display: Controls.AbstractButton.IconOnly
                             Controls.ToolTip.text: i18n("Reset Zoom")
                             Controls.ToolTip.visible: hovered
                             Controls.ToolTip.delay: 400
@@ -965,11 +959,9 @@ Kirigami.ApplicationWindow {
                             onMoved: processor.bgZoom = value / 10.0
                         }
 
-                        Controls.Button {
+                        Controls.ToolButton {
                             icon.source: "qrc:/icons/rotation.svg"
-                            icon.width: Kirigami.Units.iconSizes.small
-                            icon.height: Kirigami.Units.iconSizes.small
-                            implicitWidth: 28; implicitHeight: 28
+                            display: Controls.AbstractButton.IconOnly
                             Controls.ToolTip.text: i18n("Reset Rotation")
                             Controls.ToolTip.visible: hovered
                             Controls.ToolTip.delay: 400
@@ -991,6 +983,7 @@ Kirigami.ApplicationWindow {
                     }
                 }
             }
+        }
 
             // ── File list ──
             Controls.Label {
