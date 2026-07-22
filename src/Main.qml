@@ -46,8 +46,8 @@ Kirigami.ApplicationWindow {
 
         ColumnLayout {
             anchors.fill: parent
-            spacing: Kirigami.Units.largeSpacing
-            anchors.margins: Kirigami.Units.largeSpacing
+            spacing: Kirigami.Units.mediumSpacing
+            anchors.margins: Kirigami.Units.mediumSpacing
 
             // === Drop area / preview ===
             Item {
@@ -567,7 +567,7 @@ Kirigami.ApplicationWindow {
             // ── Content + sliders ──
             ColumnLayout {
                 Layout.fillWidth: true
-                spacing: Kirigami.Units.mediumSpacing
+                spacing: Kirigami.Units.smallSpacing
 
                 // Solid colour chooser (when Colour + Solid)
                 RowLayout {
@@ -712,22 +712,25 @@ Kirigami.ApplicationWindow {
                     Item { Layout.fillWidth: true }
                 }
 
-                // Vignette (always visible)
-                RowLayout {
+                // ── Two-column slider grid — always-visible ──
+                GridLayout {
+                    columns: 2
+                    columnSpacing: Kirigami.Units.smallSpacing
+                    rowSpacing: Kirigami.Units.smallSpacing
                     Layout.fillWidth: true
-                    spacing: Kirigami.Units.smallSpacing
 
-                    Item { Layout.fillWidth: true }
+                    // Row 1: Vignette
                     Controls.Button {
                         text: i18n("V")
                         implicitWidth: Kirigami.Units.gridUnit * 3
+                        Layout.alignment: Qt.AlignRight
                         onClicked: {
                             processor.vignetteStrength = 0.0
                             previewDebounce.restart()
                         }
                     }
                     Controls.Slider {
-                        Layout.preferredWidth: Kirigami.Units.gridUnit * 10
+                        Layout.fillWidth: true
                         from: 0; to: 1.0; stepSize: 0.05
                         value: processor.vignetteStrength
                         Controls.ToolTip.text: i18n("%1%").arg(Math.round(processor.vignetteStrength * 100))
@@ -738,25 +741,19 @@ Kirigami.ApplicationWindow {
                             previewDebounce.restart()
                         }
                     }
-                    Item { Layout.fillWidth: true }
-                }
 
-                // Grain (always visible)
-                RowLayout {
-                    Layout.fillWidth: true
-                    spacing: Kirigami.Units.smallSpacing
-
-                    Item { Layout.fillWidth: true }
+                    // Row 2: Grain
                     Controls.Button {
                         text: i18n("G")
                         implicitWidth: Kirigami.Units.gridUnit * 3
+                        Layout.alignment: Qt.AlignRight
                         onClicked: {
                             processor.grainStrength = 0.0
                             previewDebounce.restart()
                         }
                     }
                     Controls.Slider {
-                        Layout.preferredWidth: Kirigami.Units.gridUnit * 10
+                        Layout.fillWidth: true
                         from: 0; to: 1.0; stepSize: 0.05
                         value: processor.grainStrength
                         Controls.ToolTip.text: i18n("%1%").arg(Math.round(processor.grainStrength * 100))
@@ -767,25 +764,19 @@ Kirigami.ApplicationWindow {
                             previewDebounce.restart()
                         }
                     }
-                    Item { Layout.fillWidth: true }
-                }
 
-                // Chromatic aberration (always visible)
-                RowLayout {
-                    Layout.fillWidth: true
-                    spacing: Kirigami.Units.smallSpacing
-
-                    Item { Layout.fillWidth: true }
+                    // Row 3: Chromatic aberration
                     Controls.Button {
                         text: i18n("CA")
                         implicitWidth: Kirigami.Units.gridUnit * 3
+                        Layout.alignment: Qt.AlignRight
                         onClicked: {
                             processor.caStrength = 0.0
                             previewDebounce.restart()
                         }
                     }
                     Controls.Slider {
-                        Layout.preferredWidth: Kirigami.Units.gridUnit * 10
+                        Layout.fillWidth: true
                         from: 0; to: 1.0; stepSize: 0.05
                         value: processor.caStrength
                         Controls.ToolTip.text: i18n("%1%").arg(Math.round(processor.caStrength * 100))
@@ -796,158 +787,12 @@ Kirigami.ApplicationWindow {
                             previewDebounce.restart()
                         }
                     }
-                    Item { Layout.fillWidth: true }
-                }
 
-                // Blur radius (when Blur selected)
-                RowLayout {
-                    visible: processor.blurMode
-                    Layout.fillWidth: true
-                    spacing: Kirigami.Units.smallSpacing
-
-                    Item { Layout.fillWidth: true }
-                    Controls.Button {
-                        text: i18n("Blur")
-                        implicitWidth: Kirigami.Units.gridUnit * 3
-                        onClicked: {
-                            processor.blurRadius = 0
-                            previewDebounce.restart()
-                        }
-                    }
-                    Controls.Slider {
-                        id: blurSlider
-                        Layout.preferredWidth: Kirigami.Units.gridUnit * 10
-                        from: 0; to: 120; stepSize: 1
-                        value: processor.blurRadius
-                        Controls.ToolTip.text: processor.blurRadius === 0
-                                      ? i18n("Auto")
-                                      : i18n("%1 px").arg(processor.blurRadius)
-                        Controls.ToolTip.visible: hovered
-                        Controls.ToolTip.delay: 400
-                        onMoved: processor.blurRadius = value
-                    }
-                    Item { Layout.fillWidth: true }
-                }
-
-                // Saturation (when Blur selected)
-                RowLayout {
-                    visible: processor.blurMode
-                    Layout.fillWidth: true
-                    spacing: Kirigami.Units.smallSpacing
-
-                    Item { Layout.fillWidth: true }
-                    Controls.Button {
-                        text: i18n("Sat")
-                        implicitWidth: Kirigami.Units.gridUnit * 3
-                        onClicked: {
-                            processor.saturationFactor = 1.8
-                            previewDebounce.restart()
-                        }
-                    }
-                    Controls.Slider {
-                        id: satSlider
-                        Layout.preferredWidth: Kirigami.Units.gridUnit * 10
-                        from: 0; to: 30; stepSize: 1
-                        value: processor.saturationFactor * 10
-                        Controls.ToolTip.text: i18n("%1×").arg(processor.saturationFactor.toFixed(1))
-                        Controls.ToolTip.visible: hovered
-                        Controls.ToolTip.delay: 400
-                        onMoved: processor.saturationFactor = value / 10.0
-                    }
-                    Item { Layout.fillWidth: true }
-                }
-
-                // Background zoom (when Blur selected)
-                RowLayout {
-                    visible: processor.blurMode
-                    Layout.fillWidth: true
-                    spacing: Kirigami.Units.smallSpacing
-
-                    Item { Layout.fillWidth: true }
-                    Controls.Button {
-                        text: i18n("Zoom")
-                        implicitWidth: Kirigami.Units.gridUnit * 3
-                        onClicked: {
-                            processor.bgZoom = 1.0
-                            previewDebounce.restart()
-                        }
-                    }
-                    Controls.Slider {
-                        id: zoomSlider
-                        Layout.preferredWidth: Kirigami.Units.gridUnit * 10
-                        from: 5; to: 30; stepSize: 1
-                        value: Math.round(processor.bgZoom * 10)
-                        Controls.ToolTip.text: i18n("%1%").arg(Math.round(processor.bgZoom * 100))
-                        Controls.ToolTip.visible: hovered
-                        Controls.ToolTip.delay: 400
-                        onMoved: processor.bgZoom = value / 10.0
-                    }
-                    Item { Layout.fillWidth: true }
-                }
-
-                // Background rotation (when Blur selected)
-                RowLayout {
-                    visible: processor.blurMode
-                    Layout.fillWidth: true
-                    spacing: Kirigami.Units.smallSpacing
-
-                    Item { Layout.fillWidth: true }
-                    Controls.Button {
-                        text: i18n("Rot")
-                        implicitWidth: Kirigami.Units.gridUnit * 3
-                        onClicked: {
-                            processor.bgBlurAngle = 0.0
-                            previewDebounce.restart()
-                        }
-                    }
-                    Controls.Slider {
-                        id: bgRotSlider
-                        Layout.preferredWidth: Kirigami.Units.gridUnit * 10
-                        from: 0; to: 360; stepSize: 1
-                        value: processor.bgBlurAngle
-                        Controls.ToolTip.text: i18n("%1°").arg(processor.bgBlurAngle)
-                        Controls.ToolTip.visible: hovered
-                        onMoved: processor.bgBlurAngle = value
-                    }
-                    Item { Layout.fillWidth: true }
-                }
-
-                // Gradient angle (when Colour + Gradient/Auto)
-                RowLayout {
-                    visible: !processor.blurMode && processor.bgGradientStyle > 0
-                    Layout.fillWidth: true
-                    spacing: Kirigami.Units.smallSpacing
-
-                    Item { Layout.fillWidth: true }
-                    Controls.Button {
-                        text: i18n("Angle")
-                        implicitWidth: Kirigami.Units.gridUnit * 3
-                        onClicked: {
-                            processor.gradientAngle = 0.0
-                            previewDebounce.restart()
-                        }
-                    }
-                    Controls.Slider {
-                        id: gradSlider
-                        Layout.preferredWidth: Kirigami.Units.gridUnit * 10
-                        from: 0; to: 360; stepSize: 1
-                        value: processor.gradientAngle
-                        Controls.ToolTip.text: i18n("%1°").arg(processor.gradientAngle)
-                        Controls.ToolTip.visible: hovered
-                        onMoved: processor.gradientAngle = value
-                    }
-                    Item { Layout.fillWidth: true }
-                }
-
-                // Photo frame (text button, like vignette/grain — slider at 0 = off)
-                RowLayout {
-                    Layout.fillWidth: true
-                    spacing: Kirigami.Units.smallSpacing
-
-                    Item { Layout.fillWidth: true }
+                    // Row 4: Photo frame
                     Controls.Button {
                         text: i18n("Frame")
                         implicitWidth: Kirigami.Units.gridUnit * 3
+                        Layout.alignment: Qt.AlignRight
                         onClicked: {
                             processor.photoFrameWidth = 0
                             processor.photoFrame = false
@@ -956,7 +801,7 @@ Kirigami.ApplicationWindow {
                     }
                     Controls.Slider {
                         id: frameWidthSlider
-                        Layout.preferredWidth: Kirigami.Units.gridUnit * 10
+                        Layout.fillWidth: true
                         from: 0; to: 25; stepSize: 1
                         value: processor.photoFrameWidth
                         Controls.ToolTip.text: processor.photoFrameWidth === 0
@@ -970,7 +815,129 @@ Kirigami.ApplicationWindow {
                             previewDebounce.restart()
                         }
                     }
-                    Item { Layout.fillWidth: true }
+                }
+
+                // ── Two-column slider grid — Blur mode ──
+                GridLayout {
+                    columns: 2
+                    columnSpacing: Kirigami.Units.smallSpacing
+                    rowSpacing: Kirigami.Units.smallSpacing
+                    Layout.fillWidth: true
+                    visible: processor.blurMode
+
+                    // Row 1: Blur radius
+                    Controls.Button {
+                        text: i18n("Blur")
+                        implicitWidth: Kirigami.Units.gridUnit * 3
+                        Layout.alignment: Qt.AlignRight
+                        onClicked: {
+                            processor.blurRadius = 0
+                            previewDebounce.restart()
+                        }
+                    }
+                    Controls.Slider {
+                        id: blurSlider
+                        Layout.fillWidth: true
+                        from: 0; to: 120; stepSize: 1
+                        value: processor.blurRadius
+                        Controls.ToolTip.text: processor.blurRadius === 0
+                                      ? i18n("Auto")
+                                      : i18n("%1 px").arg(processor.blurRadius)
+                        Controls.ToolTip.visible: hovered
+                        Controls.ToolTip.delay: 400
+                        onMoved: processor.blurRadius = value
+                    }
+
+                    // Row 2: Saturation
+                    Controls.Button {
+                        text: i18n("Sat")
+                        implicitWidth: Kirigami.Units.gridUnit * 3
+                        Layout.alignment: Qt.AlignRight
+                        onClicked: {
+                            processor.saturationFactor = 1.8
+                            previewDebounce.restart()
+                        }
+                    }
+                    Controls.Slider {
+                        id: satSlider
+                        Layout.fillWidth: true
+                        from: 0; to: 30; stepSize: 1
+                        value: processor.saturationFactor * 10
+                        Controls.ToolTip.text: i18n("%1×").arg(processor.saturationFactor.toFixed(1))
+                        Controls.ToolTip.visible: hovered
+                        Controls.ToolTip.delay: 400
+                        onMoved: processor.saturationFactor = value / 10.0
+                    }
+
+                    // Row 3: Background zoom
+                    Controls.Button {
+                        text: i18n("Zoom")
+                        implicitWidth: Kirigami.Units.gridUnit * 3
+                        Layout.alignment: Qt.AlignRight
+                        onClicked: {
+                            processor.bgZoom = 1.0
+                            previewDebounce.restart()
+                        }
+                    }
+                    Controls.Slider {
+                        id: zoomSlider
+                        Layout.fillWidth: true
+                        from: 5; to: 30; stepSize: 1
+                        value: Math.round(processor.bgZoom * 10)
+                        Controls.ToolTip.text: i18n("%1%").arg(Math.round(processor.bgZoom * 100))
+                        Controls.ToolTip.visible: hovered
+                        Controls.ToolTip.delay: 400
+                        onMoved: processor.bgZoom = value / 10.0
+                    }
+
+                    // Row 4: Background rotation
+                    Controls.Button {
+                        text: i18n("Rot")
+                        implicitWidth: Kirigami.Units.gridUnit * 3
+                        Layout.alignment: Qt.AlignRight
+                        onClicked: {
+                            processor.bgBlurAngle = 0.0
+                            previewDebounce.restart()
+                        }
+                    }
+                    Controls.Slider {
+                        id: bgRotSlider
+                        Layout.fillWidth: true
+                        from: 0; to: 360; stepSize: 1
+                        value: processor.bgBlurAngle
+                        Controls.ToolTip.text: i18n("%1°").arg(processor.bgBlurAngle)
+                        Controls.ToolTip.visible: hovered
+                        Controls.ToolTip.delay: 400
+                        onMoved: processor.bgBlurAngle = value
+                    }
+                }
+
+                // ── Two-column slider grid — Colour mode ──
+                GridLayout {
+                    columns: 2
+                    columnSpacing: Kirigami.Units.smallSpacing
+                    Layout.fillWidth: true
+                    visible: !processor.blurMode && processor.bgGradientStyle > 0
+
+                    Controls.Button {
+                        text: i18n("Angle")
+                        implicitWidth: Kirigami.Units.gridUnit * 3
+                        Layout.alignment: Qt.AlignRight
+                        onClicked: {
+                            processor.gradientAngle = 0.0
+                            previewDebounce.restart()
+                        }
+                    }
+                    Controls.Slider {
+                        id: gradSlider
+                        Layout.fillWidth: true
+                        from: 0; to: 360; stepSize: 1
+                        value: processor.gradientAngle
+                        Controls.ToolTip.text: i18n("%1°").arg(processor.gradientAngle)
+                        Controls.ToolTip.visible: hovered
+                        Controls.ToolTip.delay: 400
+                        onMoved: processor.gradientAngle = value
+                    }
                 }
 
                 Controls.Button {
