@@ -253,7 +253,7 @@ private:
         QRgb color1;
         QRgb color2;
     };
-    static const GradientPreset s_presets[25];
+    static const GradientPreset s_presets[12];
 };
 
 #endif // WALLPAPERPROCESSOR_H

@@ -244,11 +244,11 @@ Kirigami.ApplicationWindow {
                 Controls.Label {
                     id: processingIndicator
                     visible: processor.busy
-                    text: "\u28BE"
+                    text: "⢸"
                     font.pixelSize: Kirigami.Theme.defaultFont.pixelSize
                     Layout.alignment: Qt.AlignVCenter
                     Timer {
-                        interval: 150
+                        interval: 80
                         running: processor.busy
                         repeat: true
                         property int frame: 0
@@ -629,6 +629,7 @@ Kirigami.ApplicationWindow {
             }
 
             // Mood palette V1 (Auto mode)
+            Controls.ButtonGroup { id: moodGroup }
 
             RowLayout {
                 visible: !processor.blurMode && processor.bgGradientStyle === 2
@@ -641,8 +642,10 @@ Kirigami.ApplicationWindow {
                     model: 6
                     delegate: Controls.Button {
                         text: processor.moodName(index)
-                        highlighted: !processor.useV2 && processor.autoMood === index
-                        checked: false
+                        checkable: true
+                        highlighted: checked
+                        Controls.ButtonGroup.group: moodGroup
+                        checked: !processor.useV2 && processor.autoMood === index
                         onClicked: {
                             if (processor.autoMood === index && !processor.useV2)
                                 return
@@ -669,8 +672,9 @@ Kirigami.ApplicationWindow {
                     model: 6
                     delegate: Controls.Button {
                         text: processor.moodNameV2(index)
-                        highlighted: processor.useV2 && processor.autoMood === index
-                        checked: false
+                        checkable: true
+                        highlighted: checked
+                        checked: processor.useV2 && processor.autoMood === index
                         onClicked: {
                             if (processor.autoMood === index && processor.useV2)
                                 return
