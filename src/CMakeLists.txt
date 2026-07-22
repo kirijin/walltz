@@ -12,6 +12,7 @@ target_sources(walltz PRIVATE
 
 ecm_target_qml_sources(walltz SOURCES
     Main.qml
+    CollapsibleSection.qml
 )
 
 target_link_libraries(walltz PRIVATE
