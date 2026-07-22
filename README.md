@@ -133,6 +133,13 @@ src/
 
 ---
 
+## Acknowledgments
+
+Walltz stands on the shoulders of two projects that pioneered the "blurred-background wallpaper" concept:
+
+- **[Wallpaperize](https://github.com/Philip-Scott/wallpaperize)** by Felipe Escoto — the elementaryOS app that brought this workflow to Linux desktops. Walltz's mood engine and gradient system were directly inspired by Wallpaperize's design.
+- **[Backgroundifier](https://github.com/archagon/backgroundifier-public)** by Alexei Baboulevitch (Archagon) — the original macOS app (2015) that first turned oddly-sized images into beautiful desktop wallpapers. The core idea — zoomed blur behind the source image — originates here.
+
 ## License
 
 GNU General Public License v3.0 or later. See [COPYING](COPYING).
