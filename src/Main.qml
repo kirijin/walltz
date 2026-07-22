@@ -413,6 +413,7 @@ Kirigami.ApplicationWindow {
                     Controls.Button {
                         text: i18n("Blur")
                         checkable: true
+                        flat: true
                         implicitWidth: Kirigami.Units.gridUnit * 7
                         highlighted: checked
                         checked: processor.blurMode
@@ -422,6 +423,7 @@ Kirigami.ApplicationWindow {
                     Controls.Button {
                         text: i18n("Colour")
                         checkable: true
+                        flat: true
                         implicitWidth: Kirigami.Units.gridUnit * 7
                         highlighted: checked
                         checked: !processor.blurMode
@@ -430,12 +432,6 @@ Kirigami.ApplicationWindow {
                     }
 
                     Item { Layout.fillWidth: true }
-                }
-
-                Kirigami.Separator {
-                    Layout.fillWidth: true
-                    Layout.topMargin: Kirigami.Units.smallSpacing
-                    Layout.bottomMargin: Kirigami.Units.smallSpacing
                 }
 
                 // Sub-style: Solid / Gradient / Auto (when Colour)
@@ -451,6 +447,7 @@ Kirigami.ApplicationWindow {
                     Controls.Button {
                         text: i18n("Colour")
                         checkable: true
+                        flat: true
                         implicitWidth: Kirigami.Units.gridUnit * 5
                         highlighted: checked
                         checked: processor.bgGradientStyle === 0
@@ -460,6 +457,7 @@ Kirigami.ApplicationWindow {
                     Controls.Button {
                         text: i18n("Gradient")
                         checkable: true
+                        flat: true
                         implicitWidth: Kirigami.Units.gridUnit * 5
                         highlighted: checked
                         checked: processor.bgGradientStyle === 1
@@ -469,6 +467,7 @@ Kirigami.ApplicationWindow {
                     Controls.Button {
                         text: i18n("Auto")
                         checkable: true
+                        flat: true
                         implicitWidth: Kirigami.Units.gridUnit * 5
                         highlighted: checked
                         checked: processor.bgGradientStyle === 2
@@ -477,12 +476,6 @@ Kirigami.ApplicationWindow {
                     }
 
                     Item { Layout.fillWidth: true }
-                }
-
-                Kirigami.Separator {
-                    Layout.fillWidth: true
-                    Layout.topMargin: Kirigami.Units.smallSpacing
-                    Layout.bottomMargin: Kirigami.Units.smallSpacing
                 }
 
                 // Mood palette buttons — only when Fill=Auto
@@ -512,6 +505,7 @@ Kirigami.ApplicationWindow {
                         delegate: Controls.Button {
                             text: processor.moodName(index)
                             checkable: true
+                            flat: true
                             highlighted: checked
                             checked: !processor.useV2 && processor.autoMood === index
                             onClicked: {
@@ -539,6 +533,7 @@ Kirigami.ApplicationWindow {
                         delegate: Controls.Button {
                             text: processor.moodNameV2(index)
                             checkable: true
+                            flat: true
                             highlighted: checked
                             checked: processor.useV2 && processor.autoMood === index
                             onClicked: {
@@ -964,7 +959,7 @@ Kirigami.ApplicationWindow {
                     Controls.Slider {
                         id: frameWidthSlider
                         Layout.preferredWidth: Kirigami.Units.gridUnit * 10
-                        from: 5; to: 60; stepSize: 5
+                        from: 5; to: 25; stepSize: 5
                         value: processor.photoFrameWidth
                         Controls.ToolTip.text: i18n("%1 px").arg(processor.photoFrameWidth)
                         Controls.ToolTip.visible: hovered

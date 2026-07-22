@@ -18,6 +18,7 @@
 #include <KLocalizedString>
 
 static const int SHADOW_RADIUS = 3;
+static const int FRAME_RADIUS = 2;  // photo frame corner radius (small, paper-like)
 
 // ── gradient presets (color-theory-based) ─────────────────────────────────
 
@@ -268,7 +269,7 @@ void WallpaperProcessor::setPhotoFrame(bool on)
 
 void WallpaperProcessor::setPhotoFrameWidth(int w)
 {
-    w = qBound(0, w, 60);
+    w = qBound(5, w, 25);
     if (m_photoFrameWidth != w) {
         m_photoFrameWidth = w;
         Q_EMIT photoFrameWidthChanged();
@@ -691,21 +692,26 @@ QImage WallpaperProcessor::renderWallpaper(const QImage &src, int W, int H)
     // ── Photo frame (white border around foreground image) ──
     if (m_photoFrame) {
         int fw = m_photoFrameWidth;
+        p.setRenderHint(QPainter::Antialiasing);
+        p.setRenderHint(QPainter::SmoothPixmapTransform);
         p.setPen(Qt::NoPen);
         p.setBrush(Qt::white);
         p.drawRoundedRect(cx - fw, cy - fw, imgW + 2*fw, imgH + 2*fw,
-                          SHADOW_RADIUS + 2, SHADOW_RADIUS + 2);
+                          FRAME_RADIUS, FRAME_RADIUS);
         // Thin outer border on the frame
         p.setPen(QPen(QColor(200, 200, 200), 1));
         p.setBrush(Qt::NoBrush);
         p.drawRoundedRect(cx - fw, cy - fw, imgW + 2*fw, imgH + 2*fw,
-                          SHADOW_RADIUS + 2, SHADOW_RADIUS + 2);
+                          FRAME_RADIUS, FRAME_RADIUS);
     }
 
     // ── Foreground image with rounded clip ──
     p.save();
+    p.setRenderHint(QPainter::Antialiasing);
+    p.setRenderHint(QPainter::SmoothPixmapTransform);
     QPainterPath clipPath;
-    clipPath.addRoundedRect(cx, cy, imgW, imgH, SHADOW_RADIUS, SHADOW_RADIUS);
+    int clipRadius = m_photoFrame ? FRAME_RADIUS : SHADOW_RADIUS;
+    clipPath.addRoundedRect(cx, cy, imgW, imgH, clipRadius, clipRadius);
     p.setClipPath(clipPath);
     p.drawImage(cx, cy, src);
     p.restore();

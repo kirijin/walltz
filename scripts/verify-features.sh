@@ -223,11 +223,11 @@ else
   fail "Expected >= 2 highlighted: checked, found $H_COUNT"
 fi
 
-# 18) Separators
-echo "--- Feature 18: Separators ---"
-grep -q 'Kirigami.Separator' "$ROOT/src/Main.qml" \
-  && ok "Separators inserted between sections" \
-  || fail "Missing Kirigami.Separator"
+# 18) No separators (removed per request)
+echo "--- Feature 18: No separators ---"
+! grep -q 'Kirigami.Separator' "$ROOT/src/Main.qml" \
+  && ok "No Kirigami.Separator remain" \
+  || fail "Separator still present"
 
 # 19) Photo frame properties
 echo "--- Feature 19: Photo frame ---"
@@ -243,6 +243,18 @@ grep -q 'm_photoFrame = false;' "$ROOT/src/WallpaperProcessor.h" \
 grep -q 'Photo frame' "$ROOT/src/Main.qml" \
   && ok "Photo frame toggle in QML" \
   || fail "Missing photo frame QML toggle"
+grep -q 'to: 25' "$ROOT/src/Main.qml" \
+  && ok "Photo frame width max 25px" \
+  || fail "Photo frame width not bounded at 25"
+grep -q 'FRAME_RADIUS' "$ROOT/src/WallpaperProcessor.cpp" \
+  && ok "FRAME_RADIUS = 2 defined" \
+  || fail "FRAME_RADIUS missing"
+grep -q 'Antialiasing' "$ROOT/src/WallpaperProcessor.cpp" \
+  && ok "Antialiasing enabled for smooth corners" \
+  || fail "Antialiasing missing"
+grep -q "qBound(5, w, 25)" "$ROOT/src/WallpaperProcessor.cpp" \
+  && ok "setter bounds at 25px" \
+  || fail "Setter doesn't cap at 25"
 
 echo
 echo "Result: $PASS passed, $FAIL failed"
