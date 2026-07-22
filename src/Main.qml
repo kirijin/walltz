@@ -336,7 +336,6 @@ Kirigami.ApplicationWindow {
                     // Generic zone
                     Controls.Button {
                         text: i18n("Free")
-                        flat: true
                         checkable: true
                         implicitWidth: Kirigami.Units.gridUnit * 4
                         highlighted: checked
@@ -346,7 +345,6 @@ Kirigami.ApplicationWindow {
                     }
                     Controls.Button {
                         text: "1:1"
-                        flat: true
                         checkable: true
                         implicitWidth: Kirigami.Units.gridUnit * 4
                         highlighted: checked
@@ -356,7 +354,6 @@ Kirigami.ApplicationWindow {
                     }
                     Controls.Button {
                         text: "4:3"
-                        flat: true
                         checkable: true
                         implicitWidth: Kirigami.Units.gridUnit * 4
                         highlighted: checked
@@ -366,7 +363,6 @@ Kirigami.ApplicationWindow {
                     }
                     Controls.Button {
                         text: "16:10"
-                        flat: true
                         checkable: true
                         implicitWidth: Kirigami.Units.gridUnit * 4
                         highlighted: checked
@@ -378,7 +374,6 @@ Kirigami.ApplicationWindow {
                     // Wide zone
                     Controls.Button {
                         text: "16:9"
-                        flat: true
                         checkable: true
                         implicitWidth: Kirigami.Units.gridUnit * 4
                         highlighted: checked
@@ -388,7 +383,6 @@ Kirigami.ApplicationWindow {
                     }
                     Controls.Button {
                         text: "21:9"
-                        flat: true
                         checkable: true
                         implicitWidth: Kirigami.Units.gridUnit * 4
                         highlighted: checked
@@ -398,7 +392,6 @@ Kirigami.ApplicationWindow {
                     }
                     Controls.Button {
                         text: "32:9"
-                        flat: true
                         checkable: true
                         implicitWidth: Kirigami.Units.gridUnit * 4
                         highlighted: checked
@@ -423,7 +416,6 @@ Kirigami.ApplicationWindow {
                 Controls.Button {
                     text: i18n("Blur")
                     checkable: true
-                    flat: true
                     implicitWidth: Kirigami.Units.gridUnit * 7
                     highlighted: checked
                     checked: processor.blurMode
@@ -433,7 +425,6 @@ Kirigami.ApplicationWindow {
                 Controls.Button {
                     text: i18n("Colour")
                     checkable: true
-                    flat: true
                     implicitWidth: Kirigami.Units.gridUnit * 7
                     highlighted: checked
                     checked: !processor.blurMode
@@ -470,7 +461,6 @@ Kirigami.ApplicationWindow {
                 Controls.Button {
                     text: i18n("Solid")
                     checkable: true
-                    flat: true
                     implicitWidth: Kirigami.Units.gridUnit * 5
                     highlighted: checked
                     checked: processor.bgGradientStyle === 0
@@ -480,7 +470,6 @@ Kirigami.ApplicationWindow {
                 Controls.Button {
                     text: i18n("Gradient")
                     checkable: true
-                    flat: true
                     implicitWidth: Kirigami.Units.gridUnit * 5
                     highlighted: checked
                     checked: processor.bgGradientStyle === 1
@@ -490,7 +479,6 @@ Kirigami.ApplicationWindow {
                 Controls.Button {
                     text: i18n("Auto")
                     checkable: true
-                    flat: true
                     implicitWidth: Kirigami.Units.gridUnit * 5
                     highlighted: checked
                     checked: processor.bgGradientStyle === 2
@@ -589,63 +577,57 @@ Kirigami.ApplicationWindow {
             }
 
             // Gradient preset picker (Gradient mode) — responsive columns
-            RowLayout {
+            GridLayout {
+                id: gradientGrid
                 visible: !processor.blurMode && processor.bgGradientStyle === 1
-                Layout.fillWidth: true
-                spacing: 0
+                Layout.fillWidth: false
+                Layout.preferredWidth: Math.min(gradientGrid.parent?.width ?? 400, 400)
+                Layout.alignment: Qt.AlignHCenter
+                columns: Math.max(1, Math.floor((gradientGrid.width + columnSpacing) / (56 + columnSpacing)))
+                columnSpacing: Kirigami.Units.smallSpacing
+                rowSpacing: Kirigami.Units.smallSpacing
 
-                Item { Layout.fillWidth: true }
+                Repeater {
+                    model: processor.gradientPresetCount()
 
-                Flow {
-                    id: gradientFlow
-                    Layout.fillWidth: true
-                    Layout.maximumWidth: 400
-                    spacing: Kirigami.Units.smallSpacing
+                    Rectangle {
+                        id: presetDelegate
+                        required property int index
 
-                    Repeater {
-                        model: processor.gradientPresetCount()
+                        Layout.preferredWidth: 56
+                        Layout.preferredHeight: 40
+                        radius: Kirigami.Units.cornerRadius
+                        border.width: processor.bgGradientPreset === index ? 2 : 1
+                        border.color: processor.bgGradientPreset === index
+                                       ? Kirigami.Theme.highlightColor
+                                       : Kirigami.Theme.textColor
 
-                        Rectangle {
-                            id: presetDelegate
-                            required property int index
+                        gradient: Gradient {
+                            GradientStop { position: 0.0; color: processor.gradientPresetColor1(presetDelegate.index) }
+                            GradientStop { position: 1.0; color: processor.gradientPresetColor2(presetDelegate.index) }
+                        }
 
-                            width: 56; height: 40
-                            radius: Kirigami.Units.cornerRadius
-                            border.width: processor.bgGradientPreset === index ? 2 : 1
-                            border.color: processor.bgGradientPreset === index
-                                           ? Kirigami.Theme.highlightColor
-                                           : Kirigami.Theme.textColor
+                        Controls.Button {
+                            anchors.fill: parent
+                            opacity: 0
+                            onClicked: processor.bgGradientPreset = index
+                        }
 
-                            gradient: Gradient {
-                                GradientStop { position: 0.0; color: processor.gradientPresetColor1(presetDelegate.index) }
-                                GradientStop { position: 1.0; color: processor.gradientPresetColor2(presetDelegate.index) }
-                            }
-
-                            Controls.Button {
-                                anchors.fill: parent
-                                opacity: 0
-                                onClicked: processor.bgGradientPreset = index
-                            }
-
-                            Controls.Label {
-                                anchors.bottom: parent.bottom
-                                anchors.horizontalCenter: parent.horizontalCenter
-                                anchors.bottomMargin: 2
-                                text: String(presetDelegate.index + 1)
-                                font.pixelSize: Kirigami.Theme.smallFont.pixelSize
-                                color: Kirigami.Theme.textColor
-                                style: Text.Outline
-                                styleColor: Kirigami.Theme.backgroundColor
-                            }
+                        Controls.Label {
+                            anchors.bottom: parent.bottom
+                            anchors.horizontalCenter: parent.horizontalCenter
+                            anchors.bottomMargin: 2
+                            text: String(presetDelegate.index + 1)
+                            font.pixelSize: Kirigami.Theme.smallFont.pixelSize
+                            color: Kirigami.Theme.textColor
+                            style: Text.Outline
+                            styleColor: Kirigami.Theme.backgroundColor
                         }
                     }
                 }
-
-                Item { Layout.fillWidth: true }
             }
 
             // Mood palette V1 (Auto mode)
-            Controls.ButtonGroup { id: moodGroup }
 
             RowLayout {
                 visible: !processor.blurMode && processor.bgGradientStyle === 2
@@ -658,17 +640,16 @@ Kirigami.ApplicationWindow {
                     model: 6
                     delegate: Controls.Button {
                         text: processor.moodName(index)
-                        checkable: true
-                        flat: true
-                        highlighted: checked
-                        checked: !processor.useV2 && processor.autoMood === index
+                        highlighted: !processor.useV2 && processor.autoMood === index
+                        checked: false
                         onClicked: {
+                            if (processor.autoMood === index && !processor.useV2)
+                                return
                             processor.autoMood = index
                             processor.useV2 = false
                             moodPreviewTimer.restart()
                         }
                         implicitWidth: Kirigami.Units.gridUnit * 5
-                        Controls.ButtonGroup.group: moodGroup
                     }
                 }
 
@@ -687,11 +668,11 @@ Kirigami.ApplicationWindow {
                     model: 6
                     delegate: Controls.Button {
                         text: processor.moodNameV2(index)
-                        checkable: true
-                        flat: true
-                        highlighted: checked
-                        checked: processor.useV2 && processor.autoMood === index
+                        highlighted: processor.useV2 && processor.autoMood === index
+                        checked: false
                         onClicked: {
+                            if (processor.autoMood === index && processor.useV2)
+                                return
                             processor.autoMood = index
                             processor.useV2 = true
                             moodPreviewTimer.restart()
@@ -742,8 +723,7 @@ Kirigami.ApplicationWindow {
                 CollapsibleSection {
                     id: essentialsSection
                     title: i18n("Essentials")
-                    expanded: true
-                    collapsible: false
+                    expanded: false
 
                     GridLayout {
                         Layout.fillWidth: true
