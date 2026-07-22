@@ -318,6 +318,30 @@ Kirigami.ApplicationWindow {
                     }
                 }
 
+                Controls.ToolButton {
+                    id: resetEffectsBtn
+                    icon.name: "edit-undo"
+                    text: i18n("Effects")
+                    display: Controls.AbstractButton.IconOnly
+                    hoverEnabled: true
+                    Controls.ToolTip.text: i18n("Reset all effects")
+                    Controls.ToolTip.visible: resetEffectsBtn.hovered
+                    Controls.ToolTip.delay: 400
+                    onClicked: {
+                        processor.vignetteStrength = 0.0
+                        processor.grainStrength = 0.0
+                        processor.blurRadius = 0
+                        processor.saturationFactor = 1.8
+                        processor.bgZoom = 1.0
+                        processor.bgBlurAngle = 0.0
+                        processor.gradientAngle = 45.0
+                        processor.caStrength = 0.0
+                        processor.photoFrameWidth = 0
+                        processor.photoFrame = false
+                        previewDebounce.restart()
+                    }
+                }
+
                 Item { Layout.fillWidth: true }
             }
 
@@ -918,7 +942,7 @@ Kirigami.ApplicationWindow {
                         }
 
                         Controls.Button {
-                            icon.name: "view-zoom-original"
+                            icon.name: "zoom-original"
                             icon.width: Kirigami.Units.iconSizes.small
                             icon.height: Kirigami.Units.iconSizes.small
                             implicitWidth: 28; implicitHeight: 28
@@ -965,26 +989,6 @@ Kirigami.ApplicationWindow {
                             onMoved: processor.bgBlurAngle = value
                         }
                     }
-                }
-            }
-
-            // Reset effects (below accordion, above file list)
-            Controls.Button {
-                Layout.alignment: Qt.AlignHCenter
-                text: i18n("Reset effects")
-                icon.name: "edit-undo"
-                onClicked: {
-                    processor.vignetteStrength = 0.0
-                    processor.grainStrength = 0.0
-                    processor.blurRadius = 0
-                    processor.saturationFactor = 1.8
-                    processor.bgZoom = 1.0
-                    processor.bgBlurAngle = 0.0
-                    processor.gradientAngle = 45.0
-                    processor.caStrength = 0.0
-                    processor.photoFrameWidth = 0
-                    processor.photoFrame = false
-                    previewDebounce.restart()
                 }
             }
 
