@@ -696,8 +696,14 @@ Kirigami.ApplicationWindow {
                 Item { Layout.fillWidth: true }
 
                 Controls.Button {
-                    text: i18n("Angle")
-                    implicitWidth: Kirigami.Units.gridUnit * 3
+                    icon.name: "object-rotate-left"
+                    icon.width: Kirigami.Units.iconSizes.smallMedium
+                    icon.height: Kirigami.Units.iconSizes.smallMedium
+                    implicitWidth: Kirigami.Units.gridUnit * 4
+                    implicitHeight: Kirigami.Units.gridUnit * 3
+                    Controls.ToolTip.text: i18n("Reset Angle")
+                    Controls.ToolTip.visible: hovered
+                    Controls.ToolTip.delay: 400
                     onClicked: {
                         processor.gradientAngle = 45.0
                         previewDebounce.restart()
@@ -737,9 +743,14 @@ Kirigami.ApplicationWindow {
                         rowSpacing: Kirigami.Units.smallSpacing
 
                         Controls.Button {
-                            text: i18n("V")
-                            implicitWidth: Kirigami.Units.gridUnit * 3
-                            Layout.alignment: Qt.AlignRight
+                            icon.name: "draw-circle"
+                            icon.width: Kirigami.Units.iconSizes.smallMedium
+                            icon.height: Kirigami.Units.iconSizes.smallMedium
+                            implicitWidth: Kirigami.Units.gridUnit * 4
+                            implicitHeight: Kirigami.Units.gridUnit * 3
+                            Controls.ToolTip.text: i18n("Reset Vignette")
+                            Controls.ToolTip.visible: hovered
+                            Controls.ToolTip.delay: 400
                             onClicked: {
                                 processor.vignetteStrength = 0.0
                                 previewDebounce.restart()
@@ -759,9 +770,14 @@ Kirigami.ApplicationWindow {
                         }
 
                         Controls.Button {
-                            text: i18n("G")
-                            implicitWidth: Kirigami.Units.gridUnit * 3
-                            Layout.alignment: Qt.AlignRight
+                            icon.name: "dialog-filters"
+                            icon.width: Kirigami.Units.iconSizes.smallMedium
+                            icon.height: Kirigami.Units.iconSizes.smallMedium
+                            implicitWidth: Kirigami.Units.gridUnit * 4
+                            implicitHeight: Kirigami.Units.gridUnit * 3
+                            Controls.ToolTip.text: i18n("Reset Grain")
+                            Controls.ToolTip.visible: hovered
+                            Controls.ToolTip.delay: 400
                             onClicked: {
                                 processor.grainStrength = 0.0
                                 previewDebounce.restart()
@@ -781,9 +797,14 @@ Kirigami.ApplicationWindow {
                         }
 
                         Controls.Button {
-                            text: i18n("CA")
-                            implicitWidth: Kirigami.Units.gridUnit * 3
-                            Layout.alignment: Qt.AlignRight
+                            icon.name: "colors-chromablue"
+                            icon.width: Kirigami.Units.iconSizes.smallMedium
+                            icon.height: Kirigami.Units.iconSizes.smallMedium
+                            implicitWidth: Kirigami.Units.gridUnit * 4
+                            implicitHeight: Kirigami.Units.gridUnit * 3
+                            Controls.ToolTip.text: i18n("Reset Chromatic Aberration")
+                            Controls.ToolTip.visible: hovered
+                            Controls.ToolTip.delay: 400
                             onClicked: {
                                 processor.caStrength = 0.0
                                 previewDebounce.restart()
@@ -803,9 +824,14 @@ Kirigami.ApplicationWindow {
                         }
 
                         Controls.Button {
-                            text: i18n("Frame")
-                            implicitWidth: Kirigami.Units.gridUnit * 3
-                            Layout.alignment: Qt.AlignRight
+                            icon.name: "photo"
+                            icon.width: Kirigami.Units.iconSizes.smallMedium
+                            icon.height: Kirigami.Units.iconSizes.smallMedium
+                            implicitWidth: Kirigami.Units.gridUnit * 4
+                            implicitHeight: Kirigami.Units.gridUnit * 3
+                            Controls.ToolTip.text: i18n("Reset Photo Frame")
+                            Controls.ToolTip.visible: hovered
+                            Controls.ToolTip.delay: 400
                             onClicked: {
                                 processor.photoFrameWidth = 0
                                 processor.photoFrame = false
@@ -847,9 +873,14 @@ Kirigami.ApplicationWindow {
                         rowSpacing: Kirigami.Units.smallSpacing
 
                         Controls.Button {
-                            text: i18n("Blur")
-                            implicitWidth: Kirigami.Units.gridUnit * 3
-                            Layout.alignment: Qt.AlignRight
+                            icon.name: "blur"
+                            icon.width: Kirigami.Units.iconSizes.smallMedium
+                            icon.height: Kirigami.Units.iconSizes.smallMedium
+                            implicitWidth: Kirigami.Units.gridUnit * 4
+                            implicitHeight: Kirigami.Units.gridUnit * 3
+                            Controls.ToolTip.text: i18n("Reset Blur")
+                            Controls.ToolTip.visible: hovered
+                            Controls.ToolTip.delay: 400
                             onClicked: {
                                 processor.blurRadius = 0
                                 previewDebounce.restart()
@@ -869,9 +900,14 @@ Kirigami.ApplicationWindow {
                         }
 
                         Controls.Button {
-                            text: i18n("Sat")
-                            implicitWidth: Kirigami.Units.gridUnit * 3
-                            Layout.alignment: Qt.AlignRight
+                            icon.name: "color-management"
+                            icon.width: Kirigami.Units.iconSizes.smallMedium
+                            icon.height: Kirigami.Units.iconSizes.smallMedium
+                            implicitWidth: Kirigami.Units.gridUnit * 4
+                            implicitHeight: Kirigami.Units.gridUnit * 3
+                            Controls.ToolTip.text: i18n("Reset Saturation")
+                            Controls.ToolTip.visible: hovered
+                            Controls.ToolTip.delay: 400
                             onClicked: {
                                 processor.saturationFactor = 1.8
                                 previewDebounce.restart()
@@ -889,9 +925,14 @@ Kirigami.ApplicationWindow {
                         }
 
                         Controls.Button {
-                            text: i18n("Zoom")
-                            implicitWidth: Kirigami.Units.gridUnit * 3
-                            Layout.alignment: Qt.AlignRight
+                            icon.name: "view-zoom-original"
+                            icon.width: Kirigami.Units.iconSizes.smallMedium
+                            icon.height: Kirigami.Units.iconSizes.smallMedium
+                            implicitWidth: Kirigami.Units.gridUnit * 4
+                            implicitHeight: Kirigami.Units.gridUnit * 3
+                            Controls.ToolTip.text: i18n("Reset Zoom")
+                            Controls.ToolTip.visible: hovered
+                            Controls.ToolTip.delay: 400
                             onClicked: {
                                 processor.bgZoom = 1.0
                                 previewDebounce.restart()
@@ -909,9 +950,14 @@ Kirigami.ApplicationWindow {
                         }
 
                         Controls.Button {
-                            text: i18n("Rot")
-                            implicitWidth: Kirigami.Units.gridUnit * 3
-                            Layout.alignment: Qt.AlignRight
+                            icon.name: "transform-rotate"
+                            icon.width: Kirigami.Units.iconSizes.smallMedium
+                            icon.height: Kirigami.Units.iconSizes.smallMedium
+                            implicitWidth: Kirigami.Units.gridUnit * 4
+                            implicitHeight: Kirigami.Units.gridUnit * 3
+                            Controls.ToolTip.text: i18n("Reset Rotation")
+                            Controls.ToolTip.visible: hovered
+                            Controls.ToolTip.delay: 400
                             onClicked: {
                                 processor.bgBlurAngle = 0.0
                                 previewDebounce.restart()
