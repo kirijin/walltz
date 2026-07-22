@@ -157,11 +157,12 @@ else
   fail "Expected 0 SpinBox, found $SPINBOX_COUNT"
 fi
 
-# 12) Visual polish: clip, corner radius, drop shadow
+# 12) Visual polish: layer-based rounded clip + drop shadow
 echo "--- Feature 12: Visual polish ---"
-grep -q 'clip: true' "$ROOT/src/Main.qml" \
-  && ok "dropZone clips children to rounded shape" \
-  || fail "dropZone missing clip"
+# dropZone no longer uses clip:true — layer.enabled clips to rounded shape
+! grep -q 'dropZone.*clip: true' "$ROOT/src/Main.qml" \
+  && ok "No clip:true on dropZone (layer handles rounded clip)" \
+  || fail "dropZone still has clip:true"
 grep -q 'cornerRadius' "$ROOT/src/Main.qml" \
   && ok "Uses Kirigami.Units.cornerRadius" \
   || fail "Still uses smallSpacing radius"
@@ -177,6 +178,24 @@ grep -q 'shadowBlur: 16' "$ROOT/src/Main.qml" \
 grep -q 'shadowVerticalOffset: 4' "$ROOT/src/Main.qml" \
   && ok "Drop shadow vertical offset 4px" \
   || fail "Shadow offset not 4"
+
+# 13) Signal handlers (no missing Connections)
+echo "--- Feature 13: Signal handlers ---"
+grep -q 'onAspectModeChanged' "$ROOT/src/Main.qml" \
+  && ok "onAspectModeChanged handler wired" \
+  || fail "Missing onAspectModeChanged"
+grep -q 'onAutoMoodChanged' "$ROOT/src/Main.qml" \
+  && ok "onAutoMoodChanged handler wired" \
+  || fail "Missing onAutoMoodChanged"
+
+# 14) No stale imagePreview references
+echo "--- Feature 14: No stale references ---"
+IM=$(grep -c 'imagePreview' "$ROOT/src/Main.qml" || true)
+if [ "$IM" -eq 0 ]; then
+  ok "All imagePreview references migrated to crossfadePreview"
+else
+  fail "Found $IM imagePreview references (should be 0)"
+fi
 
 echo
 echo "Result: $PASS passed, $FAIL failed"

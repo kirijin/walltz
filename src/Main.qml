@@ -66,7 +66,6 @@ Kirigami.ApplicationWindow {
                 Rectangle {
                     id: dropZone
                     anchors.centerIn: parent
-                    clip: true
                     layer.enabled: true
                     layer.effect: MultiEffect {
                         shadowEnabled: true
@@ -128,7 +127,6 @@ Kirigami.ApplicationWindow {
                         id: previewContainer
                         anchors.fill: parent
                         visible: dropArea.fileCount > 0
-                        clip: true
 
                         Image {
                             id: previewA
@@ -473,7 +471,7 @@ Kirigami.ApplicationWindow {
                         if (dropArea.fileCount > 0 && dropArea.filePaths.length > 0) {
                             var url = processor.generatePreview(dropArea.filePaths[0])
                             if (url.length > 0)
-                                imagePreview.source = url + "?t=" + Date.now()
+                                crossfadePreview(url)
                         }
                     }
                 }
@@ -1069,7 +1067,7 @@ Kirigami.ApplicationWindow {
         }
         onProcessingFinished: {
             if (processor.outputPath.length > 0) {
-                imagePreview.source = "file://" + processor.outputPath;
+                crossfadePreview("file://" + processor.outputPath);
             }
             statusMessage.type = Kirigami.MessageType.Positive;
             statusMessage.text = i18n("Done");
@@ -1145,6 +1143,8 @@ Kirigami.ApplicationWindow {
         function onBlurModeChanged() { previewDebounce.restart(); }
         function onAutoColorChanged() { previewDebounce.restart(); }
         function onBackgroundColorChanged() { previewDebounce.restart(); }
+        function onAspectModeChanged() { previewDebounce.restart(); }
+        function onAutoMoodChanged() { previewDebounce.restart(); }
         function onTargetWidthChanged() { previewDebounce.restart(); }
         function onTargetHeightChanged() { previewDebounce.restart(); }
         function onVignetteStrengthChanged() { previewDebounce.restart(); }
