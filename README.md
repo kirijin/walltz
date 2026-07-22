@@ -27,9 +27,11 @@ Walltz takes one or more images and produces a processed wallpaper:
 
 ## Screenshots
 
-| Blur + vignette | Auto-gradient + photo frame | Grain, CA, desaturation, rotation |
-|---|---|---|
-| <a href="screenshots/scr_blur_vig.png"><img src="screenshots/scr_blur_vig.png" width="240"></a> | <a href="screenshots/scr_autograd_frame.png"><img src="screenshots/scr_autograd_frame.png" width="240"></a> | <a href="screenshots/scr_grain_ca_desat_rot.png"><img src="screenshots/scr_grain_ca_desat_rot.png" width="240"></a> |
+|| Blur + vignette | Auto-gradient + photo frame | Grain, CA, desaturation, rotation |
+|---|---|---|---|
+|| <a href="screenshots/scr_blur_vig.png"><img src="screenshots/scr_blur_vig.png" width="240"></a> | <a href="screenshots/scr_autograd_frame.png"><img src="screenshots/scr_autograd_frame.png" width="240"></a> | <a href="screenshots/scr_grain_ca_desat_rot.png"><img src="screenshots/scr_grain_ca_desat_rot.png" width="240"></a> |
+|| **Blur settings UI** | **Colour presets UI** | |
+|| <a href="screenshots/scr_ui_blur.png"><img src="screenshots/scr_ui_blur.png" width="240"></a> | <a href="screenshots/scr_ui_colour.png"><img src="screenshots/scr_ui_colour.png" width="240"></a> | |
 
 ---
 
