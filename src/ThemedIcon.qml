@@ -5,21 +5,25 @@ import org.kde.kirigami as Kirigami
 Item {
     property alias source: icon.source
     property color colorType: Kirigami.Theme.textColor
-    property int iconSize: 20
+    property int iconSize: 24
 
     implicitWidth: iconSize
     implicitHeight: iconSize
 
     Image {
         id: icon
-        anchors.fill: parent
+        anchors.centerIn: parent
+        width: iconSize
+        height: iconSize
         fillMode: Image.PreserveAspectFit
         visible: false
     }
 
     MultiEffect {
         source: icon
-        anchors.fill: parent
+        anchors.centerIn: parent
+        width: iconSize
+        height: iconSize
         colorization: 1.0
         colorizationColor: parent.colorType
     }
