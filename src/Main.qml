@@ -466,6 +466,8 @@ Kirigami.ApplicationWindow {
                 id: moodPreviewTimer
                 interval: 200
                 onTriggered: {
+                    // Cancel the slower previewDebounce — we handle the update now
+                    previewDebounce.stop()
                     if (dropArea.fileCount > 0 && dropArea.filePaths.length > 0) {
                         var url = processor.generatePreview(dropArea.filePaths[0])
                         if (url.length > 0)

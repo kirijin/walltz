@@ -69,14 +69,17 @@ ColumnLayout {
         Layout.fillWidth: true
         clip: true
 
-        implicitHeight: contentColumn.implicitHeight + (contentColumn.implicitHeight > 0 ? Kirigami.Units.smallSpacing : 0)
-        height: root.expanded ? implicitHeight : 0
-        visible: root.expanded || height > 0
-        // NOTE: no enabled:root.expanded here — toggling enabled instantly while
-        // height animates over 150ms causes disabled/gray styling to flash.
-        // enabled is redundant with visible+height>0.
+        // _animH is the animated height — separate from implicitHeight so we
+        // capture the settled content height *after* layout, then animate to a
+        // fixed target. Binding directly to implicitHeight causes the animation
+        // target to move as content lays out mid-animation → bounce.
+        property real _animH: 0
 
-        Behavior on height {
+        implicitHeight: contentColumn.implicitHeight + (contentColumn.implicitHeight > 0 ? Kirigami.Units.smallSpacing : 0)
+        height: _animH
+        visible: root.expanded || _animH > 0
+
+        Behavior on _animH {
             NumberAnimation {
                 duration: 150
                 easing.type: Easing.OutQuad
@@ -88,6 +91,30 @@ ColumnLayout {
             anchors.left: parent.left
             anchors.right: parent.right
             spacing: Kirigami.Units.smallSpacing
+        }
+
+        Component.onCompleted: {
+            if (root.expanded)
+                _animH = contentColumn.implicitHeight
+                    + (contentColumn.implicitHeight > 0 ? Kirigami.Units.smallSpacing : 0)
+        }
+
+        Connections {
+            target: root
+            function onExpandedChanged() {
+                if (root.expanded) {
+                    // Defer one cycle so content layout settles, then
+                    // animate to the captured height — no moving target.
+                    Qt.callLater(function() {
+                        var h = contentColumn.implicitHeight
+                            + (contentColumn.implicitHeight > 0 ? Kirigami.Units.smallSpacing : 0)
+                        if (h > 0)
+                            contentWrapper._animH = h
+                    })
+                } else {
+                    contentWrapper._animH = 0
+                }
+            }
         }
     }
 }
