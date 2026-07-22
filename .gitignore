@@ -7,6 +7,9 @@ moc_*
 qrc_*
 build-appimage/
 flatpak-build/
+flatpak-export-repo/
+*.AppImage
+*.flatpak
 .rcc/
 .qmlcache/
 CMakeCache.txt
