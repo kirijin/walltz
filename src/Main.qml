@@ -277,7 +277,7 @@ Kirigami.ApplicationWindow {
                 }
                 Controls.ToolButton {
                     id: swapBtn
-                    icon.name: "swap-panels"
+                    icon.source: "qrc:/icons/swap.svg"
                     display: Controls.AbstractButton.IconOnly
                     hoverEnabled: true
                     Controls.ToolTip.text: i18n("Swap width and height")
@@ -306,8 +306,6 @@ Kirigami.ApplicationWindow {
                 Controls.ToolButton {
                     id: resetResBtn
                     icon.source: "qrc:/icons/reset-resolution.svg"
-                    icon.width: Kirigami.Units.iconSizes.small
-                    icon.height: Kirigami.Units.iconSizes.small
                     text: i18n("Detect")
                     display: Controls.AbstractButton.IconOnly
                     hoverEnabled: true
@@ -323,8 +321,6 @@ Kirigami.ApplicationWindow {
                 Controls.ToolButton {
                     id: resetEffectsBtn
                     icon.source: "qrc:/icons/reset-effects.svg"
-                    icon.width: Kirigami.Units.iconSizes.small
-                    icon.height: Kirigami.Units.iconSizes.small
                     text: i18n("Effects")
                     display: Controls.AbstractButton.IconOnly
                     hoverEnabled: true

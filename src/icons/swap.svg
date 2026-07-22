@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+  <!-- Two vertical arrows, opposite directions = swap width ↔ height -->
+  <path d="M16 3 L16 14 L19 14 L14 19 L9 14 L12 14 L12 3 Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+  <path d="M8 21 L8 10 L5 10 L10 5 L15 10 L12 10 L12 21 Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+</svg>
