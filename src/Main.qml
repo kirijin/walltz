@@ -576,18 +576,15 @@ Kirigami.ApplicationWindow {
                 Item { Layout.fillWidth: true }
             }
 
-            // Gradient preset picker (Gradient mode) — width matches Free..32:9
-            Flow {
-                id: gradientFlow
+            // Gradient preset picker (Gradient mode) — 6-col grid
+            GridLayout {
+                id: gradientGrid
                 visible: !processor.blurMode && processor.bgGradientStyle === 1
                 Layout.fillWidth: false
-
-                // Width = 7 aspect-ratio buttons (Free..32:9) in one row
-                readonly property real _ratioRowWidth: Kirigami.Units.gridUnit * 28 + Kirigami.Units.smallSpacing * 6
-
-                Layout.preferredWidth: Math.min(root.width - Kirigami.Units.gridUnit * 2, _ratioRowWidth)
                 Layout.alignment: Qt.AlignHCenter
-                spacing: Kirigami.Units.smallSpacing
+                columns: 6
+                columnSpacing: Kirigami.Units.smallSpacing
+                rowSpacing: Kirigami.Units.smallSpacing
 
                 Repeater {
                     model: processor.gradientPresetCount()
@@ -596,7 +593,8 @@ Kirigami.ApplicationWindow {
                         id: presetDelegate
                         required property int index
 
-                        width: 56; height: 40
+                        Layout.preferredWidth: 56
+                        Layout.preferredHeight: 40
                         radius: Kirigami.Units.cornerRadius
                         border.width: processor.bgGradientPreset === index ? 2 : 1
                         border.color: processor.bgGradientPreset === index
