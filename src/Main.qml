@@ -278,6 +278,7 @@ Kirigami.ApplicationWindow {
                 Controls.ToolButton {
                     id: swapBtn
                     icon.source: "qrc:/icons/swap.svg"
+                    icon.color: Kirigami.Theme.textColor
                     display: Controls.AbstractButton.IconOnly
                     hoverEnabled: true
                     Controls.ToolTip.text: i18n("Swap width and height")
@@ -306,6 +307,7 @@ Kirigami.ApplicationWindow {
                 Controls.ToolButton {
                     id: resetResBtn
                     icon.source: "qrc:/icons/reset-resolution.svg"
+                    icon.color: Kirigami.Theme.textColor
                     text: i18n("Detect")
                     display: Controls.AbstractButton.IconOnly
                     hoverEnabled: true
@@ -321,6 +323,7 @@ Kirigami.ApplicationWindow {
                 Controls.ToolButton {
                     id: resetEffectsBtn
                     icon.source: "qrc:/icons/reset-effects.svg"
+                    icon.color: Kirigami.Theme.textColor
                     text: i18n("Effects")
                     display: Controls.AbstractButton.IconOnly
                     hoverEnabled: true
@@ -721,6 +724,7 @@ Kirigami.ApplicationWindow {
 
                 Controls.ToolButton {
                     icon.source: "qrc:/icons/angle.svg"
+                    icon.color: Kirigami.Theme.textColor
                     display: Controls.AbstractButton.IconOnly
                     Controls.ToolTip.text: i18n("Reset Angle")
                     Controls.ToolTip.visible: hovered
@@ -745,15 +749,16 @@ Kirigami.ApplicationWindow {
             }
 
             // ── Accordion slider groups (below colour controls) ──
-            Item {
+            RowLayout {
                 Layout.fillWidth: true
-                implicitHeight: accordionColumn.implicitHeight
+
+                Item { Layout.fillWidth: true }
 
                 ColumnLayout {
                     id: accordionColumn
-                    anchors.horizontalCenter: parent.horizontalCenter
-                    width: Math.min(parent.width, previewBox.width)
                     spacing: 0
+                    Layout.preferredWidth: previewBox.width
+                    Layout.maximumWidth: previewBox.width
 
                 // Essentials — always visible, 4 sliders, always expanded
                 CollapsibleSection {
@@ -771,6 +776,7 @@ Kirigami.ApplicationWindow {
 
                         Controls.ToolButton {
                             icon.source: "qrc:/icons/vignette.svg"
+                            icon.color: Kirigami.Theme.textColor
                             display: Controls.AbstractButton.IconOnly
                             Controls.ToolTip.text: i18n("Reset Vignette")
                             Controls.ToolTip.visible: hovered
@@ -795,6 +801,7 @@ Kirigami.ApplicationWindow {
 
                         Controls.ToolButton {
                             icon.source: "qrc:/icons/grain.svg"
+                            icon.color: Kirigami.Theme.textColor
                             display: Controls.AbstractButton.IconOnly
                             Controls.ToolTip.text: i18n("Reset Grain")
                             Controls.ToolTip.visible: hovered
@@ -819,6 +826,7 @@ Kirigami.ApplicationWindow {
 
                         Controls.ToolButton {
                             icon.source: "qrc:/icons/chromatic-aberration.svg"
+                            icon.color: Kirigami.Theme.textColor
                             display: Controls.AbstractButton.IconOnly
                             Controls.ToolTip.text: i18n("Reset Chromatic Aberration")
                             Controls.ToolTip.visible: hovered
@@ -843,6 +851,7 @@ Kirigami.ApplicationWindow {
 
                         Controls.ToolButton {
                             icon.source: "qrc:/icons/frame.svg"
+                            icon.color: Kirigami.Theme.textColor
                             display: Controls.AbstractButton.IconOnly
                             Controls.ToolTip.text: i18n("Reset Photo Frame")
                             Controls.ToolTip.visible: hovered
@@ -889,6 +898,7 @@ Kirigami.ApplicationWindow {
 
                         Controls.ToolButton {
                             icon.source: "qrc:/icons/blur.svg"
+                            icon.color: Kirigami.Theme.textColor
                             display: Controls.AbstractButton.IconOnly
                             Controls.ToolTip.text: i18n("Reset Blur")
                             Controls.ToolTip.visible: hovered
@@ -913,6 +923,7 @@ Kirigami.ApplicationWindow {
 
                         Controls.ToolButton {
                             icon.source: "qrc:/icons/saturation.svg"
+                            icon.color: Kirigami.Theme.textColor
                             display: Controls.AbstractButton.IconOnly
                             Controls.ToolTip.text: i18n("Reset Saturation")
                             Controls.ToolTip.visible: hovered
@@ -935,6 +946,7 @@ Kirigami.ApplicationWindow {
 
                         Controls.ToolButton {
                             icon.source: "qrc:/icons/zoom.svg"
+                            icon.color: Kirigami.Theme.textColor
                             display: Controls.AbstractButton.IconOnly
                             Controls.ToolTip.text: i18n("Reset Zoom")
                             Controls.ToolTip.visible: hovered
@@ -957,6 +969,7 @@ Kirigami.ApplicationWindow {
 
                         Controls.ToolButton {
                             icon.source: "qrc:/icons/rotation.svg"
+                            icon.color: Kirigami.Theme.textColor
                             display: Controls.AbstractButton.IconOnly
                             Controls.ToolTip.text: i18n("Reset Rotation")
                             Controls.ToolTip.visible: hovered
@@ -978,8 +991,10 @@ Kirigami.ApplicationWindow {
                         }
                     }
                 }
+                }
+
+                Item { Layout.fillWidth: true }
             }
-        }
 
             // ── File list ──
             Controls.Label {
