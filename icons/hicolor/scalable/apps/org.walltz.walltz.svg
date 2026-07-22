@@ -1,32 +1,13 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-  <defs>
-    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#1a73e8"/>
-      <stop offset="100%" stop-color="#0d47a1"/>
-    </linearGradient>
-  </defs>
-  <!-- Monitor frame -->
-  <rect x="6" y="8" width="52" height="36" rx="3" ry="3" fill="none" stroke="#e0e0e0" stroke-width="2.5"/>
-  <!-- Screen content: stylized wallpaper image -->
-  <clipPath id="screen-clip">
-    <rect x="10" y="12" width="44" height="28" rx="1"/>
-  </clipPath>
-  <g clip-path="url(#screen-clip)">
-    <!-- Sky -->
-    <rect x="10" y="12" width="44" height="18" fill="#2196f3"/>
-    <!-- Ground -->
-    <rect x="10" y="28" width="44" height="12" fill="#4caf50"/>
-    <!-- Sun -->
-    <circle cx="42" cy="20" r="7" fill="#ffeb3b"/>
-    <!-- Mountain -->
-    <polygon points="10,40 24,22 38,40" fill="#388e3c" opacity="0.8"/>
-    <polygon points="28,40 44,18 56,40" fill="#2e7d32" opacity="0.8"/>
-  </g>
-  <!-- Stand -->
-  <rect x="24" y="44" width="16" height="4" rx="1" fill="#e0e0e0"/>
-  <rect x="14" y="48" width="36" height="3" rx="1.5" fill="#e0e0e0"/>
-  <!-- Overlay: processing badge (the W) -->
-  <circle cx="32" cy="28" r="9" fill="none" stroke="#ff4081" stroke-width="1.5" opacity="0.0">
-    <animate attributeName="opacity" values="0;0.3;0" dur="2s" repeatCount="indefinite"/>
-  </circle>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- Base: soft dark rounded square -->
+  <rect x="0" y="0" width="512" height="512" rx="100" fill="#2d3436"/>
+  <!-- Canvas border — wallpaper area -->
+  <rect x="96" y="96" width="320" height="320" rx="36" fill="none" stroke="#636e72" stroke-width="6"/>
+  <!-- Source image: floating rect, offset down-right — composition metaphor -->
+  <rect x="120" y="120" width="272" height="272" rx="20" fill="#fdcb6e"/>
+  <!-- Image content: minimal curved landscape silhouette -->
+  <path d="M120 340 Q256 260 392 340 L392 392 Q256 392 120 392 Z" fill="#e17055" opacity="0.3"/>
+  <path d="M120 360 Q256 300 392 360 L392 392 Q256 392 120 392 Z" fill="#d63031" opacity="0.2"/>
+  <!-- Highlight: single accent dot (auto-color extraction) -->
+  <circle cx="410" cy="90" r="20" fill="#74b9ff"/>
 </svg>
