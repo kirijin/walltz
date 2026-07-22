@@ -699,7 +699,7 @@ Kirigami.ApplicationWindow {
                     text: i18n("Angle")
                     implicitWidth: Kirigami.Units.gridUnit * 3
                     onClicked: {
-                        processor.gradientAngle = 0.0
+                        processor.gradientAngle = 45.0
                         previewDebounce.restart()
                     }
                 }
@@ -943,7 +943,7 @@ Kirigami.ApplicationWindow {
                     processor.saturationFactor = 1.8
                     processor.bgZoom = 1.0
                     processor.bgBlurAngle = 0.0
-                    processor.gradientAngle = 0.0
+                    processor.gradientAngle = 45.0
                     processor.caStrength = 0.0
                     processor.photoFrameWidth = 0
                     processor.photoFrame = false

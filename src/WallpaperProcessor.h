@@ -203,7 +203,7 @@ private:
     double m_saturationFactor = 1.8;
     int m_bgGradientStyle = 0;      // 0 = Solid, 1 = Preset, 2 = Auto
     int m_bgGradientPreset = 0;     // index into s_presets[]
-    double m_gradientAngle = 0.0;   // degrees (0 = horizontal, 90 = vertical, 45 = diagonal ↘)
+    double m_gradientAngle = 45.0;   // degrees (0 = horizontal, 45 = diagonal ↘)
     double m_bgZoom = 1.0;          // background zoom multiplier (0.5–3.0, 1.0 = fill)
     double m_bgBlurAngle = 0.0;     // blur background rotation (degrees, 0 = normal)
     int m_autoMood = 0;             // 0=Auto, 1=Soft, 2=Vivid, 3=Warm, 4=Cool, 5=Deep
