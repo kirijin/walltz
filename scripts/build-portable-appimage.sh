@@ -59,15 +59,23 @@ export UPDINFO=""
 # Create qt.conf for relative path resolution
 mkdir -p /build/AppDir/usr/plugins /build/AppDir/usr/qml
 
-/tmp/linuxdeploy-x86_64.AppImage \
+# NO_STRIP=1 avoids strip errors on Fedora 44's .relr.dyn sections
+NO_STRIP=1 /tmp/linuxdeploy-x86_64.AppImage \
     --appdir /build/AppDir \
     --plugin qt \
     --output appimage \
     --desktop-file /build/AppDir/usr/share/applications/org.walltz.walltz.desktop \
-    -v0 2>&1 || echo "linuxdeploy exit: $?"
-
+    -v0 2>&1 || true
 echo "--- Result ---"
-ls -lh /build/Walltz-*.AppImage 2>/dev/null
+APPIMAGE=$(ls /build/Walltz-*.AppImage 2>/dev/null | head -1)
+if [ -z "$APPIMAGE" ]; then
+    echo "linuxdeploy output plugin failed — running appimagetool directly"
+    wget -q "https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage" -O /tmp/appimagetool-x86_64.AppImage
+    chmod +x /tmp/appimagetool-x86_64.AppImage
+    /tmp/appimagetool-x86_64.AppImage /build/AppDir
+    APPIMAGE=$(ls /build/Walltz-*.AppImage 2>/dev/null | head -1)
+fi
+ls -lh "$APPIMAGE"
 BUILDSCRIPT
 
 echo ""
