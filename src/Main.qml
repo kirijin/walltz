@@ -576,12 +576,16 @@ Kirigami.ApplicationWindow {
                 Item { Layout.fillWidth: true }
             }
 
-            // Gradient preset picker (Gradient mode) — responsive columns
+            // Gradient preset picker (Gradient mode) — width matches Free..32:9
             Flow {
                 id: gradientFlow
                 visible: !processor.blurMode && processor.bgGradientStyle === 1
                 Layout.fillWidth: false
-                Layout.preferredWidth: Math.max(200, root.width * 0.5)
+
+                // Width = 7 aspect-ratio buttons (Free..32:9) in one row
+                readonly property real _ratioRowWidth: Kirigami.Units.gridUnit * 28 + Kirigami.Units.smallSpacing * 6
+
+                Layout.preferredWidth: Math.min(root.width - Kirigami.Units.gridUnit * 2, _ratioRowWidth)
                 Layout.alignment: Qt.AlignHCenter
                 spacing: Kirigami.Units.smallSpacing
 
