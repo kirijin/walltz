@@ -514,7 +514,7 @@ QImage WallpaperProcessor::limitImageSize(const QImage &src, int maxW, int maxH)
         imgW = imgW * 2 / 5;
         imgH = imgH * 2 / 5;
     }
-    return src.scaled(imgW, imgH, Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
+    return src.scaled(imgW, imgH, Qt::KeepAspectRatio, Qt::SmoothTransformation);
 }
 
 // ── core image processing ────────────────────────────────────────────────
@@ -1311,12 +1311,12 @@ QString WallpaperProcessor::moodColorV2B(int index) const
 QString WallpaperProcessor::moodNameV2(int index) const
 {
     static const char *names[] = {
-        "Dynamic",    // 0 — highest-contrast pair, automatically selected
-        "Tonal",      // 1 — muted, analogous
-        "Expressive", // 2 — most saturated color paired
-        "Ember",      // 3 — warmest tones
-        "Glacier",     // 4 — coolest tones
-        "Shadow"      // 5 — darkest pair
+        QT_TRANSLATE_NOOP("WallpaperProcessor", "Dynamic"),    // 0 — highest-contrast pair
+        QT_TRANSLATE_NOOP("WallpaperProcessor", "Tonal"),      // 1 — muted, analogous
+        QT_TRANSLATE_NOOP("WallpaperProcessor", "Expressive"), // 2 — most saturated color paired
+        QT_TRANSLATE_NOOP("WallpaperProcessor", "Ember"),      // 3 — warmest tones
+        QT_TRANSLATE_NOOP("WallpaperProcessor", "Glacier"),    // 4 — coolest tones
+        QT_TRANSLATE_NOOP("WallpaperProcessor", "Shadow")      // 5 — darkest pair
     };
     if (index < 0 || index >= 6) return {};
     return QString::fromUtf8(names[index]);

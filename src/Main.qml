@@ -471,7 +471,7 @@ Kirigami.ApplicationWindow {
                     if (dropArea.fileCount > 0 && dropArea.filePaths.length > 0) {
                         var url = processor.generatePreview(dropArea.filePaths[0])
                         if (url.length > 0)
-                            crossfadePreview(url)
+                            crossfadePreview(url + "?t=" + Date.now())
                     }
                 }
             }
@@ -868,7 +868,11 @@ Kirigami.ApplicationWindow {
                             Controls.ToolTip.delay: 400
                             onMoved: {
                                 processor.photoFrameWidth = value
-                                if (value > 0) processor.photoFrame = true
+                                if (value > 0) {
+                                    processor.photoFrame = true
+                                } else {
+                                    processor.photoFrame = false
+                                }
                                 previewDebounce.restart()
                             }
                         }
@@ -1134,8 +1138,12 @@ Kirigami.ApplicationWindow {
             previewA.opacity = 1.0;
             return;
         }
-        // Already showing this image in the visible layer
-        if (previewA.source.toString() === newUrl) {
+        // Strip cache-bust for URL comparison — same path = same file
+        var oldUrl = previewA.source.toString().replace(/\?t=\d+$/, "");
+        if (oldUrl === newUrl) {
+            // Touch source to force QML image cache refresh
+            previewA.source = "";
+            previewA.source = newUrl;
             return;
         }
         fadeAnim.stop();

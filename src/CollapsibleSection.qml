@@ -7,9 +7,8 @@ ColumnLayout {
     id: root
 
     property string title
-    property bool expanded: true
+    property bool expanded: false
     property bool collapsible: true
-    property real headerImplicitHeight: Kirigami.Units.gridUnit * 2
     default property alias content: contentColumn.data
 
     spacing: 0
