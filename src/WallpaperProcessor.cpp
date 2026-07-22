@@ -1352,43 +1352,45 @@ void WallpaperProcessor::boxBlurH(QImage &dst, const QImage &src, int radius)
 {
     int w = src.width(), h = src.height();
     int bpl = src.bytesPerLine();
-    int window = 2 * radius + 1;
-    double invWindow = 1.0 / window;
 
     // Each row is independent — parallelize over rows
     auto rowOp = [&](int y) {
         const uchar *sRow = src.constBits() + y * bpl;
         uchar *dRow = dst.bits() + y * bpl;
 
-        // Initial window sum
         double sb = 0, sg = 0, sr = 0, sa = 0;
-        for (int x = -radius; x <= radius; ++x) {
-            int sx = std::clamp(x, 0, w - 1);
-            const uchar *p = sRow + sx * 4;
-            sb += p[0]; sg += p[1]; sr += p[2]; sa += p[3];
-        }
-        uchar *d = dRow + 0 * 4;
-        d[0] = (uchar)(sb * invWindow + 0.5);
-        d[1] = (uchar)(sg * invWindow + 0.5);
-        d[2] = (uchar)(sr * invWindow + 0.5);
-        d[3] = (uchar)(sa * invWindow + 0.5);
 
-        // Slide window across the row
-        for (int x = 1; x < w; ++x) {
-            int outX = std::clamp(x - radius - 1, 0, w - 1);
-            int inX  = std::clamp(x + radius,     0, w - 1);
-            const uchar *pOut = sRow + outX * 4;
-            const uchar *pIn  = sRow + inX  * 4;
-            sb += pIn[0] - pOut[0];
-            sg += pIn[1] - pOut[1];
-            sr += pIn[2] - pOut[2];
-            sa += pIn[3] - pOut[3];
+        for (int x = 0; x < w; ++x) {
+            int left  = std::max(0, x - radius);
+            int right = std::min(w - 1, x + radius);
+            int count = right - left + 1;
+
+            if (x == 0) {
+                // Full initial sum — each pixel counted once
+                for (int sx = 0; sx <= right; ++sx) {
+                    const uchar *p = sRow + sx * 4;
+                    sb += p[0]; sg += p[1]; sr += p[2]; sa += p[3];
+                }
+            } else {
+                int prevLeft  = std::max(0, x - 1 - radius);
+                int prevRight = std::min(w - 1, x - 1 + radius);
+                // Remove pixel that left the window (left edge advanced)
+                if (left > prevLeft) {
+                    const uchar *pOut = sRow + prevLeft * 4;
+                    sb -= pOut[0]; sg -= pOut[1]; sr -= pOut[2]; sa -= pOut[3];
+                }
+                // Add pixel that entered the window (right edge advanced)
+                if (right > prevRight) {
+                    const uchar *pIn = sRow + right * 4;
+                    sb += pIn[0]; sg += pIn[1]; sr += pIn[2]; sa += pIn[3];
+                }
+            }
 
             uchar *dp = dRow + x * 4;
-            dp[0] = (uchar)(sb * invWindow + 0.5);
-            dp[1] = (uchar)(sg * invWindow + 0.5);
-            dp[2] = (uchar)(sr * invWindow + 0.5);
-            dp[3] = (uchar)(sa * invWindow + 0.5);
+            dp[0] = (uchar)(sb / count + 0.5);
+            dp[1] = (uchar)(sg / count + 0.5);
+            dp[2] = (uchar)(sr / count + 0.5);
+            dp[3] = (uchar)(sa / count + 0.5);
         }
     };
 
@@ -1402,43 +1404,42 @@ void WallpaperProcessor::boxBlurV(QImage &dst, const QImage &src, int radius)
 {
     int w = src.width(), h = src.height();
     int bpl = src.bytesPerLine();
-    int window = 2 * radius + 1;
-    double invWindow = 1.0 / window;
 
     // Each column is independent — parallelize over columns
     auto colOp = [&](int x) {
         const uchar *sBase = src.constBits();
         uchar *dBase = dst.bits();
 
-        // Initial window sum
         double sb = 0, sg = 0, sr = 0, sa = 0;
-        for (int y = -radius; y <= radius; ++y) {
-            int sy = std::clamp(y, 0, h - 1);
-            const uchar *p = sBase + sy * bpl + x * 4;
-            sb += p[0]; sg += p[1]; sr += p[2]; sa += p[3];
-        }
-        uchar *d = dBase + 0 * bpl + x * 4;
-        d[0] = (uchar)(sb * invWindow + 0.5);
-        d[1] = (uchar)(sg * invWindow + 0.5);
-        d[2] = (uchar)(sr * invWindow + 0.5);
-        d[3] = (uchar)(sa * invWindow + 0.5);
 
-        // Slide window down the column
-        for (int y = 1; y < h; ++y) {
-            int outY = std::clamp(y - radius - 1, 0, h - 1);
-            int inY  = std::clamp(y + radius,     0, h - 1);
-            const uchar *pOut = sBase + outY * bpl + x * 4;
-            const uchar *pIn  = sBase + inY  * bpl + x * 4;
-            sb += pIn[0] - pOut[0];
-            sg += pIn[1] - pOut[1];
-            sr += pIn[2] - pOut[2];
-            sa += pIn[3] - pOut[3];
+        for (int y = 0; y < h; ++y) {
+            int top    = std::max(0, y - radius);
+            int bottom = std::min(h - 1, y + radius);
+            int count  = bottom - top + 1;
+
+            if (y == 0) {
+                for (int sy = 0; sy <= bottom; ++sy) {
+                    const uchar *p = sBase + sy * bpl + x * 4;
+                    sb += p[0]; sg += p[1]; sr += p[2]; sa += p[3];
+                }
+            } else {
+                int prevTop    = std::max(0, y - 1 - radius);
+                int prevBottom = std::min(h - 1, y - 1 + radius);
+                if (top > prevTop) {
+                    const uchar *pOut = sBase + prevTop * bpl + x * 4;
+                    sb -= pOut[0]; sg -= pOut[1]; sr -= pOut[2]; sa -= pOut[3];
+                }
+                if (bottom > prevBottom) {
+                    const uchar *pIn = sBase + bottom * bpl + x * 4;
+                    sb += pIn[0]; sg += pIn[1]; sr += pIn[2]; sa += pIn[3];
+                }
+            }
 
             uchar *dp = dBase + y * bpl + x * 4;
-            dp[0] = (uchar)(sb * invWindow + 0.5);
-            dp[1] = (uchar)(sg * invWindow + 0.5);
-            dp[2] = (uchar)(sr * invWindow + 0.5);
-            dp[3] = (uchar)(sa * invWindow + 0.5);
+            dp[0] = (uchar)(sb / count + 0.5);
+            dp[1] = (uchar)(sg / count + 0.5);
+            dp[2] = (uchar)(sr / count + 0.5);
+            dp[3] = (uchar)(sa / count + 0.5);
         }
     };
 
@@ -1479,36 +1480,18 @@ void WallpaperProcessor::stackBlur(QImage &image, double sigma)
     int boxes[3];
     sigmaToBoxes(boxes, sigma);
 
-    int minR = boxes[0];
-    int maxR = boxes[0];
-    for (int i = 1; i < 3; ++i) {
-        minR = qMin(minR, boxes[i]);
-        maxR = qMax(maxR, boxes[i]);
-    }
-
-    // Use member m_blurBuf if it's the right size, else re-allocate
-    // (owned by the WallpaperProcessor instance)
-    // static helper: use a local temp
+    // Temp buffer for intermediate results
     QImage tmp(w, h, QImage::Format_ARGB32_Premultiplied);
-    QImage *buf[2] = { &image, &tmp };
 
-    // Apply 3 box blur passes (each = H + V), ping-pong between the two buffers
-    // Result lands back in 'image' after the last vertical pass
+    // Apply 3 box blur passes (each = H + V).
+    // Each pass always: read from image → H → tmp → V → image
+    // This avoids the stale-buffer bug: tmp is always overwritten with
+    // the fresh H result before V reads it.
     for (int pass = 0; pass < 3; ++pass) {
-        // Horizontal: read from buf[pass & 1], write to buf[1 - (pass & 1)]
         int r = boxes[pass];
-        if (r < 1) { r = 1; }
-        QImage &srcRef = *buf[pass & 1];
-        QImage &dstRef = *buf[1 - (pass & 1)];
-        boxBlurH(dstRef, srcRef, r);                    // H pass (parallel)
-        boxBlurV(srcRef, dstRef, r);                    // V pass (parallel, reuses srcRef as dst)
-    }
-
-    // If the final result is in tmp, copy it back
-    if (buf[1] == &image && buf[0] != &image) {
-        // Result is in buf[0] (image), nothing to do
-    } else if (buf[0] != &image) {
-        memcpy(image.bits(), tmp.bits(), (size_t)h * image.bytesPerLine());
+        if (r < 1) r = 1;
+        boxBlurH(tmp, image, r);   // H: image → tmp (parallel)
+        boxBlurV(image, tmp, r);   // V: tmp  → image (parallel)
     }
 }
 
