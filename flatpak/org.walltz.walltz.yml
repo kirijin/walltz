@@ -15,7 +15,7 @@ finish-args:
   - --socket=fallback-x11
   - --socket=wayland
   - --device=dri
-  - --filesystem=host              # needed to load images + save .wp.png
+  - --filesystem=xdg-pictures
   - --env=QT_ENABLE_HIGHDPI_SCALING=1
 
 modules:
@@ -24,7 +24,7 @@ modules:
     config-opts:
       - -DCMAKE_BUILD_TYPE=RelWithDebInfo
     post-install:
-      # Strip host-specific install paths; flatpak overrides DESTDIR
+      - install -Dm644 ../COPYING /app/share/licenses/org.walltz.walltz/COPYING
       - /app/bin/walltz --help 2>/dev/null || true
     sources:
       - type: dir

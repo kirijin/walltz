@@ -6,4 +6,6 @@ Categories=Qt;KDE;Graphics;
 Icon=org.walltz.walltz
 Exec=walltz
 Terminal=false
+StartupNotify=true
+MimeType=image/png;image/jpeg;
 X-KDE-FormFactor=desktop

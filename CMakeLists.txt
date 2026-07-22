@@ -46,6 +46,6 @@ install(FILES icons/hicolor/scalable/apps/org.walltz.walltz.svg
 )
 
 # Install appdata
-install(FILES src/org.walltz.walltz.appdata.xml
+install(FILES src/org.walltz.walltz.metainfo.xml
     DESTINATION ${KDE_INSTALL_METAINFODIR}
 )
