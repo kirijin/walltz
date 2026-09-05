@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>org.walltz.walltz</id>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>GPL-3.0-or-later</project_license>
+  <name>Walltz</name>
+  <summary>Create wallpapers from images</summary>
+  <description>
+    <p>Walltz is a wallpaper composition tool that transforms your images into beautiful desktop backgrounds.</p>
+    <p>Features:</p>
+    <ul>
+      <li>Blur background with Gaussian or box blur</li>
+      <li>Auto-color extraction from images</li>
+      <li>Gradient moods with color theory presets</li>
+      <li>Vignette, grain, and chromatic aberration effects</li>
+      <li>Photo frame with adjustable width</li>
+      <li>Pattern overlays (geometric, SVG, motif)</li>
+      <li>Blur presets (Apple, GNOME, Mica, Acrylic, Reddit, Kodachrome, Polaroid, Vintage, Tri-X, Cool Film)</li>
+      <li>Set as wallpaper via XDG Desktop Portal</li>
+    </ul>
+  </description>
+  <launchable type="desktop-id">org.walltz.walltz.desktop</launchable>
+  <screenshots>
+    <screenshot type="default">
+      <caption>Walltz main window</caption>
+      <image>https://raw.githubusercontent.com/kirijin/walltz/main/data/screenshots/main.png</image>
+    </screenshot>
+  </screenshots>
+  <url type="homepage">https://github.com/kirijin/walltz</url>
+  <url type="bugtracker">https://github.com/kirijin/walltz/issues</url>
+  <content_rating type="oars-1.0" />
+  <releases>
+    <version version="0.1.0" date="2026-09-05">
+      <description>
+        <p>Initial GTK4/Granite port</p>
+      </description>
+    </version>
+  </releases>
+  <developer id="kirijin">
+    <name>kirijin</name>
+  </developer>
+  <update_contact>avel.ronin@gmail.com</update_contact>
+  <provides>
+    <binary>walltz</binary>
+  </provides>
+</component>

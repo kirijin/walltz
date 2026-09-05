@@ -1,0 +1,17 @@
+[Desktop Entry]
+Name=Walltz
+Comment=Create wallpapers from images
+Comment[ru]=Создание обоев из изображений
+Exec=walltz %f
+Icon=org.walltz.walltz
+Type=Application
+Categories=Graphics;Photography;
+Keywords=wallpaper;image;blur;gradient;vignette;grain;
+MimeType=image/png;image/jpeg;image/webp;image/svg+xml;
+StartupNotify=true
+Terminal=false
+Actions=About;
+
+[Desktop Action About]
+Name=About Walltz
+Exec=walltz --about

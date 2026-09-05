@@ -1,0 +1,29 @@
+# C engine library — pure C, no Qt/GTK deps
+
+engine_sources = files(
+  'engine.c',
+  'blur.c',
+  'effects.c',
+  'pattern.c',
+  'mood.c',
+  'image_io.c',
+)
+
+engine_lib = static_library('walltz-engine',
+  engine_sources,
+  c_args: [
+    '-Wall',
+    '-Wextra',
+    '-Wno-unused-parameter',
+    '-O2',
+    '-ffast-math',
+  ],
+  dependencies: [glib_dep, gobject_dep],
+  install: false,
+)
+
+engine_dep = declare_dependency(
+  link_with: engine_lib,
+  include_directories: include_directories('.'),
+  dependencies: [glib_dep, gobject_dep],
+)

@@ -1,0 +1,200 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schemalist>
+  <schema id="org.walltz.walltz" path="/org/walltz/walltz/">
+    <key name="target-width" type="i">
+      <default>1920</default>
+      <summary>Target width</summary>
+      <description>Default target width for wallpaper</description>
+    </key>
+    <key name="target-height" type="i">
+      <default>1080</default>
+      <summary>Target height</summary>
+      <description>Default target height for wallpaper</description>
+    </key>
+    <key name="blur-mode" type="i">
+      <default>1</default>
+      <summary>Background mode</summary>
+      <description>0 = solid/gradient, 1 = blur</description>
+    </key>
+    <key name="bg-gradient-style" type="i">
+      <default>0</default>
+      <summary>Gradient style</summary>
+      <description>0 = solid, 1 = preset, 2 = mood</description>
+    </key>
+    <key name="bg-zoom" type="d">
+      <default>1.0</default>
+      <summary>Background zoom</summary>
+      <description>Zoom factor for background image</description>
+    </key>
+    <key name="bg-blur-angle" type="d">
+      <default>0.0</default>
+      <summary>Background blur angle</summary>
+      <description>Rotation angle for background blur</description>
+    </key>
+    <key name="blur-radius" type="i">
+      <default>90</default>
+      <summary>Blur radius</summary>
+      <description>Gaussian blur radius in pixels</description>
+    </key>
+    <key name="saturation-factor" type="d">
+      <default>1.8</default>
+      <summary>Saturation factor</summary>
+      <description>Color saturation multiplier</description>
+    </key>
+    <key name="overlay-opacity" type="d">
+      <default>0.0</default>
+      <summary>Overlay opacity</summary>
+      <description>Color overlay opacity</description>
+    </key>
+    <key name="overlay-color" type="s">
+      <default>'#000000'</default>
+      <summary>Overlay color</summary>
+      <description>Color overlay hex value</description>
+    </key>
+    <key name="blur-brightness" type="d">
+      <default>1.0</default>
+      <summary>Blur brightness</summary>
+      <description>Brightness adjustment for blurred background</description>
+    </key>
+    <key name="auto-color" type="i">
+      <default>1</default>
+      <summary>Auto color</summary>
+      <description>Automatically extract colors from image</description>
+    </key>
+    <key name="bg-color" type="s">
+      <default>'#ffffff'</default>
+      <summary>Background color</summary>
+      <description>Solid background color</description>
+    </key>
+    <key name="bg-gradient-preset" type="i">
+      <default>0</default>
+      <summary>Gradient preset</summary>
+      <description>Index of gradient preset</description>
+    </key>
+    <key name="gradient-angle" type="d">
+      <default>45.0</default>
+      <summary>Gradient angle</summary>
+      <description>Gradient direction in degrees</description>
+    </key>
+    <key name="auto-mood" type="i">
+      <default>0</default>
+      <summary>Auto mood</summary>
+      <description>Automatic mood selection</description>
+    </key>
+    <key name="use-v2" type="i">
+      <default>0</default>
+      <summary>Use V2 moods</summary>
+      <description>Use V2 mood palette extraction</description>
+    </key>
+    <key name="bg-pattern-enabled" type="i">
+      <default>0</default>
+      <summary>Pattern enabled</summary>
+      <description>Enable pattern overlay</description>
+    </key>
+    <key name="bg-pattern-type" type="i">
+      <default>0</default>
+      <summary>Pattern type</summary>
+      <description>Pattern type identifier</description>
+    </key>
+    <key name="bg-pattern-color" type="s">
+      <default>'#787878'</default>
+      <summary>Pattern color</summary>
+      <description>Pattern foreground color</description>
+    </key>
+    <key name="bg-pattern-scale" type="d">
+      <default>1.0</default>
+      <summary>Pattern scale</summary>
+      <description>Pattern tile scale</description>
+    </key>
+    <key name="bg-pattern-rotation" type="d">
+      <default>0.0</default>
+      <summary>Pattern rotation</summary>
+      <description>Pattern rotation angle</description>
+    </key>
+    <key name="bg-pattern-spacing" type="d">
+      <default>0.0</default>
+      <summary>Pattern spacing</summary>
+      <description>Pattern tile spacing</description>
+    </key>
+    <key name="bg-pattern-random-rotate" type="i">
+      <default>0</default>
+      <summary>Random rotation</summary>
+      <description>Randomly rotate pattern tiles</description>
+    </key>
+    <key name="bg-pattern-jitter" type="i">
+      <default>0</default>
+      <summary>Pattern jitter</summary>
+      <description>Jitter pattern tile positions</description>
+    </key>
+    <key name="bg-pattern-grid-amplitude" type="d">
+      <default>0.20</default>
+      <summary>Grid amplitude</summary>
+      <description>Jitter amplitude</description>
+    </key>
+    <key name="bg-pattern-mix-enabled" type="i">
+      <default>0</default>
+      <summary>Mix enabled</summary>
+      <description>Enable pattern mixing</description>
+    </key>
+    <key name="vignette-strength" type="d">
+      <default>0.0</default>
+      <summary>Vignette strength</summary>
+      <description>Vignette effect intensity</description>
+    </key>
+    <key name="grain-strength" type="d">
+      <default>0.0</default>
+      <summary>Grain strength</summary>
+      <description>Film grain intensity</description>
+    </key>
+    <key name="ca-strength" type="d">
+      <default>0.0</default>
+      <summary>Chromatic aberration</summary>
+      <description>Chromatic aberration intensity</description>
+    </key>
+    <key name="color-gamma" type="d">
+      <default>1.0</default>
+      <summary>Gamma</summary>
+      <description>Color gamma correction</description>
+    </key>
+    <key name="color-warmth" type="d">
+      <default>0.0</default>
+      <summary>Warmth</summary>
+      <description>Color temperature adjustment</description>
+    </key>
+    <key name="color-black-lift" type="d">
+      <default>0.0</default>
+      <summary>Black lift</summary>
+      <description>Shadow floor adjustment</description>
+    </key>
+    <key name="photo-frame" type="i">
+      <default>0</default>
+      <summary>Photo frame</summary>
+      <description>Enable photo frame</description>
+    </key>
+    <key name="photo-frame-width" type="i">
+      <default>0</default>
+      <summary>Frame width</summary>
+      <description>Frame width percentage</description>
+    </key>
+    <key name="fg-zoom" type="d">
+      <default>0.8</default>
+      <summary>Foreground zoom</summary>
+      <description>Foreground image zoom</description>
+    </key>
+    <key name="pip-zoom" type="d">
+      <default>1.0</default>
+      <summary>PiP zoom</summary>
+      <description>Picture-in-picture zoom</description>
+    </key>
+    <key name="photo-grade" type="i">
+      <default>0</default>
+      <summary>Photo grade</summary>
+      <description>Apply color grade to photo</description>
+    </key>
+    <key name="blur-preset-id" type="s">
+      <default>'default'</default>
+      <summary>Blur preset</summary>
+      <description>Current blur preset identifier</description>
+    </key>
+  </schema>
+</schemalist>

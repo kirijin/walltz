@@ -1,0 +1,29 @@
+app-id: org.walltz.walltz
+runtime: org.gnome.Platform
+runtime-version: '46'
+sdk: org.gnome.Sdk
+command: walltz
+
+finish-args:
+  - --share=ipc
+  - --socket=fallback-x11
+  - --socket=wayland
+  - --device=dri
+  - --filesystem=home
+  - --talk-name=org.freedesktop.portal.Desktop
+  - --talk-name=org.freedesktop.portal.Wallpaper
+
+cleanup:
+  - /include
+  - /lib/pkgconfig
+  - /share/pkgconfig
+  - /share/aclocal
+  - '*.la'
+  - '*.a'
+
+modules:
+  - name: walltz
+    buildsystem: meson
+    sources:
+      - type: dir
+        path: .
