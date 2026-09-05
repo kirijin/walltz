@@ -9,6 +9,7 @@ engine_sources = files(
   'pattern.c',
   'mood.c',
   'image_io.c',
+  'render_composition.c',
 )
 
 engine_lib = static_library('walltz-engine',

@@ -14,7 +14,7 @@
 #define WTZ_COLOR_GAMMA       1.0
 #define WTZ_COLOR_WARMTH      0.0
 #define WTZ_COLOR_BLACK_LIFT  0.0
-#define WTZ_TEXTURE_BLEND_MODE 13  // Multiply
+#define WTZ_TEXTURE_BLEND_MODE 13
 #define WTZ_OVERLAY_OPACITY   0.0
 #define WTZ_BG_ZOOM           1.0
 #define WTZ_BG_BLUR_ANGLE     0.0
@@ -28,113 +28,6 @@
 #define WTZ_BLUR_RADIUS_MAX   120
 #define WTZ_CANVAS_MARGIN     0.05
 #define WTZ_MIN_ZOOM          0.5
-
-// ── Image I/O (stubs — will use libpng/libjpeg in production) ─────────────
-
-WtzImage* wtz_image_new(int width, int height) {
-    WtzImage *img = g_new0(WtzImage, 1);
-    img->width = width;
-    img->height = height;
-    img->stride = width * 4;
-    img->pixels = g_new0(uint8_t, img->stride * height);
-    return img;
-}
-
-void wtz_image_free(WtzImage *img) {
-    if (!img) return;
-    g_free(img->pixels);
-    g_free(img);
-}
-
-WtzImage* wtz_image_load(const char *path) {
-    // TODO: implement with GdkPixbuf or libpng
-    // For now, return NULL
-    return NULL;
-}
-
-int wtz_image_save_png(const WtzImage *img, const char *path) {
-    // TODO: implement with libpng
-    return 0;
-}
-
-// ── Core render (stub — full implementation in subsequent files) ──────────
-
-WtzImage* wtz_render(const WtzImage *src, const WtzRenderParams *params) {
-    if (!src || !params) return NULL;
-    
-    int W = params->target_width;
-    int H = params->target_height;
-    if (W < 1 || H < 1) return NULL;
-    
-    WtzImage *output = wtz_image_new(W, H);
-    if (!output) return NULL;
-    
-    // TODO: full render pipeline
-    // For now, fill with background color
-    uint8_t a = (params->bg_color >> 24) & 0xFF;
-    uint8_t r = (params->bg_color >> 16) & 0xFF;
-    uint8_t g = (params->bg_color >> 8) & 0xFF;
-    uint8_t b = params->bg_color & 0xFF;
-    
-    for (int y = 0; y < H; y++) {
-        uint8_t *row = output->pixels + y * output->stride;
-        for (int x = 0; x < W; x++) {
-            row[x * 4 + 0] = b;
-            row[x * 4 + 1] = g;
-            row[x * 4 + 2] = r;
-            row[x * 4 + 3] = a;
-        }
-    }
-    
-    return output;
-}
-
-// ── Mood palettes (stub) ──────────────────────────────────────────────────
-
-WtzMoodPalettes* wtz_extract_mood_palettes(const WtzImage *img) {
-    WtzMoodPalettes *palettes = g_new0(WtzMoodPalettes, 1);
-    // TODO: implement hue/RGB histogram extraction
-    for (int i = 0; i < 6; i++) {
-        palettes->moods[i].color_a = 0xFF808080;
-        palettes->moods[i].color_b = 0xFFB4B4B4;
-        palettes->v2_moods[i].color_a = 0xFF808080;
-        palettes->v2_moods[i].color_b = 0xFFB4B4B4;
-    }
-    return palettes;
-}
-
-void wtz_mood_palettes_free(WtzMoodPalettes *palettes) {
-    g_free(palettes);
-}
-
-// ── Smart auto (stub) ─────────────────────────────────────────────────────
-
-WtzSmartAutoParams wtz_compute_smart_auto(const WtzImage *img) {
-    WtzSmartAutoParams p = {
-        .sigma = 15,
-        .sat_boost = 0.85,
-        .brightness = 0.92,
-        .overlay_opacity = 0.35,
-        .overlay_color = 0xFF1A1A1A,
-        .vignette = 0,
-        .grain = 0,
-    };
-    return p;
-}
-
-// ── Pattern tile (stub) ───────────────────────────────────────────────────
-
-WtzImage* wtz_generate_pattern_tile(int kind, int index, int tile_size,
-                                    uint32_t fg_color, double scale) {
-    WtzImage *tile = wtz_image_new(tile_size, tile_size);
-    if (!tile) return NULL;
-    
-    // TODO: implement pattern generation
-    // For now, fill with transparent
-    memset(tile->pixels, 0, tile->stride * tile_size);
-    
-    return tile;
-}
 
 // ── Blur presets ──────────────────────────────────────────────────────────
 
@@ -214,4 +107,51 @@ int wtz_gradient_preset_count(void) {
 const WtzGradientPreset* wtz_gradient_preset(int index) {
     if (index < 0 || index >= wtz_gradient_preset_count()) return &s_gradient_presets[0];
     return &s_gradient_presets[index];
+}
+
+// ── Mood palettes (stub) ──────────────────────────────────────────────────
+
+WtzMoodPalettes* wtz_extract_mood_palettes(const WtzImage *img) {
+    WtzMoodPalettes *palettes = g_new0(WtzMoodPalettes, 1);
+    // TODO: implement hue/RGB histogram extraction
+    for (int i = 0; i < 6; i++) {
+        palettes->moods[i].color_a = 0xFF808080;
+        palettes->moods[i].color_b = 0xFFB4B4B4;
+        palettes->v2_moods[i].color_a = 0xFF808080;
+        palettes->v2_moods[i].color_b = 0xFFB4B4B4;
+    }
+    return palettes;
+}
+
+void wtz_mood_palettes_free(WtzMoodPalettes *palettes) {
+    g_free(palettes);
+}
+
+// ── Smart auto (stub) ─────────────────────────────────────────────────────
+
+WtzSmartAutoParams wtz_compute_smart_auto(const WtzImage *img) {
+    WtzSmartAutoParams p = {
+        .sigma = 15,
+        .sat_boost = 0.85,
+        .brightness = 0.92,
+        .overlay_opacity = 0.35,
+        .overlay_color = 0xFF1A1A1A,
+        .vignette = 0,
+        .grain = 0,
+    };
+    return p;
+}
+
+// ── Pattern tile (stub) ───────────────────────────────────────────────────
+
+WtzImage* wtz_generate_pattern_tile(int kind, int index, int tile_size,
+                                    uint32_t fg_color, double scale) {
+    WtzImage *tile = wtz_image_new(tile_size, tile_size);
+    if (!tile) return NULL;
+    
+    // TODO: implement pattern generation
+    // For now, fill with transparent
+    memset(tile->pixels, 0, tile->stride * tile_size);
+    
+    return tile;
 }
