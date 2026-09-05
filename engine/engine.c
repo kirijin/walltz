@@ -109,38 +109,9 @@ const WtzGradientPreset* wtz_gradient_preset(int index) {
     return &s_gradient_presets[index];
 }
 
-// ── Mood palettes (stub) ──────────────────────────────────────────────────
+// ── Mood palettes (implemented in mood.c) ────────────────────────────────
 
-WtzMoodPalettes* wtz_extract_mood_palettes(const WtzImage *img) {
-    WtzMoodPalettes *palettes = g_new0(WtzMoodPalettes, 1);
-    // TODO: implement hue/RGB histogram extraction
-    for (int i = 0; i < 6; i++) {
-        palettes->moods[i].color_a = 0xFF808080;
-        palettes->moods[i].color_b = 0xFFB4B4B4;
-        palettes->v2_moods[i].color_a = 0xFF808080;
-        palettes->v2_moods[i].color_b = 0xFFB4B4B4;
-    }
-    return palettes;
-}
-
-void wtz_mood_palettes_free(WtzMoodPalettes *palettes) {
-    g_free(palettes);
-}
-
-// ── Smart auto (stub) ─────────────────────────────────────────────────────
-
-WtzSmartAutoParams wtz_compute_smart_auto(const WtzImage *img) {
-    WtzSmartAutoParams p = {
-        .sigma = 15,
-        .sat_boost = 0.85,
-        .brightness = 0.92,
-        .overlay_opacity = 0.35,
-        .overlay_color = 0xFF1A1A1A,
-        .vignette = 0,
-        .grain = 0,
-    };
-    return p;
-}
+// (stub removed — real implementation in mood.c)
 
 // ── Pattern tile (stub) ───────────────────────────────────────────────────
 
