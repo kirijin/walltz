@@ -268,6 +268,75 @@ static void render_background_gradient(WtzImage *output, const WtzRenderParams *
     }
 }
 
+// ── Pattern rendering ────────────────────────────────────────────────────
+
+static void render_pattern(WtzImage *output, const WtzRenderParams *params) {
+    if (!params->bg_pattern_enabled) return;
+    int W = output->width, H = output->height;
+    int base_tile = (int)(80 * params->bg_pattern_scale);
+    if (base_tile < 20) base_tile = 20;
+
+    // Decode pattern type
+    int kind = 0, index = params->bg_pattern_type;
+    if (index >= 100) { kind = 2; index -= 100; }
+    else if (index >= 50) { kind = 1; index -= 50; }
+    else { kind = 0; }
+
+    // Generate tile
+    WtzImage *tile = wtz_generate_pattern_tile(kind, index, base_tile, params->bg_pattern_color, params->bg_pattern_scale);
+    if (!tile) return;
+
+    int tile_w = tile->width, tile_h = tile->height;
+    double spacing_factor = 1.0 + params->bg_pattern_spacing;
+    int step_x = (int)(tile_w * spacing_factor);
+    int step_y = (int)(tile_h * spacing_factor);
+    if (step_x < tile_w) step_x = tile_w;
+    if (step_y < tile_h) step_y = tile_h;
+
+    int count_x = (W + step_x - 1) / step_x;
+    int count_y = (H + step_y - 1) / step_y;
+    int grid_off_x = (W - count_x * step_x) / 2;
+    int grid_off_y = (H - count_y * step_y) / 2;
+
+    // Tile the pattern across the canvas
+    for (int ty = 0; ty < count_y; ty++) {
+        for (int tx = 0; tx < count_x; tx++) {
+            int tile_x = grid_off_x + tx * step_x;
+            int tile_y = grid_off_y + ty * step_y;
+
+            // Jitter
+            if (params->bg_pattern_jitter) {
+                double amp = params->bg_pattern_grid_amplitude;
+                double period = 5.0;
+                tile_x += (int)(amp * base_tile * sin(2.0 * M_PI * ty / period));
+                tile_y += (int)(amp * base_tile * cos(2.0 * M_PI * tx / period));
+            }
+
+            // Draw tile onto output
+            for (int y = 0; y < tile_h; y++) {
+                int dy = tile_y + y;
+                if (dy < 0 || dy >= H) continue;
+                const uint8_t *src_row = tile->pixels + y * tile->stride;
+                uint8_t *dst_row = output->pixels + dy * output->stride;
+                for (int x = 0; x < tile_w; x++) {
+                    int dx = tile_x + x;
+                    if (dx < 0 || dx >= W) continue;
+                    uint8_t sa = src_row[x * 4 + 3];
+                    if (sa == 0) continue;
+                    // Blend with opacity 0.35
+                    uint8_t opacity = (uint8_t)(sa * 0.35);
+                    if (opacity == 0) continue;
+                    for (int c = 0; c < 3; c++) {
+                        dst_row[dx * 4 + c] = (uint8_t)((src_row[x * 4 + c] * opacity + dst_row[dx * 4 + c] * (255 - opacity)) / 255);
+                    }
+                }
+            }
+        }
+    }
+
+    wtz_image_free(tile);
+}
+
 // ── Vignette effect ───────────────────────────────────────────────────────
 
 static void apply_vignette(WtzImage *img, double strength) {
@@ -437,6 +506,9 @@ WtzImage* wtz_render(const WtzImage *src, const WtzRenderParams *params) {
     } else {
         render_background_solid(output, params);
     }
+
+    // ── Pattern overlay ──
+    render_pattern(output, params);
 
     // ── Vignette ──
     apply_vignette(output, params->vignette_strength);
