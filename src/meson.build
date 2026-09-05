@@ -7,6 +7,7 @@ vala_sources = files(
   'application.vala',
   'window.vala',
   'controls.vala',
+  'drop-area.vala',
   'vapi/engine.vapi',
 )
 

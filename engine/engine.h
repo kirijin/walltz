@@ -124,7 +124,7 @@ typedef struct {
     double grain;
 } WtzSmartAutoParams;
 
-WtzSmartAutoParams wtz_compute_smart_auto(const WtzImage *img);
+void wtz_compute_smart_auto(const WtzImage *img, WtzSmartAutoParams *result);
 
 // Pattern tile generation
 WtzImage* wtz_generate_pattern_tile(int kind, int index, int tile_size,

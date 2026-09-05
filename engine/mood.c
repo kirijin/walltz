@@ -402,18 +402,16 @@ void wtz_mood_palettes_free(WtzMoodPalettes *palettes) {
 
 // ── Smart Auto params ─────────────────────────────────────────────────────
 
-WtzSmartAutoParams wtz_compute_smart_auto(const WtzImage *img) {
-    WtzSmartAutoParams p = {
-        .sigma = 15,
-        .sat_boost = 0.85,
-        .brightness = 0.92,
-        .overlay_opacity = 0.35,
-        .overlay_color = 0xFF1A1A1A,
-        .vignette = 0,
-        .grain = 0,
-    };
+void wtz_compute_smart_auto(const WtzImage *img, WtzSmartAutoParams *result) {
+    result->sigma = 15;
+    result->sat_boost = 0.85;
+    result->brightness = 0.92;
+    result->overlay_opacity = 0.35;
+    result->overlay_color = 0xFF1A1A1A;
+    result->vignette = 0;
+    result->grain = 0;
 
-    if (!img || !img->pixels) return p;
+    if (!img || !img->pixels) return;
 
     int w = img->width, h = img->height;
     int step = MAX(1, MAX(w, h) / 64);
@@ -436,24 +434,22 @@ WtzSmartAutoParams wtz_compute_smart_auto(const WtzImage *img) {
         }
     }
 
-    if (count == 0) return p;
+    if (count == 0) return;
 
     double srcL = sumL / count;
     double srcS = sumS / count;
 
-    p.sigma = 10 + srcS * 25;
+    result->sigma = 10 + srcS * 25;
 
-    if (srcS < 0.20) p.sat_boost = 1.0;
-    else if (srcS > 0.60) p.sat_boost = 0.35;
+    if (srcS < 0.20) result->sat_boost = 1.0;
+    else if (srcS > 0.60) result->sat_boost = 0.35;
     else {
-        p.sat_boost = 1.0 - (srcS - 0.20) * (0.65 / 0.40);
-        p.sat_boost = fmax(0.35, fmin(p.sat_boost, 1.0));
+        result->sat_boost = 1.0 - (srcS - 0.20) * (0.65 / 0.40);
+        result->sat_boost = fmax(0.35, fmin(result->sat_boost, 1.0));
     }
 
-    if (srcL > 0.01) p.brightness = fmax(0.55, fmin(0.40 / srcL, 1.15));
-    else p.brightness = 0.85;
+    if (srcL > 0.01) result->brightness = fmax(0.55, fmin(0.40 / srcL, 1.15));
+    else result->brightness = 0.85;
 
-    p.overlay_opacity = fmax(0.18, fmin(0.18 + srcL * 0.30, 0.45));
-
-    return p;
+    result->overlay_opacity = fmax(0.18, fmin(0.18 + srcL * 0.30, 0.45));
 }

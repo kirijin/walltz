@@ -14,6 +14,7 @@ gobject_dep = dependency('gobject-2.0', version: '>= 2.70')
 gio_dep = dependency('gio-2.0', version: '>= 2.70')
 gtk_dep = dependency('gtk4', version: '>= 4.6')
 granite_dep = dependency('granite-7', version: '>= 7.0')
+m_dep = meson.get_compiler('c').find_library('m', required: false)
 
 # C engine library
 subdir('engine')

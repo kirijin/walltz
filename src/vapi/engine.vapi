@@ -11,7 +11,7 @@ public struct WtzImage {
     public int stride;
 }
 
-[CCode (cname = "WtzRenderParams", cheader_filename = "engine.h")]
+[CCode (cname = "WtzRenderParams", cheader_filename = "engine.h", has_copy_function = false)]
 public struct WtzRenderParams {
     public int target_width;
     public int target_height;
@@ -60,6 +60,23 @@ public struct WtzRenderParams {
     public int photo_grade;
     public int auto_mood;
     public int use_v2;
+
+    public WtzRenderParams () {
+        this.target_width = 1920;
+        this.target_height = 1080;
+        this.blur_mode = 1;
+        this.blur_radius = 90;
+        this.saturation_factor = 1.8;
+        this.bg_zoom = 1.0;
+        this.bg_blur_angle = 0.0;
+        this.blur_brightness = 1.0;
+        this.auto_color = 1;
+        this.bg_color = 0xFFFFFFFFU;
+        this.bg_gradient_preset = 0;
+        this.gradient_angle = 45.0;
+        this.mood_color_a = 0xFF808080U;
+        this.mood_color_b = 0xFFB4B4B4U;
+    }
 }
 
 [CCode (cname = "WtzMoodPair", cheader_filename = "engine.h")]
@@ -138,7 +155,7 @@ public static extern WtzMoodPalettes* wtz_extract_mood_palettes(WtzImage* img);
 public static extern void wtz_mood_palettes_free(WtzMoodPalettes* palettes);
 
 [CCode (cheader_filename = "engine.h")]
-public static extern WtzSmartAutoParams wtz_compute_smart_auto(WtzImage* img);
+public static extern void wtz_compute_smart_auto(WtzImage* img, out WtzSmartAutoParams result);
 
 [CCode (cheader_filename = "engine.h")]
 public static extern WtzImage* wtz_generate_pattern_tile(int kind, int index, int tile_size, uint32 fg_color, double scale);
