@@ -94,6 +94,11 @@ int wtz_image_save_png(const WtzImage *img, const char *path);
 // Core render
 WtzImage* wtz_render(const WtzImage *src, const WtzRenderParams *params);
 
+// Blur (adaptive dispatch: Gaussian for σ≤50, box cascade for σ>50)
+void wtz_blur_image(WtzImage *image, double sigma, double saturationFactor,
+                     double overlayOpacity, uint32_t overlayColor, double brightness,
+                     double colorGamma, double colorWarmth, double colorBlackLift);
+
 // Mood palette extraction
 typedef struct {
     uint32_t color_a;

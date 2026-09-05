@@ -1,5 +1,7 @@
 # C engine library — pure C, no Qt/GTK deps
 
+gdk_pixbuf_dep = dependency('gdk-pixbuf-2.0', version: '>= 2.42')
+
 engine_sources = files(
   'engine.c',
   'blur.c',
@@ -18,12 +20,12 @@ engine_lib = static_library('walltz-engine',
     '-O2',
     '-ffast-math',
   ],
-  dependencies: [glib_dep, gobject_dep],
+  dependencies: [glib_dep, gobject_dep, gdk_pixbuf_dep],
   install: false,
 )
 
 engine_dep = declare_dependency(
   link_with: engine_lib,
   include_directories: include_directories('.'),
-  dependencies: [glib_dep, gobject_dep],
+  dependencies: [glib_dep, gobject_dep, gdk_pixbuf_dep],
 )
