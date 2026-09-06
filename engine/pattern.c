@@ -9,6 +9,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
+#include <stdio.h>
 
 #ifndef M_PI
 #define M_PI G_PI
@@ -76,8 +77,10 @@ static void draw_dots(WtzImage *tile, int S, uint32_t fg, double scale) {
     uint8_t r = (fg >> 16) & 0xFF, g = (fg >> 8) & 0xFF, b = fg & 0xFF;
     double spacing = S / 4.0;
     int radius = (int)fmax(1.0, S * 0.08 * scale);
+    fprintf(stderr, "DEBUG draw_dots: S=%d spacing=%.1f radius=%d color=%02x%02x%02x\n", S, spacing, radius, r, g, b);
     for (double y = 0; y <= S; y += spacing) {
         for (double x = 0; x <= S; x += spacing) {
+            fprintf(stderr, "  drawing dot at (%.0f, %.0f)\n", x, y);
             draw_circle(tile, (int)x, (int)y, radius, r, g, b, 255);
         }
     }
@@ -366,6 +369,9 @@ WtzImage* wtz_generate_pattern_tile(int kind, int index, int tile_size,
 
     memset(tile->pixels, 0, tile->stride * tile_size);
 
+    fprintf(stderr, "DEBUG wtz_generate_pattern_tile: kind=%d index=%d size=%d color=%08x\n", kind, index, tile_size, fg_color);
+    fflush(stderr);
+
     if (kind == 0) {
         switch (index) {
             case 0: draw_dots(tile, tile_size, fg_color, scale); break;
@@ -400,5 +406,6 @@ WtzImage* wtz_generate_pattern_tile(int kind, int index, int tile_size,
         }
     }
 
+    fflush(stderr);
     return tile;
 }

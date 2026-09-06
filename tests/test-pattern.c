@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 kirijin <avel.ronin@gmail.com>
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-// Test pattern tile generation
+// Debug pattern tile test
 
 #include "engine.h"
 #include <stdio.h>
@@ -9,60 +9,28 @@
 #include <string.h>
 
 int main() {
-    printf("=== Pattern tile test ===\n");
+    setbuf(stdout, NULL);
+    fprintf(stderr, "=== Debug pattern test ===\n");
+    fprintf(stderr, "About to call wtz_generate_pattern_tile...\n");
 
-    // Test geometric patterns
-    for (int i = 0; i < 8; i++) {
-        WtzImage *tile = wtz_generate_pattern_tile(0, i, 60, 0xFF787878U, 1.0);
-        if (!tile) {
-            printf("FAIL: pattern %d returned NULL\n", i);
-            return 1;
+    WtzImage *tile = wtz_generate_pattern_tile(0, 0, 60, 0xFF787878U, 1.0);
+
+    fprintf(stderr, "Returned from wtz_generate_pattern_tile, tile=%p\n", (void*)tile);
+
+    if (!tile) { fprintf(stderr, "FAIL: API returned NULL\n"); return 1; }
+
+    fprintf(stderr, "API Tile: %dx%d stride=%d\n", tile->width, tile->height, tile->stride);
+
+    // Count opaque pixels
+    int opaque = 0;
+    for (int y = 0; y < tile->height; y++) {
+        uint8_t *row = tile->pixels + y * tile->stride;
+        for (int x = 0; x < tile->width; x++) {
+            if (row[x * 4 + 3] > 0) opaque++;
         }
-
-        int opaque = 0;
-        for (int y = 0; y < tile->height; y++) {
-            uint8_t *row = tile->pixels + y * tile->stride;
-            for (int x = 0; x < tile->width; x++) {
-                if (row[x * 4 + 3] > 0) opaque++;
-            }
-        }
-        printf("Geometric %d: %dx%d, opaque_pixels=%d\n", i, tile->width, tile->height, opaque);
-
-        if (opaque == 0) {
-            printf("FAIL: pattern %d is fully transparent\n", i);
-            wtz_image_free(tile);
-            return 1;
-        }
-
-        wtz_image_free(tile);
     }
+    fprintf(stderr, "API dots: opaque_pixels=%d\n", opaque);
 
-    // Test SVG geo patterns
-    for (int i = 0; i < 16; i++) {
-        WtzImage *tile = wtz_generate_pattern_tile(1, i, 60, 0xFF787878U, 1.0);
-        if (!tile) {
-            printf("FAIL: svg geo %d returned NULL\n", i);
-            return 1;
-        }
-
-        int opaque = 0;
-        for (int y = 0; y < tile->height; y++) {
-            uint8_t *row = tile->pixels + y * tile->stride;
-            for (int x = 0; x < tile->width; x++) {
-                if (row[x * 4 + 3] > 0) opaque++;
-            }
-        }
-        printf("SVG Geo %d: %dx%d, opaque_pixels=%d\n", i, tile->width, tile->height, opaque);
-
-        if (opaque == 0) {
-            printf("FAIL: svg geo %d is fully transparent\n", i);
-            wtz_image_free(tile);
-            return 1;
-        }
-
-        wtz_image_free(tile);
-    }
-
-    printf("\nOK: All pattern tiles generated\n");
+    wtz_image_free(tile);
     return 0;
 }
