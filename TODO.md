@@ -5,6 +5,26 @@
 
 ---
 
+## Target Stack (elementaryOS 8.1 — Latest)
+
+| Component | Target Version | Current | Source |
+|-----------|---------------|---------|--------|
+| **Platform** | `io.elementary.Platform` 9.0.0 | 46 (GNOME) | elementary/flatpak-platform |
+| **GNOME runtime** | 50 | 46 | Platform 9.0.0 (PR #237) |
+| **GTK4** | 4.14+ | 4.12 (GNOME 46) | GNOME 50 |
+| **Granite** | 7.8.1 | 7.8.1 | Platform 9.0.0 (PR #227) |
+| **Vala** | 0.56.19 | 0.56.19 | Fedora 44 |
+| **libportal** | 0.10.0 | 0.9.1 | Platform 9.0.0 (PR #242) |
+| **stylesheet** | 8.2.2 | 8.2.2 | Platform 9.0.0 (PR #218) |
+| **icons** | 9.0.0 | 9.0.0 | Platform 9.0.0 (PR #247) |
+
+**References**:
+- https://releases.elementary.io/ — latest platform 9.0.0 (Aug 28, 2026)
+- https://github.com/elementary/flatpak-platform/releases — changelog
+- https://www.debugpoint.com/elementary-os-8-1-features/ — OS 8.1 uses GNOME 46 base
+
+---
+
 ## CRITICAL (must fix for MVP)
 
 ### Pattern tiles return transparent
@@ -21,6 +41,20 @@
 ---
 
 ## HIGH (should fix for AppCenter submission)
+
+### Upgrade to platform 9.0.0 / GNOME 50 runtime
+- **Status**: OPEN
+- **Current**: `runtime: org.gnome.Platform` version `46`
+- **Target**: `runtime: io.elementary.Platform` version `9.0.0` (or `//9.0.0` for Flatpak)
+- **Changes needed**:
+  - Update `flatpak/org.walltz.walltz.yml`:
+    - `runtime: io.elementary.Platform`
+    - `runtime-version: '9.0.0'`
+    - `sdk: io.elementary.Sdk`
+  - Update `meson.build` deps:
+    - `granite-7` → `granite-7` (still 7.8.1, but from platform 9.0.0)
+    - `gtk4` → version requirement bump if needed
+  - Test against new runtime in distrobox
 
 ### Replace deprecated GTK widgets
 - **Status**: OPEN
@@ -137,6 +171,7 @@
 | Task | Effort | Priority |
 |------|--------|----------|
 | Fix pattern tiles | 2-4 hours | CRITICAL |
+| Upgrade to platform 9.0.0 | 1-2 hours | HIGH |
 | Replace deprecated widgets | 1 hour | HIGH |
 | AppCenter screenshots | 30 min | HIGH |
 | Flatpak finalization | 1 hour | HIGH |
@@ -147,6 +182,29 @@
 | Procedural textures | 3 hours | LOW |
 | Photo grade | 1 hour | LOW |
 | i18n | 2 hours | LOW |
+
+---
+
+## Session Recovery
+
+```bash
+# Read first
+cat STATE.md
+cat STEPS.md
+
+# Build
+cd /var/home/pavel/src/walltz-gtk
+distrobox enter walltz-dev -- meson setup builddir
+distrobox enter walltz-dev -- ninja -C builddir
+
+# Run tests
+distrobox enter walltz-dev -- ./builddir/tests/test-render   # PASS
+distrobox enter walltz-dev -- ./builddir/tests/test-mood     # PASS
+distrobox enter walltz-dev -- ./builddir/tests/test-pattern  # FAIL (0 opaque pixels)
+
+# Run app
+distrobox enter walltz-dev -- ./builddir/src/walltz
+```
 
 ---
 
