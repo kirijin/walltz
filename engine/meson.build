@@ -11,6 +11,7 @@ engine_sources = files(
   'mood.c',
   'image_io.c',
   'render_composition.c',
+  'portal.c',
 )
 
 engine_lib = static_library('walltz-engine',
@@ -29,5 +30,5 @@ engine_lib = static_library('walltz-engine',
 engine_dep = declare_dependency(
   link_with: engine_lib,
   include_directories: include_directories('.'),
-  dependencies: [glib_dep, gobject_dep, gdk_pixbuf_dep, m_dep],
+  dependencies: [glib_dep, gobject_dep, gdk_pixbuf_dep, m_dep, gio_dep],
 )

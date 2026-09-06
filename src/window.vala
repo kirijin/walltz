@@ -42,12 +42,21 @@ public class WalltzWindow : Gtk.ApplicationWindow {
         header_bar.show_title_buttons = true;
         this.titlebar = header_bar;
 
+        // Save button
         var save_button = new Gtk.Button.from_icon_name ("document-save");
         save_button.tooltip_text = "Save Wallpaper";
         save_button.sensitive = false;
         save_button.clicked.connect (on_save_clicked);
         header_bar.pack_end (save_button);
 
+        // Set wallpaper button
+        var set_wallpaper_button = new Gtk.Button.from_icon_name ("preferences-desktop-wallpaper");
+        set_wallpaper_button.tooltip_text = "Set as Wallpaper";
+        set_wallpaper_button.sensitive = false;
+        set_wallpaper_button.clicked.connect (on_set_wallpaper_clicked);
+        header_bar.pack_end (set_wallpaper_button);
+
+        // Open button
         var open_button = new Gtk.Button.from_icon_name ("document-open");
         open_button.tooltip_text = "Open Image";
         open_button.clicked.connect (on_open_clicked);
@@ -197,7 +206,7 @@ public class WalltzWindow : Gtk.ApplicationWindow {
                         render_params.mood_color_b = palettes.moods[0].color_b;
                         wtz_mood_palettes_free (palettes);
                     }
-                    WtzSmartAutoParams smart = {0};
+                    var smart = WtzSmartAutoParams ();
                     wtz_compute_smart_auto (img, out smart);
                     render_params.blur_radius = (int) smart.sigma;
                     render_params.saturation_factor = smart.sat_boost;
@@ -298,6 +307,48 @@ public class WalltzWindow : Gtk.ApplicationWindow {
             } catch (Error e) {
                 status_label.label = "Save failed: %s".printf (e.message);
             }
+        });
+    }
+
+    private void on_set_wallpaper_clicked () {
+        if (current_image == null) return;
+
+        status_label.label = "Setting wallpaper...";
+        progress_bar.visible = true;
+
+        controls.apply_to_params (render_params);
+
+        var src = current_image;
+
+        new Thread<void> ("set-wallpaper", () => {
+            var result = wtz_render (src, render_params);
+            Idle.add (() => {
+                if (result != null) {
+                    var tmp_dir = Environment.get_tmp_dir ();
+                    var tmp_name = "walltz_wallpaper_%d.png".printf (Random.int_range (100000, 999999));
+                    var tmp_path = tmp_dir + "/" + tmp_name;
+
+                    if (wtz_image_save_png (result, tmp_path) != 0) {
+                        string? error_msg = null;
+                        if (wtz_set_as_wallpaper (tmp_path, 0, out error_msg) != 0) {
+                            status_label.label = "Wallpaper set successfully";
+                        } else {
+                            string? dest_path = null;
+                            if (wtz_save_to_pictures (tmp_path, out dest_path) != 0) {
+                                status_label.label = "Saved to Pictures: %s".printf (Path.get_basename (dest_path));
+                            } else {
+                                status_label.label = "Failed: %s".printf (error_msg ?? "Unknown error");
+                            }
+                        }
+                        FileUtils.unlink (tmp_path);
+                    } else {
+                        status_label.label = "Failed to render wallpaper";
+                    }
+                    wtz_image_free (result);
+                }
+                progress_bar.visible = false;
+                return false;
+            });
         });
     }
 

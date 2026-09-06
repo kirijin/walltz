@@ -174,3 +174,10 @@ public static extern int wtz_gradient_preset_count();
 
 [CCode (cheader_filename = "engine.h")]
 public static extern WtzGradientPreset* wtz_gradient_preset(int index);
+
+// D-Bus portal (set wallpaper)
+[CCode (cheader_filename = "engine.h")]
+public static extern int wtz_set_as_wallpaper(string path, int target, out string? error_message);
+
+[CCode (cheader_filename = "engine.h")]
+public static extern int wtz_save_to_pictures(string path, out string? dest_path);

@@ -68,7 +68,7 @@ int main() {
     printf("\nOK: Mood extraction working (Auto A=#%08X)\n", auto_a);
 
     // Test Smart Auto
-    WtzSmartAutoParams smart = {0};
+    WtzSmartAutoParams smart;
     wtz_compute_smart_auto (img, &smart);
     printf("\nSmart Auto: sigma=%.1f sat=%.2f bright=%.2f overlay=%.2f\n",
            smart.sigma, smart.sat_boost, smart.brightness, smart.overlay_opacity);

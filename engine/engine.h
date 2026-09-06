@@ -6,6 +6,7 @@
 
 #include <stdint.h>
 #include <stddef.h>
+#include <glib.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -167,6 +168,10 @@ typedef struct {
 
 int wtz_gradient_preset_count(void);
 const WtzGradientPreset* wtz_gradient_preset(int index);
+
+// D-Bus portal (set wallpaper)
+gboolean wtz_set_as_wallpaper(const char *path, int target, char **error_message);
+gboolean wtz_save_to_pictures(const char *path, char **dest_path);
 
 #ifdef __cplusplus
 }
