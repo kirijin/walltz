@@ -20,13 +20,18 @@ public class WalltzWindow : Gtk.ApplicationWindow {
     private WtzRenderParams* render_params;
     private bool is_busy = false;
 
+    // Settings
+    private WalltzSettings settings;
+
     public WalltzWindow (WalltzApp app) {
         this.app = app;
         this.default_width = 1000;
         this.default_height = 700;
         this.title = "Walltz";
         this.render_params = malloc (sizeof (WtzRenderParams));
+        this.settings = WalltzSettings.get_default ();
         reset_render_params ();
+        load_settings ();
         build_ui ();
         connect_signals ();
     }
@@ -130,6 +135,109 @@ public class WalltzWindow : Gtk.ApplicationWindow {
 
     private void connect_signals () {
         controls.param_changed.connect (on_param_changed);
+        this.close_request.connect (on_window_close_request);
+    }
+
+    private bool on_window_close_request () {
+        save_settings ();
+        return false; // Allow close
+    }
+
+    private void load_settings () {
+        render_params.target_width = settings.target_width;
+        render_params.target_height = settings.target_height;
+        render_params.blur_mode = settings.blur_mode;
+        render_params.bg_gradient_style = settings.bg_gradient_style;
+        render_params.bg_zoom = settings.bg_zoom;
+        render_params.bg_blur_angle = settings.bg_blur_angle;
+        render_params.blur_radius = settings.blur_radius;
+        render_params.saturation_factor = settings.saturation_factor;
+        render_params.overlay_opacity = settings.overlay_opacity;
+        render_params.overlay_color = parse_color (settings.overlay_color);
+        render_params.blur_brightness = settings.blur_brightness;
+        render_params.auto_color = settings.auto_color;
+        render_params.bg_color = parse_color (settings.bg_color);
+        render_params.bg_gradient_preset = settings.bg_gradient_preset;
+        render_params.gradient_angle = settings.gradient_angle;
+        render_params.auto_mood = settings.auto_mood;
+        render_params.use_v2 = settings.use_v2;
+        render_params.bg_pattern_enabled = settings.bg_pattern_enabled;
+        render_params.bg_pattern_type = settings.bg_pattern_type;
+        render_params.bg_pattern_color = parse_color (settings.bg_pattern_color);
+        render_params.bg_pattern_scale = settings.bg_pattern_scale;
+        render_params.bg_pattern_rotation = settings.bg_pattern_rotation;
+        render_params.bg_pattern_spacing = settings.bg_pattern_spacing;
+        render_params.bg_pattern_random_rotate = settings.bg_pattern_random_rotate;
+        render_params.bg_pattern_jitter = settings.bg_pattern_jitter;
+        render_params.bg_pattern_grid_amplitude = settings.bg_pattern_grid_amplitude;
+        render_params.bg_pattern_mix_enabled = settings.bg_pattern_mix_enabled;
+        render_params.vignette_strength = settings.vignette_strength;
+        render_params.grain_strength = settings.grain_strength;
+        render_params.ca_strength = settings.ca_strength;
+        render_params.color_gamma = settings.color_gamma;
+        render_params.color_warmth = settings.color_warmth;
+        render_params.color_black_lift = settings.color_black_lift;
+        render_params.photo_frame = settings.photo_frame;
+        render_params.photo_frame_width = settings.photo_frame_width;
+        render_params.fg_zoom = settings.fg_zoom;
+        render_params.pip_zoom = settings.pip_zoom;
+        render_params.photo_grade = settings.photo_grade;
+    }
+
+    private void save_settings () {
+        settings.target_width = render_params.target_width;
+        settings.target_height = render_params.target_height;
+        settings.blur_mode = render_params.blur_mode;
+        settings.bg_gradient_style = render_params.bg_gradient_style;
+        settings.bg_zoom = render_params.bg_zoom;
+        settings.bg_blur_angle = render_params.bg_blur_angle;
+        settings.blur_radius = render_params.blur_radius;
+        settings.saturation_factor = render_params.saturation_factor;
+        settings.overlay_opacity = render_params.overlay_opacity;
+        settings.overlay_color = color_to_string (render_params.overlay_color);
+        settings.blur_brightness = render_params.blur_brightness;
+        settings.auto_color = render_params.auto_color;
+        settings.bg_color = color_to_string (render_params.bg_color);
+        settings.bg_gradient_preset = render_params.bg_gradient_preset;
+        settings.gradient_angle = render_params.gradient_angle;
+        settings.auto_mood = render_params.auto_mood;
+        settings.use_v2 = render_params.use_v2;
+        settings.bg_pattern_enabled = render_params.bg_pattern_enabled;
+        settings.bg_pattern_type = render_params.bg_pattern_type;
+        settings.bg_pattern_color = color_to_string (render_params.bg_pattern_color);
+        settings.bg_pattern_scale = render_params.bg_pattern_scale;
+        settings.bg_pattern_rotation = render_params.bg_pattern_rotation;
+        settings.bg_pattern_spacing = render_params.bg_pattern_spacing;
+        settings.bg_pattern_random_rotate = render_params.bg_pattern_random_rotate;
+        settings.bg_pattern_jitter = render_params.bg_pattern_jitter;
+        settings.bg_pattern_grid_amplitude = render_params.bg_pattern_grid_amplitude;
+        settings.bg_pattern_mix_enabled = render_params.bg_pattern_mix_enabled;
+        settings.vignette_strength = render_params.vignette_strength;
+        settings.grain_strength = render_params.grain_strength;
+        settings.ca_strength = render_params.ca_strength;
+        settings.color_gamma = render_params.color_gamma;
+        settings.color_warmth = render_params.color_warmth;
+        settings.color_black_lift = render_params.color_black_lift;
+        settings.photo_frame = render_params.photo_frame;
+        settings.photo_frame_width = render_params.photo_frame_width;
+        settings.fg_zoom = render_params.fg_zoom;
+        settings.pip_zoom = render_params.pip_zoom;
+        settings.photo_grade = render_params.photo_grade;
+    }
+
+    private static uint32 parse_color (string color_str) {
+        if (color_str == null || color_str.length < 7) return 0xFFFFFFFFU;
+        try {
+            var hex = color_str.substring (1);
+            if (hex.length == 6) hex = "ff" + hex;
+            return (uint32) uint64.parse (hex, 16);
+        } catch (Error e) {
+            return 0xFFFFFFFFU;
+        }
+    }
+
+    private static string color_to_string (uint32 color) {
+        return "#%08x".printf (color);
     }
 
     private void reset_render_params () {
